@@ -361,3 +361,11 @@ Prueba de 3:00 con todo lo nuevo: el rig, la magia de tinta y fondos con mucho d
 - **Lo que está detrás de las palmeras no existe para el espectador:** las pantallas de B3 pasaron del muro a cristales colgados del techo.
 - **Personaje pixel art en mundo 3D:** escala `PS(z)` redondeada a píxeles enteros, `imageSmoothingEnabled = false`, sombra y reflejo también en la cuadrícula.
 - **Saltar en la línea de tiempo con audio programado:** todos los sonidos van a buses que se reemplazan al saltar o pausar; los eventos se programan con 0,2 s de anticipación.
+
+## Lo-Fi Codes (música 100 % sintetizada, varios escenarios)
+- **Grabar la música sin conexión** (`OfflineAudioContext`) sirve para medir niveles y exportar MP3. Ojo: el bucle de la página sigue llamando a `auUpdate` y le pone automatizaciones al grafo de la grabación; bloquearlo con una bandera (`AU.offline`).
+- **Medir el balance por bandas** antes de entregar: la primera mezcla tenía los graves 28 dB por encima de los medios (bombo y bajo tapaban el piano). Objetivo lo-fi cálido: graves ≈ bajo-medios, medios −3 a −15, presencia y brillo ≈ −20. Integrado −14 LUFS.
+- **Wow & flutter barato:** un solo oscilador lento (0,42 Hz + 6,3 Hz) conectado al `detune` de cada nota; desconectarlo en `onended` para no acumular nodos.
+- **El bombo hace respirar al teclado:** bajar la ganancia del bus de teclado en cada bombo (`setValueAtTime` + `setTargetAtTime`).
+- **Otro escenario con el mismo motor:** cambiar el decorado y conservar `PJ/PS`, las franjas de suelo (aquí con baldosa que se repite en x) y la lista de profundidad. La carretera, en cambio, va mejor en 2D con capas de paralaje.
+- **Personajes pixel art que miran al mar:** hace falta una vista de espaldas (misma cuadrícula sin cara). El respaldo del banco va del lado de la cámara.

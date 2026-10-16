@@ -32,6 +32,8 @@ Cortometrajes en tinta y acuarela hechos con código: un solo archivo HTML por p
 - `juramento-roto-ep1-rig-nuevo.html`, `-ep2-`, `-ep3-` — los tres episodios **con los fondos originales y los personajes del rig nuevo** (para comparar).
 - `el-invernadero-de-cristal-y-ceniza.html` — **El Invernadero de Cristal y Ceniza** (3:00): duelo de dos magos en un invernadero victoriano bajo la tormenta, todo con el motor nuevo (rig, magia de tinta, interior en perspectiva viva). Código en `invernadero/`, guion en `invernadero/GUION.md`.
 - `atlas-de-ciudades.html` — **Atlas de ciudades**: ocho ciudades en acuarela y papel recortado, del día a la noche, con modo comparar (prueba de fondos; código en `fondos/`).
+- `claude-hollywood-101.html` — **Claude Hollywood 101** (3:26): Aguada, una tacita en 8 bits, explica cómo se hacen estas películas (voz de ElevenLabs). Código en `hollywood101/`.
+- `lo-fi-codes.html` — **Lo-Fi Codes** (3:36): video musical lo-fi con Brote; canción y dibujos 100 % código, sin voces. Código en `lofi-codes/` (con la canción en MP3).
 - `juramento-roto-trailer-v2.html` — **Tráiler v2** (1:49): escenas de las tres películas con personajes nuevos + primeros planos de manos (juramento de los niños, el hilo rojo, el perdón).
 
 Controles: espacio pausa, ← → salta 10 s, M silencia, F pantalla completa. Las fuentes se cargan de Google Fonts: sin internet se ve con las de reserva.

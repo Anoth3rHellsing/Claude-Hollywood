@@ -1,0 +1,203 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Elenco pixel</title>
+<style>
+:root { --bg:#f3ecdc; --fg:#2a211c; --dim:#7a6c5c; --card:#fbf7ee; --line:#d9ccb2; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg:#1d1916; --fg:#f1e8d6; --dim:#a89a86; --card:#27221d; --line:#3b332b; } }
+:root[data-theme="dark"] { --bg:#1d1916; --fg:#f1e8d6; --dim:#a89a86; --card:#27221d; --line:#3b332b; }
+body { margin:0; background:var(--bg); color:var(--fg); font:16px/1.45 Georgia, serif; padding:24px 16px 48px; }
+h1 { font-size:28px; margin:0 0 4px; } p.sub { color:var(--dim); margin:0 0 24px; max-width:70ch; }
+.grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(min(100%, 420px), 1fr)); gap:16px; }
+.card { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:16px; }
+.card h2 { margin:0; font-size:21px; } .card .rol { color:var(--dim); font-style:italic; margin:2px 0 12px; }
+.frames { display:flex; flex-wrap:wrap; gap:10px; align-items:flex-end; }
+.frames figure { margin:0; text-align:center; font:12px/1.2 ui-monospace, monospace; color:var(--dim); }
+canvas { image-rendering:pixelated; display:block; background:repeating-conic-gradient(rgba(127,127,127,.12) 0 25%, transparent 0 50%) 0 0/8px 8px; }
+</style></head><body>
+<h1>Elenco pixel · mundo Clawd</h1>
+<p class="sub">Todos los personajes de este mundo son sprites de 8 bits nítidos sobre escenarios en acuarela. Cada ficha guarda su paleta, su cuadrícula y sus cuadros, y su voz de bleeps (nota base y onda) para las cajas de diálogo.</p>
+<div class="grid" id="g"></div>
+<script>
+/* =====================================================================
+   ELENCO · los personajes pixel del mundo Clawd (catálogo compartido entre películas)
+   Regla de estilo: el mundo es acuarela en perspectiva; los personajes son 8 bits nítidos, contorno K,
+   sin suavizado, y solo cambian de tamaño con la distancia (PS(z)), en píxeles enteros.
+   Cada ficha: nombre, rol, película de origen, paleta, cuadrícula base y cómo se arma un cuadro (frame).
+   Opciones de cuadro comunes: legL/legR (pierna levantada 1–2), blink, sleep, happy, tired, wide (sorpresa),
+   mouthO, clogs (zuecos negros), top ('cuaderno'), cup (vaso de café en la mano).
+   ===================================================================== */
+const PXK = [30, 24, 28];
+const ELENCO = {};
+/* ---------- utilidades de cuadrícula ---------- */
+const gridOf = rows => rows.map(r => r.split(''));
+function gridLift(g, c0, c1, n, y0) {   // levanta una pierna n píxeles (las filas de y0 hasta abajo)
+  const H = g.length, old = g.map(r => r.slice());
+  for (let y = y0; y < H; y++) for (let x = c0; x <= c1; x++) g[y - n][x] = old[y][x];
+  for (let y = H - n; y < H; y++) for (let x = c0; x <= c1; x++) g[y][x] = '.';
+}
+/* ojos de 3×2 (fila de arriba con brillo, fila de abajo llena) en las posiciones E; b = color del cuerpo */
+function gridEyes(g, E, b, o) {
+  for (const [x, y] of E) {
+    const set = (dx, dy, c) => { if (g[y + dy] && g[y + dy][x + dx] !== undefined) g[y + dy][x + dx] = c; };
+    if (o.sleep || o.blink) { set(0, 0, b); set(1, 0, b); set(2, 0, b); set(0, 1, 'K'); set(1, 1, 'K'); set(2, 1, b); }
+    else if (o.happy) { set(0, 0, b); set(1, 0, 'K'); set(2, 0, b); set(0, 1, 'K'); set(1, 1, b); set(2, 1, 'K'); }
+    else if (o.tired) { set(0, 0, b); set(1, 0, b); set(2, 0, b); set(0, 1, 'K'); set(1, 1, 'K'); set(2, 1, 'K'); set(0, 2, o.bag || b); set(1, 2, o.bag || b); }
+    else if (o.wide) { set(0, -1, 'K'); set(1, -1, 'K'); set(2, -1, 'K'); set(0, 0, 'T'); set(1, 0, 'K'); set(2, 0, 'T'); set(0, 1, 'T'); set(1, 1, 'K'); set(2, 1, 'T'); }
+  }
+}
+function gridPad(g, top) { const w = g[0].length; for (let i = 0; i < top; i++) g.unshift(Array(w).fill('.')); return g; }
+function gridPut(g, x0, y0, rows) { rows.forEach((r, j) => r.split('').forEach((c, i) => { if (c !== '.' && g[y0 + j] && g[y0 + j][x0 + i] !== undefined) g[y0 + j][x0 + i] = c; })); }
+
+/* =====================================================================
+   TEO CAZORLA · cazo de cobre con gorro de chef; el mango es su colita (atada con una cinta roja).
+   Jefe de partida en Brasa y Bruma (dos estrellas en la Guía Brújula). Prisa por la mañana, ceremonia
+   frente al fuego, agotamiento de noche. Mira a la derecha; el mango sale por detrás (izquierda).
+   ===================================================================== */
+ELENCO.teo = {
+  nombre: 'Teo Cazorla', rol: 'Jefe de partida en Brasa y Bruma · protagonista', pelicula: 'Entre el Vapor y el Bit',
+  voz: { base: 523, paso: 1.06, onda: 'square' },
+  pal: { K: PXK, T: [250, 248, 242], t: [206, 204, 214], O: [216, 122, 66], o: [164, 80, 46], Y: [252, 198, 136], y: [236, 156, 92],
+    h: [100, 62, 42], H: [146, 96, 62], I: [150, 150, 160], r: [204, 56, 50], E: [244, 142, 128], k: [40, 40, 46], j: [96, 96, 108],
+    N: [244, 238, 222], n: [190, 176, 150], B: [70, 52, 44], C: [250, 248, 240], c: [196, 150, 96], L: [236, 236, 230] },
+  cell: 3.2, foot: 13,   // cm de mundo por píxel; columna del centro de la base
+  base: [
+    '.........KKK..KKK.......',
+    '.......KKTTTKKTTTKK.....',
+    '......KTTTTTTTTTTTTK....',
+    '......KTTTTTTTTTTTtK....',
+    '......KTTTTTTTTTTttK....',
+    '.......KTTTTTTTTttK.....',
+    '.......KTtTTtTTtTtK.....',
+    '.......KTtTTtTTtTtK.....',
+    '.......KKKKKKKKKKKK.....',
+    '....KKKKKKKKKKKKKKKKKK..',
+    '....KYYYYYYYYYYYYYYYyK..',
+    '....KKKKKKKKKKKKKKKKKK..',
+    '.....KyYOOOOOOOOOOOOoK..',
+    'KKK..KYOOOKKTOOOKKTOoK..',
+    'KhhKKIYOOOKKKOOOKKKOoK..',
+    'KHhrrIYOEEOOOOOOOOEEoK..',
+    'KhhKKIYOOOOOKOOKOOOOoK..',
+    'KKK..KyOOOOOOKKOOOOooK..',
+    '.....KoyOOOOOOOOOOOooK..',
+    '......KooOOOOOOOOOoooK..',
+    '.......KKKKKKKKKKKKKK...',
+    '.........KoK...KoK......',
+    '.........KoK...KoK......',
+    '.........KKK...KKK......'],
+  eyes: [[10, 13], [16, 13]], body: 'O', mouth: [13, 16], legs: [[9, 11], [15, 17]], legRow: 21,
+  frame(o = {}) {
+    const g = gridOf(this.base);
+    if (o.clogs) for (const [a] of this.legs) { g[22][a + 1] = 'k'; g[23][a] = 'K'; g[23][a + 1] = 'j'; g[23][a + 2] = 'k'; g[23][a + 3] = 'K'; g[22][a + 2] = 'K'; }
+    if (o.legL) gridLift(g, 9, 12, o.legL, 21); if (o.legR) gridLift(g, 15, 18, o.legR, 21);
+    gridEyes(g, this.eyes, 'O', { ...o, bag: 'y' });
+    if (o.mouthO) { g[16][12] = 'O'; g[16][15] = 'O'; g[16][13] = 'K'; g[16][14] = 'K'; g[17][12] = 'K'; g[17][13] = 'B'; g[17][14] = 'B'; g[17][15] = 'K'; g[18][13] = 'K'; g[18][14] = 'K'; }
+    if (o.flat) { g[16][12] = 'O'; g[16][15] = 'O'; g[17][12] = 'K'; g[17][13] = 'K'; g[17][14] = 'K'; g[17][15] = 'K'; }
+    if (o.sweat) gridPut(g, 21, 6, ['L.', 'LL', '.L']);
+    const P = gridPad(g, 6);
+    if (o.top === 'cuaderno') gridPut(P, 6, 1, ['KKKKKKKKKKKKK', 'KNNNNNNNNNNNK', 'KNnnNNNnNNnNK', 'KKKKKKKKKKKKK', '...KrK.......']);
+    if (o.cup) gridPut(P, 20, 15, ['.KKKK', 'KCCCCK', 'KCCCCK', 'KccccK', 'KCCCCK', '.KCCK.', '.KKKK.']);
+    return P;
+  },
+};
+/* =====================================================================
+   ROSA MIJARES · pancito de masa madre con gorro; segunda de cocina en Brasa y Bruma.
+   Calma de panadera, manos de harina, la que siempre sabe dónde está todo.
+   ===================================================================== */
+ELENCO.rosa = {
+  nombre: 'Rosa Mijares', rol: 'Segunda de cocina en Brasa y Bruma', pelicula: 'Entre el Vapor y el Bit',
+  voz: { base: 392, paso: 1.04, onda: 'triangle' },
+  pal: { K: PXK, T: [250, 248, 242], t: [206, 204, 214], B: [214, 152, 74], b: [168, 104, 46], s: [246, 214, 150], E: [244, 142, 128], o: [150, 94, 44], k: [40, 40, 46], j: [96, 96, 108] },
+  cell: 3.2, foot: 11,
+  base: [
+    '........KKKKKK........',
+    '.......KTTTTTTK.......',
+    '......KTTTTTTTtK......',
+    '......KTTTTTTttK......',
+    '.......KTtTtTtK.......',
+    '.......KKKKKKKK.......',
+    '....KKKKKKKKKKKKKK....',
+    '...KBBBsBBBBsBBBBbK...',
+    '..KBBBBBsBBBBBsBBbbK..',
+    '.KBBBBBBBBBBBBBBBBbbK.',
+    '.KBBBKKTBBBBBKKTBBBbK.',
+    '.KBBBKKKBBBBBKKKBBBbK.',
+    '.KBBEEBBBBKKBBBBEEbbK.',
+    '.KbBBBBBBBBBBBBBBBbbK.',
+    '..KbbBBBBBBBBBBBbbbK..',
+    '...KKKKKKKKKKKKKKKK...',
+    '.....KoK......KoK.....',
+    '.....KoK......KoK.....',
+    '.....KKK......KKK.....'],
+  eyes: [[5, 10], [13, 10]], legs: [[5, 7], [14, 16]],
+  frame(o = {}) {
+    const g = gridOf(this.base);
+    if (o.legL) gridLift(g, 5, 7, o.legL, 16); if (o.legR) gridLift(g, 14, 16, o.legR, 16);
+    gridEyes(g, this.eyes, 'B', o);
+    if (o.clogs) for (const [a] of this.legs) for (let x = a; x <= a + 2; x++) if (g[17][x] === 'o') g[17][x] = 'k';
+    return gridPad(g, 6);
+  },
+};
+/* =====================================================================
+   PERSONAJES ANTERIORES (para mantener la familia consistente)
+   ===================================================================== */
+ELENCO.brote = {
+  nombre: 'Brote', rol: 'Maceta con audífonos', pelicula: 'Lo-Fi Codes',
+  voz: { base: 440, paso: 1.05, onda: 'square' },
+  pal: { K: PXK, R: [226, 134, 90], P: [200, 104, 66], Q: [156, 74, 50], g: [70, 128, 62], G: [128, 196, 94], H: [70, 62, 84], M: [240, 188, 74], m: [198, 142, 52], T: [250, 250, 250], E: [240, 150, 140] },
+  cell: 3.2, foot: 11,
+  base: ['.....HHHHHHHHHHHH.....', '...HH....KK.KK....HH..', '..H.....KGGKGGK.....H.', '.H.....KGGgKgGGK....H.', '.H.....KGgKKKgGK....H.', '.H.....KgKggKKgK....H.', '.H......KKggKK......H.',
+    'KKKKKKKKKKKKKKKKKKKKKK', 'MmKRRRRRRRRRRRRRRRRKmM', 'MmKKKKKKKKKKKKKKKKKKmM', 'KK.KPPPPPPPPPPPPPPQKKK', '...KPPKKTPPPPKKTPPQK..', '...KPPKKKPPPPKKKPPQK..', '...KPEEPPPKKPPPEEPQK..',
+    '....KPPPPPPPPPPPPQK...', '....KPPPPPPPPPPPPQK...', '....KQQPPPPPPPPQQQK...', '.....KKKKKKKKKKKKK....', '......KPQK...KPQK.....', '......KPQK...KPQK.....', '......KKKK...KKKK.....', '......................'],
+  eyes: [[6, 11], [13, 11]],
+  frame(o = {}) { const g = gridOf(this.base); if (o.legL) gridLift(g, 6, 9, o.legL, 18); if (o.legR) gridLift(g, 13, 16, o.legR, 18); gridEyes(g, this.eyes, 'P', o); return gridPad(g, 4); },
+};
+ELENCO.tetera = {
+  nombre: 'Tetera', rol: 'Barista del carrito de café', pelicula: 'Lo-Fi Codes',
+  voz: { base: 349, paso: 1.04, onda: 'triangle' },
+  pal: { K: PXK, C: [118, 196, 176], c: [78, 148, 134], Y: [252, 222, 130], T: [250, 250, 250], L: [236, 120, 96], b: [120, 86, 62] },
+  cell: 4.2, foot: 9,
+  base: ['........KK..........', '.......KYYK.........', '.....KKKKKKKK.......', '....KCCCCCCCCK......', '...KKKKKKKKKKKK.....', '..KCCCCCCCCCCCCK....', '.KCCCCCCCCCCCCCCK.KK',
+    'KKCCKKTCCCCKKTCCKKCK', 'KCKCKKKCCCCKKKCCCKCK', 'KCKCCCCCCCCCCCCCKCK.', 'KCKCLLCCCKKCCLLCKK..', '.KKCCCCCCCCCCCCcK...', '...KcCCCCCCCCccK....', '....KcccccccccK.....', '.....KKKKKKKKKK.....', '......KK....KK......', '......KK....KK......', '....................'],
+  eyes: [[4, 7], [11, 7]],
+  frame(o = {}) { const g = gridOf(this.base); gridEyes(g, this.eyes, 'C', o); return gridPad(g, 4); },
+};
+ELENCO.aguada = {
+  nombre: 'Aguada', rol: 'Tacita con boina (diseño de Nico)', pelicula: 'Claude Hollywood 101',
+  voz: { base: 466, paso: 1.05, onda: 'square' },
+  pal: { K: PXK, B: [200, 112, 24], X: [72, 40, 0], D: [40, 24, 0], O: [112, 224, 248], T: [248, 248, 248], S: [24, 168, 200], W: [238, 244, 244] },
+  cell: 3.4, foot: 8,
+  base: ['...........KKKKK.KK...', '..........KBBBBXKXK...', '.........KBBBBBBXK....', '..........KBBBBXXDK...', 'KKKKKKKKKKKKKKKKXXDK..', 'KWWWWWWWWWWWWWWKXDDK..', 'KWWWWWWWWWWWWWWWKDDK..',
+    'KWWWWWWWWWWWWWWWWKK...', 'KOOKKTOOOOOOKKTOSK.K..', 'KOOKKKOOOOOOKKKOSKK.K.', 'KOOKKKOOOOOOKKKOSK.K.K', 'KOOOOOOOOOOOOOOOSK.K.K', 'KOOOOOOOOOOOOOOOSK.K.K', 'KOOOOOOOOOOOOOOOSKK.K.',
+    'KOOOOOOOOOOOOOOOSK.K..', 'KOOOOOOOOOOOOOOOSKK...', 'KKOOSKKKKKKKKOOSKK....', '.KOOSK......KOOSK.....', '.KOOSK......KOOSK.....', '.KOOSK......KOOSK.....', '.KOOSK......KOOSK.....', '.KKKKK......KKKKK.....'],
+  eyes: [[3, 8], [12, 8]],
+  frame(o = {}) { const g = gridOf(this.base); gridEyes(g, this.eyes, 'O', o); return gridPad(g, 4); },
+};
+
+/* ---------- cuadro → lienzo (con caché) ---------- */
+const PX_CACHE = new Map();
+function elencoCanvas(id, o = {}) {
+  const key = id + JSON.stringify(o); let c = PX_CACHE.get(key); if (c) return c;
+  const E = ELENCO[id], g = E.frame(o), h = g.length, w = g[0].length;
+  c = document.createElement('canvas'); c.width = w; c.height = h;
+  const x = c.getContext('2d'), im = x.createImageData(w, h);
+  for (let y = 0; y < h; y++) for (let i = 0; i < w; i++) { const col = E.pal[g[y][i]]; if (!col) continue; const k = (y * w + i) * 4; im.data[k] = col[0]; im.data[k + 1] = col[1]; im.data[k + 2] = col[2]; im.data[k + 3] = col[3] ?? 255; }
+  x.putImageData(im, 0, 0); c.grid = g; c.gw = w; c.gh = h; c.foot = E.foot; PX_CACHE.set(key, c); return c;
+}
+/* retrato para cajas de diálogo: recorte de la cara (filas del cuerpo) */
+function elencoFace(id, o = {}) {
+  const c = elencoCanvas(id, o), E = ELENCO[id], key = 'face' + id + JSON.stringify(o); let f = PX_CACHE.get(key); if (f) return f;
+  const r = E.faceRect || (id === 'teo' ? [3, 4, 22, 26] : [0, 0, c.width, c.height]);   // x0, y0, x1, y1 (en el cuadro con margen)
+  f = document.createElement('canvas'); f.width = r[2] - r[0]; f.height = r[3] - r[1]; f.getContext('2d').drawImage(c, r[0], r[1], f.width, f.height, 0, 0, f.width, f.height);
+  PX_CACHE.set(key, f); return f;
+}
+
+const FR = { teo: [['quieto', {}], ['parpadeo', { blink: true }], ['dormido', { sleep: true }], ['sorpresa', { wide: true, mouthO: true }], ['feliz', { happy: true }], ['agotado', { tired: true, flat: true }], ['corre', { legL: 2 }], ['zuecos', { clogs: true, legR: 1 }], ['cuaderno', { top: 'cuaderno', clogs: true }], ['café', { cup: true, clogs: true }]],
+  rosa: [['quieta', {}], ['parpadeo', { blink: true }], ['feliz', { happy: true }], ['camina', { legL: 1 }]],
+  brote: [['quieto', {}], ['feliz', { happy: true }]], tetera: [['quieta', {}], ['parpadeo', { blink: true }]], aguada: [['quieta', {}], ['parpadeo', { blink: true }]] };
+const G = document.getElementById('g');
+for (const id in ELENCO) { const E = ELENCO[id], d = document.createElement('div'); d.className = 'card';
+  d.innerHTML = `<h2>${E.nombre}</h2><div class="rol">${E.rol} · <span>${E.pelicula}</span> · voz ${E.voz.base} Hz ${E.voz.onda}</div><div class="frames"></div>`;
+  const fr = d.querySelector('.frames');
+  for (const [n, o] of (FR[id] || [['quieto', {}]])) { const c = elencoCanvas(id, o), k = 4, v = document.createElement('canvas'); v.width = c.width * k; v.height = c.height * k; const g = v.getContext('2d'); g.imageSmoothingEnabled = false; g.drawImage(c, 0, 0, v.width, v.height); const f = document.createElement('figure'); f.appendChild(v); f.insertAdjacentHTML('beforeend', `<figcaption>${n}</figcaption>`); fr.appendChild(f); }
+  G.appendChild(d); }
+</script></body></html>

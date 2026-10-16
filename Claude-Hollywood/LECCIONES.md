@@ -369,3 +369,17 @@ Prueba de 3:00 con todo lo nuevo: el rig, la magia de tinta y fondos con mucho d
 - **El bombo hace respirar al teclado:** bajar la ganancia del bus de teclado en cada bombo (`setValueAtTime` + `setTargetAtTime`).
 - **Otro escenario con el mismo motor:** cambiar el decorado y conservar `PJ/PS`, las franjas de suelo (aquí con baldosa que se repite en x) y la lista de profundidad. La carretera, en cambio, va mejor en 2D con capas de paralaje.
 - **Personajes pixel art que miran al mar:** hace falta una vista de espaldas (misma cuadrícula sin cara). El respaldo del banco va del lado de la cámara.
+
+## Entre el Vapor y el Bit · fase 1 (motor Escenarios, el estudio)
+- **Nuevo estándar de mapas:** cada superficie es una textura pintada una vez sobre un rectángulo 3D (`vplane`, `hplane`, `box3`); todo lo que tiene profundidad va a la lista `put/flush`. El Atlas y los fondos de Lo-Fi quedan como legacy.
+- **Las tiras de un plano horizontal son paralelogramos:** el borde derecho del lado cercano se queda corto y la pantalla se ve dentada. Hay que estirar `xr` para cubrir la pantalla en los dos bordes de la tira, y dibujar las paredes *después* del suelo y del techo para que tapen los bordes.
+- **La espiga de parqué hacia el fondo se lee como arcos** (moiré en perspectiva); con la espina a lo ancho se lee como espiga.
+- **Sol por la persiana:** cada rendija se proyecta en 3D sobre cada receptor y se recorta a sus bordes. Las sombras son los oclusores proyectados con la misma dirección, y las hojas de monstera tienen agujeros (`evenodd`). Una luz rasante (`dir = [1, .22, .6]`) dibuja franjas en diagonal sobre la pared. Para que el polvo de la sábana brille, la cama tiene que estar en el camino de los haces: la planta del cuarto se decide con la luz.
+- **El búfer de luz por receptor era carísimo** a pantalla completa (dos composiciones por receptor). Limitado al rectángulo donde cae la luz, y con la sombra ambiente **horneada** en las texturas, el plano general pasó de ~120 a ~60 ms en CPU.
+- **Tela horneada:** se simula una vez en la carga y se guarda a 60 Hz (función de t, se puede saltar). **El impulso se aplica UNA vez:** sumarlo en cada subpaso durante 0,1 s lo multiplica por 24 y la sábana atraviesa el techo. Pon también un techo de colisión.
+- **El sombreado por cara sale en damero:** se suaviza con normales promediadas por vértice y el sol medio de las esquinas.
+- **Una tela en el suelo se ordena como suelo;** si no, tapa al personaje que está encima.
+- **Caja de diálogo pixel:** si el que habla está en la mitad de abajo del cuadro, la caja va arriba (como en los RPG de 8 bits). Para asomarse de debajo de la sábana basta un recorte de filas del sprite (`crop`) y una posición que sube con el recorte.
+- **Cámara lenta con tiempo físico:** `phys(t)` estira un tramo; tela, polvo y salto usan el tiempo físico y el resto (diálogos, cámara, música) el real.
+- **Audio:** la primera mezcla salió a −31 LUFS. Con el volumen general en 2,0 y un compresor firme (umbral −20, razón 8) queda en −15,8 LUFS. La caja de música de la intro ya llena sola los medios: bajarla.
+- **Marcas y elenco compartidos:** `marcas/` y `personajes/` se meten en cada película desde `build.py`; los nombres de personajes nuevos son realistas y al azar.

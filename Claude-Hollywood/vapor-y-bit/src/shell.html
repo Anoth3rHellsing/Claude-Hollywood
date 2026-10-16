@@ -1,0 +1,27 @@
+<title>Entre el Vapor y el Bit</title>
+<meta name="description" content="Teo Cazorla, un cazo de cobre que es jefe de partida en un restaurante de dos estrellas, vive un día entero: del despertar con prisa al colapso de medianoche. Dibujo y sonido hechos solo con código.">
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Josefin+Sans:wght@400;600;700&family=Pacifico&family=Playfair+Display:wght@400;700&family=Space+Mono:wght@400;700&display=swap">
+<style>
+:root { color-scheme: dark; --bg: #141113; --fg: #f3ead6; --ink: #1c1418; --accent: #d4572a; }
+html, body { height: 100%; background: var(--bg); color: var(--fg); margin: 0; overflow: hidden; }
+body { display: grid; place-items: center; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); box-sizing: border-box; font-family: "Space Mono", ui-monospace, monospace; background: var(--bg); }
+.stage { position: relative; width: min(100%, calc(100vh * 16 / 9)); aspect-ratio: 16 / 9; max-width: 100%; }
+canvas { display: block; width: 100%; height: 100%; cursor: pointer; background: #000; image-rendering: auto; }
+#play { position: absolute; left: 50%; top: 56%; transform: translate(-50%, -50%); font: 700 18px "Space Mono", ui-monospace, monospace; color: #fff; background: #000; border: 4px solid #fff; padding: 14px 26px; cursor: pointer; letter-spacing: .02em; max-width: 86%; }
+#play:hover:not(:disabled), #play:focus-visible { color: #ffd84a; outline: none; }
+#play:disabled { cursor: progress; opacity: .92; }
+.prog { position: absolute; left: 0; right: 0; bottom: 0; height: 5px; background: rgba(255,255,255,.12); cursor: pointer; transition: opacity .4s; }
+#bar { height: 100%; width: 0; background: var(--accent); }
+#chap span { position: absolute; top: -3px; width: 2px; height: 11px; background: rgba(255,255,255,.45); }
+.hint { position: absolute; right: 12px; top: 8px; font-size: 12px; color: #fff; opacity: .5; transition: opacity .4s; }
+.stage.playing .hint, .stage.playing .prog { opacity: 0; }
+.stage.playing:hover .prog { opacity: 1; }
+@media (max-width: 640px) { #play { font-size: 14px; padding: 10px 16px; } .hint { display: none; } }
+</style>
+<!--BODY-->
+<div class="stage" id="stage"><canvas id="cv" aria-label="Entre el Vapor y el Bit — película animada con Teo Cazorla"></canvas><button id="play" type="button">Preparando…</button><div class="prog"><div id="bar"></div><div id="chap"></div></div><div class="hint">espacio: pausa · ← →: 5 s</div></div>
+<script>
+/*__JS__*/
+</script>

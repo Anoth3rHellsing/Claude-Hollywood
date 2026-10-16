@@ -7,6 +7,8 @@
 Corto de ~3 min donde un personaje 8 bits (la tacita de Nico) explica, en español y con voz de ElevenLabs, cómo funciona la skill `sumi-e-canvas-film`. Este archivo basta para seguir en Claude Code sin el chat original.
 
 ## Estado (16 oct 2026)
+- **EN CURSO · Entre el Vapor y el Bit** (modo asistido, fase 1 entregada) → `entre-el-vapor-y-el-bit.html`: Escena 1, el estudio (1:07). Teo Cazorla, un cazo de cobre que es chef, se despierta tarde. Primer mapa del **motor nuevo Escenarios** (`Claude-Hollywood/ESCENARIOS.md`). Diálogos con bleeps de 8 bits, sin ElevenLabs. Plan de las 6 escenas en `Claude-Hollywood/vapor-y-bit/GUION.md`. Marcas ficticias en `Claude-Hollywood/marcas/` y elenco pixel en `Claude-Hollywood/personajes/`.
+- **Lo-Fi Codes** → `lo-fi-codes.html`: la música lo-fi fue una prueba (música sin inferencia de terceros). Sus fondos y el Atlas quedan como motores legacy.
 - **ENTREGADO** → `claude-hollywood-101.html` (3:26, abrir en Chrome/Edge con sonido). Código en `Claude-Hollywood/hollywood101/`.
 - **Modo asistido.** Plan discutido y preguntas respondidas. **Guion aprobado** (`guion.json`, L14 cambiada a «Las hojas, el viento…» porque el corto es de día). Siguiente: voz → construcción → revisión.
 - **Voz:** las 18 líneas en `voz/` (≈1.625 créditos de 10.000). Trampa: lanzar muchas en paralelo desde la nube provocó 429 y un bloqueo temporal del plan gratuito; generar **una a una**.

@@ -72,7 +72,7 @@ function filmEvents() {
   for (let k = 0; k < 6; k++) E.push([40.5 + k * .16, at => clogClack(at, .5 - k * .07)]);
   E.push([46.0, at => whoosh(at, .5, 1, 800, 3000)]); E.push([47.5, at => tone(300, at, .2, .04, 'square', 900)]); E.push([47.85, at => clogClack(at, 1)]);
   E.push([49.6, at => whoosh(at, .5, 1, 800, 3000)]);
-  return E.concat(scene2Events(), scene3Events());
+  return E.concat(scene2Events(), scene3Events(), scene4Events());
 }
 /* ---------- escena 2 ---------- */
 function bellDing(at, v = 1) { for (const [f, d, a] of [[2637, 1.4, .05], [3951, .9, .025], [5274, .5, .012]]) tone(f, at, d, a * v, 'sine', f * .998); }
@@ -153,10 +153,87 @@ function scene3Events() {
   for (let t = 124; t < 181; t += .9 + hsh(t, 1) * 1.6) E.push([t, at => chirp(at, 1)]);
   return E;
 }
+/* ---------- escena 4: Brasa y Bruma ---------- */
+function crackle(at, dur, dens = 40, v = 1, f = 3200) { for (let k = 0; k < dur * dens; k++) { const a = at + Math.random() * dur; noiseHit(a, .008 + Math.random() * .02, { type: 'bandpass', f: f * (.6 + Math.random() * .9), q: 3, vol: (.012 + Math.random() * .03) * v }); } }
+function sizzleOn(at, dur, v = 1) { noiseHit(at, dur, { type: 'highpass', f: 3800, vol: .06 * v, atk: .03 }); noiseHit(at, dur * .7, { type: 'bandpass', f: 1400, q: .8, vol: .03 * v, atk: .05 }); crackle(at, dur, 60, v); }
+function whoomp(at, v = 1) { noiseHit(at, 1.2, { type: 'lowpass', f: 220, f2: 900, vol: .3 * v, atk: .08, brown: true }); thump(at + .05, .8 * v, 60); noiseHit(at + .1, 4.5, { type: 'bandpass', f: 500, q: .6, vol: .09 * v, atk: .2, brown: true }); crackle(at + .1, 3.5, 45, .9 * v, 2400); }
+function metalClank(at, v = 1) { tone(1860, at, .35, .03 * v, 'sine', 1830); tone(2940, at, .2, .015 * v, 'sine'); noiseHit(at, .03, { type: 'bandpass', f: 3000, q: 3, vol: .06 * v }); }
+function knifeShing(at, v = 1) { noiseHit(at, .45, { type: 'bandpass', f: 4000, f2: 9000, q: 6, vol: .05 * v, atk: .05 }); tone(5200, at + .1, .4, .008 * v, 'sine', 5600); }
+function printerChat(at, dur, v = 1) { for (let k = 0; k < dur * 26; k++) noiseHit(at + k / 26, .022, { type: 'bandpass', f: 2200 + (k % 3) * 300, q: 5, vol: .05 * v }); tone(140, at, dur, .012 * v, 'square', null, AU.bS, .01); }
+function paperTear(at) { noiseHit(at, .18, { type: 'highpass', f: 2000, f2: 5000, vol: .07, atk: .01 }); }
+function tick(at, v = 1) { noiseHit(at, .012, { type: 'bandpass', f: 4200, q: 8, vol: .05 * v }); tone(2100, at, .02, .01 * v, 'square'); }
+function glug(at, v = 1) { for (let k = 0; k < 4; k++) tone(260 + k * 30, at + k * .22, .14, .03 * v, 'sine', 420 + k * 40); noiseHit(at, 1, { type: 'bandpass', f: 900, q: 2, vol: .02 * v, atk: .2 }); }
+function swingDoor(at, v = 1) { whoosh(at, .35, .5 * v, 300, 1400); for (let k = 0; k < 3; k++) thump(at + .3 + k * .55, .16 * v * Math.exp(-k), 120 - k * 10); }
+const RBPM = 92, RB = 60 / RBPM;
+const RMEL = [[0, 72, 1], [1, 77, 1], [2, 76, 1], [3, 74, 2], [5, 72, 1], [6, 70, 1], [7, 72, 1], [8, 74, 1], [9, 72, 3], [12, 72, 1], [13, 77, 1], [14, 79, 1], [15, 81, 2], [17, 79, 1], [18, 77, 1], [19, 76, 1], [20, 74, 1], [21, 77, 3]];
+const RCH = [[41, [65, 69, 72]], [46, [65, 70, 74]], [48, [64, 67, 72]], [41, [65, 69, 72]], [41, [65, 69, 72]], [46, [65, 70, 74]], [48, [64, 67, 70]], [41, [65, 69, 72]]];   // F · Bb · C · F · F · Bb · C7 · F
+const KBPM = 104, KB = 60 / KBPM;
+const KCH = [45, 41, 43, 40];   // Am · F · G · E
+const KMEL = [[0, 76, 1], [1, 79, .5], [1.5, 76, .5], [2, 74, 1], [3, 72, 1], [4, 72, 1], [5, 74, .5], [5.5, 76, .5], [6, 77, 2], [8, 79, 1], [9, 77, .5], [9.5, 76, .5], [10, 74, 1], [11, 76, 1], [12, 71, 2], [14, 68, 1], [15, 71, 1]];
+function scene4Events() {
+  const E = [];
+  /* el tema de Rosa: un vals de panadería (tri de bajo, caja de música suave, flauta de triángulo) */
+  { const r0 = 189.0; for (let bar = 0; bar < 8; bar++) { const t0 = r0 + bar * RB * 3, [b, ch] = RCH[bar]; E.push([t0, at => tri(b, at, RB * .9, .8)]); for (const q of [1, 2]) E.push([t0 + q * RB, at => { for (const n of ch) mbox(n, at, .22); }]); }
+    for (const [b, n, d] of RMEL) E.push([r0 + b * RB, at => lead(n, at, d * RB * .92, .6, 'triangle')]);
+    E.push([r0 + 24 * RB, at => { for (const n of [65, 69, 72, 77]) mbox(n + 12, at, .35); }]); }
+  /* «Servicio»: el tema de la cocina (la menor, 104) */
+  const groove = (a, b, o = {}) => { for (let bar = 0; ; bar++) { const t0 = a + bar * KB * 4; if (t0 >= b) break; const r = KCH[bar % 4];
+    for (let e = 0; e < 8; e++) { const at0 = t0 + e * KB / 2; if (at0 >= b) break; E.push([at0, at => tri(r + [0, 12, 0, 7, 0, 12, 10, 7][e], at, KB * .42, .62 * (o.v ?? 1))]); E.push([at0, at => nhat(at, (e % 2 ? .4 : .7) * (o.v ?? 1))]); }
+    if (o.drums) { E.push([t0, at => nkick(at, .8)]); E.push([t0 + 2 * KB, at => nkick(at, .6)]); for (const q of [1, 3]) E.push([t0 + q * KB, at => noiseHit(at, .03, { type: 'bandpass', f: 1900, q: 3, vol: .07, dest: AU.bM })]); }
+    if (o.mel) for (const [bb, n, d] of KMEL) { if (Math.floor(bb / 4) !== bar % 4) continue; const at0 = t0 + (bb % 4) * KB; if (at0 < b) E.push([at0, at => lead(n, at, d * KB * .9, .55)]); } } };
+  groove(202.9, 216.0, { drums: true }); groove(217.4, 226.3, { v: .55 }); groove(228.4, 233.2, { drums: true, v: 1.1 }); groove(233.2, 244.0, { drums: true, mel: true });
+  E.push([226.3, at => slowSweep(at, false)]); E.push([227.0, at => tone(220, at, .6, .03, 'sawtooth', 880, AU.bM)]);
+  E.push([228.0, at => { pad([45, 52, 57, 64], at, 2.4, 1.6); for (let k = 0; k < 8; k++) mbox([69, 72, 76, 81, 84, 88, 84, 81][k], at + k * .07, .4); }]);
+  for (let k = 0; k < 24; k++) E.push([244.0 + 3.2 * (1 - Math.pow(1 - k / 24, .6)), at => lead([69, 72, 76, 79][k % 4] + 12, at, .08, .35)]);
+  E.push([244.0, at => tapeDive(at)]);
+  /* suspense: la comanda de la Guía */
+  E.push([247.6, at => pad([45, 52, 59, 64], at, 8.8, 1)]);
+  /* el emplatado: un dron y notas sueltas de pentatónica; con el oro casi silencio; al posarse, un acorde de cristal */
+  E.push([256.4, at => pad([45, 52, 57], at, 10, .9)]); E.push([266.4, at => pad([45, 52, 60], at, 10, .9)]);
+  for (let t = 257.0, k = 0; t < 275.6; t += 1.3 + hsh(k, 2) * .9, k++) { const n = [69, 72, 74, 76, 79, 81][(k * 5 + 2) % 6]; E.push([t, at => mbox(n, at, .4)]); }
+  for (let t = 256.6; t < 276; t += KB * 8) E.push([t, at => tri(33, at, KB * 6, .5)]);
+  E.push([276.4, at => tone(1760, at, 2.8, .006, 'sine', 1700, AU.bM, .8)]);
+  E.push([282.5, at => { for (const n of [81, 84, 88, 93]) mbox(n, at, .45); pad([57, 60, 64, 69], at, 3, 1.1); }]);
+  /* ¡servicio!: un compás del tema y se corta con la puerta */
+  groove(284.6, 288.5, { drums: true, v: .8 });
+  /* la espera: latido y reloj */
+  for (let t = 292.0; t < 297.4; t += .86) { E.push([t, at => nkick(at, .55)]); E.push([t + .2, at => nkick(at, .35)]); }
+  E.push([292.0, at => pad([33, 40, 45], at, 5.5, .7)]);
+  /* ¡le gustó!: «dos estrellas» brillante, con bajo y caja de música */
+  { const q = 60 / 120, off = 302.3; for (const [b, n, d] of MOTIF) E.push([off + b * q, at => lead(n, at, d * q * .9, .8)]); for (const [k, r] of [[0, 50], [2, 45], [4, 47], [6, 43], [8, 50]]) E.push([off + k * q, at => tri(r, at, q * 1.8, .9)]); E.push([off, at => pad([62, 66, 69, 74], at, 5.5, 1)]); for (let k = 0; k < 10; k++) E.push([off + 4.6 + k * .1, at => mbox([74, 78, 81, 86][k % 4] + 12, at, .35)]); }
+  /* foley */
+  for (const t0 of DOOR4) E.push([t0, at => swingDoor(at, 1)]);
+  let last = null; for (let t = S4.A; t < S4.END; t += 1 / 60) { const B = teo4(t); if (!B || B.hide || !B.run) { last = null; continue; } const st = Math.floor(t / (STEP / 1.2)); if (last !== null && st !== last) E.push([t, at => B.on === 'floor' ? clogClack(at, .5) : metalClank(at, .25)]); last = st; }
+  E.push([186.0, at => tone(300, at, .25, .04, 'square', 900)]); E.push([186.6, at => { metalClank(at, 1); squeak(at); }]);
+  for (const [a, b] of [[182.4, 184.2], [203.0, 204.4], [249.8, 251.0], [283.4, 283.9], [285.4, 286.4]]) for (let t = a; t < b; t += .34) E.push([t, at => stepTap(at, .4, 1500)]);
+  E.push([194.3, at => { tick(at, 2); latch(at); }]); for (let t = 193.9; t < 195.2; t += 1) E.push([t, at => tick(at, 1.2)]);
+  for (let k = 0; k < 30; k++) E.push([244.0 + k * .107, at => tick(at, .8)]);
+  E.push([202.95, at => knifeShing(at)]); E.push([205.5, at => { tone(2093, at, .08, .03, 'square'); tone(2093, at + .14, .08, .03, 'square'); }]);
+  E.push([207.8, at => crackle(at, 2.6, 30, .9, 1800)]);
+  E.push([210.6, at => { latch(at); latch(at + .18); noiseHit(at + .3, .8, { type: 'lowpass', f: 300, f2: 900, vol: .12, atk: .1, brown: true }); }]);
+  E.push([RC.drop, at => { sizzleOn(at, 9.6, 1.2); thump(at, .3, 140); }]); E.push([RC.flip, at => whoosh(at, .4, .7, 500, 2200)]); E.push([RC.flip + .55, at => { thump(at, .25, 130); sizzleOn(at, 4.2, .9); }]);
+  E.push([RC.pour + .05, at => glug(at, 1)]); E.push([RC.ign, at => whoomp(at, 1)]);
+  E.push([RC.butter, at => { plop(at, .8); sizzleOn(at, 10.6, .6); }]);
+  for (let t = RC.baste; t < RC.endA; t += 1.15) { E.push([t + .05, at => tone(2600, at, .06, .012, 'sine')]); E.push([t + .62, at => crackle(at, .4, 60, .8, 3600)]); }
+  E.push([247.3, at => printerChat(at, 1.5)]); E.push([249.0, at => paperTear(at)]);
+  E.push([RC.plate, at => cupSlide(at, 1.1)]); E.push([RC.plate + 1.15, at => { ceramic(at, .8); thump(at, .12, 160); }]);
+  E.push([RC.tear, at => noiseHit(at, 1.8, { type: 'bandpass', f: 700, f2: 400, q: 2, vol: .03, atk: .3 })]);
+  for (let k = 0; k < 5; k++) { const t0 = RC.slices + k * .62; E.push([t0 + .38, at => tone(3400, at, .02, .012, 'square')]); E.push([t0 + .4, at => thump(at, .05, 200)]); }
+  for (const d of GREEN.concat(SAFF)) E.push([d.t, at => noiseHit(at, .06, { type: 'lowpass', f: 900, vol: .05 })]);
+  for (const G of GARN) E.push([G.t + .45, at => tone(3600, at, .02, .01, 'square')]);
+  E.push([RC.goldOff, at => { for (const n of [93, 96, 100]) mbox(n, at, .2); }]); E.push([RC.goldOff - .5, at => noiseHit(at, 4, { type: 'highpass', f: 5000, vol: .02, atk: 1.2 })]);
+  for (let t = 279.0; t < 282.6; t += 1) E.push([t, at => tick(at, .6)]);
+  E.push([284.35, at => bellDing(at, 1.3)]);
+  E.push([287.4, at => cupSlide(at, 1)]); E.push([297.6, at => cupSlide(at, 1.1)]); E.push([298.7, at => ceramic(at, 1)]);
+  for (let t = 292.0; t < 299; t += 1) E.push([t, at => tick(at, .7)]);
+  for (const t0 of [306.6, 307.1, 307.6, 308.1]) E.push([t0, at => tone(400, at, .18, .03, 'square', 1000)]);
+  E.push([305.0, at => printerChat(at, 7.2, .8)]);
+  return E;
+}
 /* ---------- lechos ---------- */
 function filmAudioInit() {
   auBed('room', AU.brown, 'lowpass', 180, .5); auBed('city', AU.brown, 'bandpass', 420, .7); auBed('hiss', AU.white, 'highpass', 7000, .5); auBed('hall', AU.brown, 'lowpass', 300, .6);
-  auBed('traffic', AU.brown, 'lowpass', 260, .6); auBed('wind', AU.white, 'bandpass', 900, .5); auBed('murmur', AU.white, 'bandpass', 620, 2.4); auBed('cafe', AU.brown, 'lowpass', 400, .6); auBed('leaves', AU.white, 'bandpass', 2600, .4); auBed('water', AU.brown, 'bandpass', 320, .8);
+  auBed('traffic', AU.brown, 'lowpass', 260, .6); auBed('wind', AU.white, 'bandpass', 900, .5); auBed('murmur', AU.white, 'bandpass', 620, 2.4); auBed('cafe', AU.brown, 'lowpass', 400, .6); auBed('leaves', AU.white, 'bandpass', 2600, .4); auBed('water', AU.brown, 'bandpass', 320, .8); auBed('hood', AU.brown, 'lowpass', 130, .7); auBed('sizzle', AU.white, 'highpass', 4200, .5);
 }
 function filmBeds(t, n) {
   const s1 = t < S1END + .5, s2a = t >= S1END && t < S2.B, s2b = t >= S2.B;
@@ -164,7 +241,8 @@ function filmBeds(t, n) {
   bedSet('city', s1 ? .028 * (1 - slowK(t) * .7) : 0, n);
   bedSet('hall', s1 && t > 40 ? .03 : 0, n);
   bedSet('traffic', s2a ? .07 : s2b ? .015 : 0, n); bedSet('wind', s2a ? .012 : 0, n);
-  const s3 = t >= S3.A - .5; bedSet('murmur', s2b && !s3 ? .016 : 0, n); bedSet('cafe', s2b && !s3 ? .04 : 0, n);
+  const s3 = t >= S3.A - .5 && t < S4.A, s4 = t >= S4.A - .5, ins = s4 ? ins4(t) : null;
+  bedSet('hood', s4 ? (ins ? .05 : .09) : 0, n); bedSet('sizzle', s4 ? (ins === 'A' ? .03 : .006) : 0, n); if (s4) { bedSet('hall', ins === 'B' ? .01 : .02, n); bedSet('traffic', 0, n); } bedSet('murmur', s2b && t < S3.A - .5 ? .016 : 0, n); bedSet('cafe', s2b && t < S3.A - .5 ? .04 : 0, n);
   bedSet('leaves', s3 ? .012 + .006 * Math.sin(t * .4) : 0, n); bedSet('water', s3 && t < 152 ? .03 : 0, n); if (s3) bedSet('traffic', .01, n);
   if (AU.bedL.murmur) AU.bedL.murmur.fl.frequency.setTargetAtTime(560 + 140 * Math.sin(t * .7), n, .3);
   const k = slowK(t); AU.sfx.gain.setTargetAtTime(1 - .4 * k, n, .1);

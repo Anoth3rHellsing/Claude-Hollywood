@@ -219,3 +219,32 @@ function matGrass(w, h, o = {}) {
   wcTex(g, T.c.width, T.c.height, .2, .25);
   return T;
 }
+/* ---------- azulejo blanco biselado (metro) con juntas grises impecables ---------- */
+function matSubway(w, h, o = {}) {
+  const T = tex(w, h, o.d ?? 1.6), g = T.g, r = mulberry32(o.seed ?? 91), TW = o.tw ?? 15, TH = o.th ?? 7.5, J = .5, c = o.c ?? [240, 242, 240];
+  g.fillStyle = cssc(o.grout ?? [150, 152, 156]); g.fillRect(0, 0, w, h);
+  let row = 0; for (let y = 0; y < h; y += TH, row++) for (let x = -(row % 2) * TW / 2; x < w; x += TW) {
+    const x0 = x + J / 2, y0 = y + J / 2, tw = TW - J, th = TH - J, cc = shc(c, (r() - .5) * .03);
+    const gr = g.createLinearGradient(x0, y0, x0, y0 + th); gr.addColorStop(0, cssc(shc(cc, .05))); gr.addColorStop(.5, cssc(cc)); gr.addColorStop(1, cssc(shc(cc, -.08))); g.fillStyle = gr; g.fillRect(x0, y0, tw, th);
+    g.fillStyle = 'rgba(255,255,255,.75)'; g.fillRect(x0 + .4, y0 + .3, tw - .8, .5); g.fillStyle = 'rgba(120,124,132,.35)'; g.fillRect(x0 + .4, y0 + th - .7, tw - .8, .5); g.fillRect(x0 + tw - .6, y0, .5, th);   // bisel
+    g.fillStyle = 'rgba(255,255,255,.18)'; g.fillRect(x0 + tw * .15, y0 + th * .2, tw * .35, th * .25);   // brillo del esmalte
+  }
+  wcTex(g, T.c.width, T.c.height, .12, .1);
+  return T;
+}
+/* ---------- acero inoxidable cepillado (vetas en una dirección; o.band = franja de reflejo de las tiras LED) ---------- */
+function matSteel(w, h, o = {}) {
+  const T = tex(w, h, o.d ?? 1.2), g = T.g, r = mulberry32(o.seed ?? 95), c = o.c ?? [186, 190, 196], vert = !!o.vert;
+  const gr = vert ? g.createLinearGradient(0, 0, w, 0) : g.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, cssc(shc(c, .08))); gr.addColorStop(.5, cssc(shc(c, -.06))); gr.addColorStop(1, cssc(shc(c, .02))); g.fillStyle = gr; g.fillRect(0, 0, w, h);
+  for (let i = 0; i < (vert ? w : h) * 3; i++) { const p = r() * (vert ? w : h), L = 20 + r() * (vert ? h : w) * .6, q = r() * (vert ? h : w); g.fillStyle = `rgba(${r() < .5 ? '255,255,255' : '60,64,72'},${.03 + r() * .06})`; if (vert) g.fillRect(p, q, .5, L); else g.fillRect(q, p, L, .5); }
+  for (const b of o.bands || []) { const bg = vert ? g.createLinearGradient(b[0] * w - b[1] * w, 0, b[0] * w + b[1] * w, 0) : g.createLinearGradient(0, b[0] * h - b[1] * h, 0, b[0] * h + b[1] * h); bg.addColorStop(0, 'rgba(255,255,255,0)'); bg.addColorStop(.5, `rgba(255,255,255,${b[2] ?? .6})`); bg.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = bg; g.fillRect(0, 0, w, h); }
+  for (let i = 0; i < (o.smudge ?? 6); i++) { const x = r() * w, y = r() * h, rr = 6 + r() * 20, rg = g.createRadialGradient(x, y, 0, x, y, rr); rg.addColorStop(0, 'rgba(120,124,130,.12)'); rg.addColorStop(1, 'rgba(120,124,130,0)'); g.fillStyle = rg; g.fillRect(x - rr, y - rr, rr * 2, rr * 2); }
+  return T;
+}
+/* ---------- baldosa de cocina antideslizante (rojo teja) ---------- */
+function matQuarry(w, h, o = {}) {
+  const T = tex(w, h, o.d ?? 1.1), g = T.g, r = mulberry32(o.seed ?? 97), S = o.tile ?? 20;
+  g.fillStyle = 'rgb(70,50,44)'; g.fillRect(0, 0, w, h);
+  for (let y = 0; y < h; y += S) for (let x = 0; x < w; x += S) { const c = shc([150, 76, 56], (r() - .5) * .14); g.fillStyle = cssc(c); g.fillRect(x + .6, y + .6, S - 1.2, S - 1.2); for (let k = 0; k < 14; k++) { g.fillStyle = `rgba(${r() < .5 ? '60,30,20' : '220,170,140'},${r() * .25})`; g.fillRect(x + r() * S, y + r() * S, .9, .9); } }
+  return T;
+}

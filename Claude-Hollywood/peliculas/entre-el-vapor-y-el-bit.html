@@ -724,6 +724,35 @@ function matGrass(w, h, o = {}) {
   wcTex(g, T.c.width, T.c.height, .2, .25);
   return T;
 }
+/* ---------- azulejo blanco biselado (metro) con juntas grises impecables ---------- */
+function matSubway(w, h, o = {}) {
+  const T = tex(w, h, o.d ?? 1.6), g = T.g, r = mulberry32(o.seed ?? 91), TW = o.tw ?? 15, TH = o.th ?? 7.5, J = .5, c = o.c ?? [240, 242, 240];
+  g.fillStyle = cssc(o.grout ?? [150, 152, 156]); g.fillRect(0, 0, w, h);
+  let row = 0; for (let y = 0; y < h; y += TH, row++) for (let x = -(row % 2) * TW / 2; x < w; x += TW) {
+    const x0 = x + J / 2, y0 = y + J / 2, tw = TW - J, th = TH - J, cc = shc(c, (r() - .5) * .03);
+    const gr = g.createLinearGradient(x0, y0, x0, y0 + th); gr.addColorStop(0, cssc(shc(cc, .05))); gr.addColorStop(.5, cssc(cc)); gr.addColorStop(1, cssc(shc(cc, -.08))); g.fillStyle = gr; g.fillRect(x0, y0, tw, th);
+    g.fillStyle = 'rgba(255,255,255,.75)'; g.fillRect(x0 + .4, y0 + .3, tw - .8, .5); g.fillStyle = 'rgba(120,124,132,.35)'; g.fillRect(x0 + .4, y0 + th - .7, tw - .8, .5); g.fillRect(x0 + tw - .6, y0, .5, th);   // bisel
+    g.fillStyle = 'rgba(255,255,255,.18)'; g.fillRect(x0 + tw * .15, y0 + th * .2, tw * .35, th * .25);   // brillo del esmalte
+  }
+  wcTex(g, T.c.width, T.c.height, .12, .1);
+  return T;
+}
+/* ---------- acero inoxidable cepillado (vetas en una dirección; o.band = franja de reflejo de las tiras LED) ---------- */
+function matSteel(w, h, o = {}) {
+  const T = tex(w, h, o.d ?? 1.2), g = T.g, r = mulberry32(o.seed ?? 95), c = o.c ?? [186, 190, 196], vert = !!o.vert;
+  const gr = vert ? g.createLinearGradient(0, 0, w, 0) : g.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, cssc(shc(c, .08))); gr.addColorStop(.5, cssc(shc(c, -.06))); gr.addColorStop(1, cssc(shc(c, .02))); g.fillStyle = gr; g.fillRect(0, 0, w, h);
+  for (let i = 0; i < (vert ? w : h) * 3; i++) { const p = r() * (vert ? w : h), L = 20 + r() * (vert ? h : w) * .6, q = r() * (vert ? h : w); g.fillStyle = `rgba(${r() < .5 ? '255,255,255' : '60,64,72'},${.03 + r() * .06})`; if (vert) g.fillRect(p, q, .5, L); else g.fillRect(q, p, L, .5); }
+  for (const b of o.bands || []) { const bg = vert ? g.createLinearGradient(b[0] * w - b[1] * w, 0, b[0] * w + b[1] * w, 0) : g.createLinearGradient(0, b[0] * h - b[1] * h, 0, b[0] * h + b[1] * h); bg.addColorStop(0, 'rgba(255,255,255,0)'); bg.addColorStop(.5, `rgba(255,255,255,${b[2] ?? .6})`); bg.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = bg; g.fillRect(0, 0, w, h); }
+  for (let i = 0; i < (o.smudge ?? 6); i++) { const x = r() * w, y = r() * h, rr = 6 + r() * 20, rg = g.createRadialGradient(x, y, 0, x, y, rr); rg.addColorStop(0, 'rgba(120,124,130,.12)'); rg.addColorStop(1, 'rgba(120,124,130,0)'); g.fillStyle = rg; g.fillRect(x - rr, y - rr, rr * 2, rr * 2); }
+  return T;
+}
+/* ---------- baldosa de cocina antideslizante (rojo teja) ---------- */
+function matQuarry(w, h, o = {}) {
+  const T = tex(w, h, o.d ?? 1.1), g = T.g, r = mulberry32(o.seed ?? 97), S = o.tile ?? 20;
+  g.fillStyle = 'rgb(70,50,44)'; g.fillRect(0, 0, w, h);
+  for (let y = 0; y < h; y += S) for (let x = 0; x < w; x += S) { const c = shc([150, 76, 56], (r() - .5) * .14); g.fillStyle = cssc(c); g.fillRect(x + .6, y + .6, S - 1.2, S - 1.2); for (let k = 0; k < 14; k++) { g.fillStyle = `rgba(${r() < .5 ? '60,30,20' : '220,170,140'},${r() * .25})`; g.fillRect(x + r() * S, y + r() * S, .9, .9); } }
+  return T;
+}
 
 /* =====================================================================
    ESCENARIOS · LUZ QUE ENTRA POR UNA VENTANA CON PERSIANA (sol de mañana, luna de noche)
@@ -2203,6 +2232,7 @@ const SEG7 = { 0: 'abcdef', 1: 'bc', 2: 'abdeg', 3: 'abcdg', 4: 'bcfg', 5: 'acdf
 function seg7(g, s, x, y, h, col, off = 'rgba(80,10,10,.5)') {
   const w = h * .52, th = h * .12; let cx = x;
   for (const ch of s) {
+    if (ch === '.') { g.fillStyle = col; g.fillRect(cx, y + h - th, th * 1.2, th * 1.2); cx += th * 3; continue; }
     if (ch === ':') { g.fillStyle = col; g.fillRect(cx + w * .1, y + h * .28, th, th); g.fillRect(cx + w * .1, y + h * .66, th, th); cx += w * .45; continue; }
     const on = SEG7[ch] || '', seg = { a: [cx + th, y, w - th * 2, th], b: [cx + w - th, y + th, th, h / 2 - th * 1.5], c: [cx + w - th, y + h / 2 + th / 2, th, h / 2 - th * 1.5], d: [cx + th, y + h - th, w - th * 2, th], e: [cx, y + h / 2 + th / 2, th, h / 2 - th * 1.5], f: [cx, y + th, th, h / 2 - th * 1.5], g: [cx + th, y + h / 2 - th / 2, w - th * 2, th] };
     for (const k in seg) { g.fillStyle = on.includes(k) ? col : off; g.fillRect(...seg[k]); }
@@ -3098,6 +3128,609 @@ function drawGate(t) {
 }
 
 /* =====================================================================
+   ESCENA 4 · EL SANTUARIO DE ACERO: la cocina de Brasa y Bruma (dos estrellas Guía Brújula)
+   Luz cenital blanca, fría, quirúrgica; solo la rompen el azul de los quemadores, el rojo del binchotan y de las
+   lámparas del pase, y la llamarada del flambeado.
+   Planta (cm): pared de azulejo z = 900 (puerta batiente al comedor en x 560…670, con ojo de buey) · campana x -420…380 (frente z 640, abajo y -210) · fogón x -420…380
+     (z 700…880, sobre y -90) con quemadores, ollas de caldo y la robata · roners x -650…-450 · cobre colgado y
+     barra de cuchillos · cucharones bajo la campana · pase de acero x -300…500 (z 420…560) con lámparas
+     infrarrojas · reloj de pared Kronotek y estante sobre x 390…550
+   ===================================================================== */
+const KI = { ZB: 900, X0: -700, X1: 800, Y0: -330, ZF: 150, HOOD: { x0: -420, x1: 380, y0: -330, y1: -210, z0: 640 }, RANGE: { x0: -420, x1: 380, z0: 700, z1: 880, top: -90 }, PASS: { x0: -300, x1: 500, z0: 420, z1: 560, top: -95 }, ROB: { x0: 150, x1: 360, z: 790 }, DOOR: { x0: 560, x1: 670 }, CLK: [470, -292], PRN: -130, BELL: 462 };
+const KIX = {};
+const COLD = [196, 210, 228];
+const BURN = [[-330, 750], [-180, 750], [-350, 835], [-110, 835]];
+const POTS = [[-350, 835, 30, 62], [-110, 835, 36, 74]];
+const LADLES = [[-380, 836], [-320, 840], [-260, 836], [-40, 832], [20, 838], [80, 834]];
+/* ---------- pintores ---------- */
+function paintCopperPan(seed, r_, long) { const S = spr([-r_ - 4, -10, r_ + 4, (long ? 70 : 50) + r_ * 2], 3), g = S.g, rr = mulberry32(seed);
+  g.strokeStyle = 'rgb(70,60,52)'; g.lineWidth = 2; g.beginPath(); g.moveTo(0, -8); g.lineTo(0, 4); g.stroke();
+  const hl = long ? 64 : 44; g.fillStyle = 'rgb(150,150,156)'; g.fillRect(-3, 2, 6, hl); g.beginPath(); g.arc(0, 4, 4, 0, TAU); g.fill();
+  const cy = hl + r_, gr = g.createRadialGradient(-r_ * .3, cy - r_ * .3, r_ * .1, 0, cy, r_); gr.addColorStop(0, 'rgb(250,190,140)'); gr.addColorStop(.4, 'rgb(206,112,64)'); gr.addColorStop(1, 'rgb(130,62,36)'); g.fillStyle = gr; g.beginPath(); g.arc(0, cy, r_, 0, TAU); g.fill();
+  const sc = g.createRadialGradient(r_ * .2, cy + r_ * .3, 0, 0, cy, r_); sc.addColorStop(0, 'rgba(30,20,16,.75)'); sc.addColorStop(.5, 'rgba(60,34,20,.4)'); sc.addColorStop(1, 'rgba(60,34,20,0)'); g.fillStyle = sc; g.beginPath(); g.arc(0, cy, r_ * .82, 0, TAU); g.fill();   // fondo oscurecido por el uso
+  for (let k = 0; k < 30; k++) { g.fillStyle = `rgba(255,220,180,${rr() * .25})`; g.beginPath(); g.arc((rr() - .5) * r_ * 1.4, cy + (rr() - .5) * r_ * 1.4, .8 + rr() * 1.4, 0, TAU); g.fill(); }   // martillado
+  g.strokeStyle = 'rgba(90,44,24,.8)'; g.lineWidth = 1.4; g.beginPath(); g.arc(0, cy, r_, 0, TAU); g.stroke(); g.fillStyle = 'rgba(255,240,220,.6)'; g.beginPath(); g.ellipse(-r_ * .45, cy - r_ * .45, r_ * .18, r_ * .08, -.6, 0, TAU); g.fill();
+  return S; }
+function paintKnifeBar() {   /* barra magnética con siete cuchillos Tsukiyo de tamaño real (hoja de Damasco, mango octogonal) */
+  const S = spr([-4, -8, 134, 44], 6), g = S.g;
+  g.fillStyle = 'rgb(36,36,40)'; g.fillRect(0, -3, 130, 6); g.fillStyle = 'rgba(255,255,255,.35)'; g.fillRect(0, -3, 130, 1);
+  const K = [[24, 4.6, 1], [21, 4.8, 1], [18, 4.2, 0], [13, 3, 1], [17, 5.2, 2], [15, 4.6, 3], [27, 4.8, 1]];   // largo, ancho, forma (0 santoku, 1 gyuto, 2 nakiri, 3 deba)
+  K.forEach(([L, bw, sh], i) => { const x = 10 + i * 18.4, top = 2;
+    g.fillStyle = 'rgb(58,40,28)'; g.fillRect(x - 1.4, -9, 2.8, 7); g.fillStyle = 'rgb(180,170,150)'; g.fillRect(x - 1.5, -3, 3, 1.4);   // mango asomando y virola
+    const P = sh === 2 ? [[x - bw / 2, top], [x + bw / 2, top], [x + bw / 2, top + L], [x - bw / 2, top + L]] : sh === 0 ? [[x - bw / 2, top], [x + bw / 2, top], [x + bw / 2, top + L * .8], [x - bw / 2 + .6, top + L], [x - bw / 2, top + L * .9]] : [[x - bw / 2, top], [x + bw / 2, top], [x + bw * .45, top + L * .7], [x - bw / 2 + .4, top + L], [x - bw / 2, top + L * .6]];
+    const gr = g.createLinearGradient(x - bw / 2, 0, x + bw / 2, 0); gr.addColorStop(0, 'rgb(120,126,136)'); gr.addColorStop(.55, 'rgb(214,218,226)'); gr.addColorStop(.8, 'rgb(246,248,252)'); gr.addColorStop(1, 'rgb(150,156,166)'); g.fillStyle = gr; g.fill(pPolys([P]));
+    g.save(); g.clip(pPolys([P])); g.strokeStyle = 'rgba(70,76,90,.35)'; g.lineWidth = .25; for (let k = 0; k < 14; k++) { g.beginPath(); for (let y = top; y < top + L; y += .8) g.lineTo(x - bw / 2 + Math.sin(y * .9 + k * 1.3) * .8 + k * bw / 12, y); g.stroke(); }   // ondas del Damasco
+    g.fillStyle = 'rgba(255,255,255,.75)'; g.fillRect(x + bw * .36, top, .5, L * .75); g.restore();
+    g.strokeStyle = 'rgba(40,44,52,.7)'; g.lineWidth = .3; g.stroke(pPolys([P])); });
+  marcaLogo(g, 'tsukiyo', 112, 30, 10, { layout: 'emblema', mono: [200, 200, 206], monoBg: [228, 230, 232] });
+  return S; }
+function paintLadle(L) { const S = spr([-14, -4, 14, L + 30], 3), g = S.g; g.strokeStyle = 'rgb(176,180,188)'; g.lineWidth = 3; g.beginPath(); g.arc(0, 0, 3, PI, TAU); g.moveTo(3, 0); g.lineTo(2, L); g.stroke(); const gr = g.createLinearGradient(-12, 0, 12, 0); gr.addColorStop(0, 'rgb(120,124,132)'); gr.addColorStop(.4, 'rgb(236,238,242)'); gr.addColorStop(1, 'rgb(110,114,122)'); g.fillStyle = gr; g.beginPath(); g.ellipse(0, L + 12, 12, 12, 0, 0, PI); g.lineTo(-12, L + 12); g.fill(); g.fillRect(-12, L + 10, 24, 3); return S; }
+function paintRangeFront() { const T = matSteel(800, 90, { seed: 101, bands: [[.15, .06, .5]] }), g = T.g;
+  for (let k = 0; k < 4; k++) { const x = 60 + k * 190; g.fillStyle = 'rgb(40,40,44)'; g.fillRect(x, 36, 150, 48); g.fillStyle = 'rgba(255,255,255,.18)'; g.fillRect(x + 6, 40, 138, 6); g.fillStyle = 'rgb(200,204,210)'; g.fillRect(x + 20, 30, 110, 4); }
+  for (let k = 0; k < 8; k++) { const x = 50 + k * 96; g.fillStyle = 'rgb(30,30,34)'; g.beginPath(); g.arc(x, 16, 7, 0, TAU); g.fill(); g.fillStyle = 'rgb(210,214,220)'; g.fillRect(x - 1, 9, 2, 7); }
+  return T; }
+function paintHoodFront() { const T = matSteel(800, 120, { seed: 102, bands: [[.3, .08, .55], [.85, .05, .3]] }), g = T.g; for (let x = 20; x < 800; x += 40) { g.fillStyle = 'rgba(60,64,72,.6)'; g.fillRect(x, 90, 26, 4); } marcaLogo(g, 'brasa', 360, 30, 34, { mono: [80, 84, 92], monoBg: [190, 194, 200], sub: false }); return T; }
+function paintRoner() { const S = spr([-60, -100, 60, 2], 3), g = S.g;
+  g.fillStyle = 'rgba(160,200,220,.45)'; g.fillRect(-56, -70, 112, 70); g.strokeStyle = 'rgba(230,240,250,.8)'; g.lineWidth = 1.6; g.strokeRect(-56, -70, 112, 70); g.fillStyle = 'rgba(120,170,200,.45)'; g.fillRect(-55, -52, 110, 51);
+  for (let k = 0; k < 3; k++) { g.fillStyle = 'rgba(200,120,110,.75)'; g.fillRect(-40 + k * 30, -40, 20, 26); g.fillStyle = 'rgba(255,255,255,.4)'; g.fillRect(-40 + k * 30, -40, 20, 3); }   // bolsas al vacío
+  g.fillStyle = 'rgb(30,30,34)'; g.fillRect(28, -100, 22, 92); g.fillStyle = 'rgb(60,62,70)'; g.fillRect(30, -98, 18, 18);
+  return S; }
+function paintPassLamp() { const S = spr([-30, -120, 30, 4], 3), g = S.g; g.strokeStyle = 'rgb(40,40,44)'; g.lineWidth = 2; g.beginPath(); g.moveTo(0, -120); g.lineTo(0, -30); g.stroke(); const gr = g.createLinearGradient(-26, 0, 26, 0); gr.addColorStop(0, 'rgb(60,60,66)'); gr.addColorStop(.5, 'rgb(170,174,180)'); gr.addColorStop(1, 'rgb(50,50,56)'); g.fillStyle = gr; g.beginPath(); g.moveTo(-8, -32); g.lineTo(8, -32); g.lineTo(26, 0); g.lineTo(-26, 0); g.fill(); g.fillStyle = 'rgb(255,120,60)'; g.fillRect(-20, -2, 40, 4); return S; }
+function paintPassFront() { const T = matSteel(800, 95, { seed: 107, vert: true, c: [150, 154, 162] }), g = T.g, r = mulberry32(110);
+  g.fillStyle = 'rgb(206,210,216)'; g.fillRect(0, 0, 800, 7); g.fillStyle = 'rgba(255,255,255,.7)'; g.fillRect(0, 1, 800, 1.2);
+  g.fillStyle = 'rgb(34,36,42)'; g.fillRect(14, 14, 772, 58); g.fillStyle = 'rgb(120,124,132)'; g.fillRect(14, 44, 772, 3);
+  for (let x = 24; x < 780;) { const kind = r(), w = kind < .5 ? 46 : kind < .8 ? 34 : 54;   // pilas de platos blancos, cuencos, platos negros
+    for (const [y1, n] of [[43, 6 + (r() * 6 | 0)], [71, 5 + (r() * 7 | 0)]]) for (let k = 0; k < n; k++) { const y = y1 - k * 3; g.fillStyle = kind > .8 ? `rgb(${40 + k % 2 * 14},${40 + k % 2 * 14},${44 + k % 2 * 14})` : `rgb(${236 - k % 2 * 18},${238 - k % 2 * 18},${236 - k % 2 * 16})`; g.beginPath(); g.ellipse(x + w / 2, y, w / 2, 2.2, 0, 0, TAU); g.fill(); }
+    x += w + 8 + r() * 14; }
+  g.fillStyle = 'rgb(110,114,122)'; g.fillRect(0, 78, 800, 17); g.fillStyle = 'rgba(0,0,0,.3)'; g.fillRect(0, 78, 800, 2);
+  return T; }
+function paintShelf(W_ = 600, seed = 111) { const S = spr([0, -70, W_, 4], 3), g = S.g, r = mulberry32(seed);
+  g.fillStyle = 'rgb(170,174,182)'; g.fillRect(0, -2, W_, 5); g.fillStyle = 'rgba(255,255,255,.8)'; g.fillRect(0, -2, W_, 1);
+  for (let x = 6; x < W_ - 60;) { const k = r(); if (k < .35) { const w = 30, h = 26 + r() * 20; g.fillStyle = 'rgba(220,232,236,.75)'; g.fillRect(x, -h, w, h); g.fillStyle = cssc([[200, 150, 60], [120, 70, 40], [220, 210, 180], [60, 110, 50]][r() * 4 | 0]); g.fillRect(x + 2, -h * .7, w - 4, h * .7 - 1); g.fillStyle = 'rgb(30,30,34)'; g.fillRect(x, -h - 4, w, 4); g.fillStyle = 'rgb(250,250,246)'; g.fillRect(x + 6, -h * .5, 18, 6); x += w + 4; }
+    else if (k < .6) { for (let j = 0; j < 9; j++) { g.fillStyle = `rgb(${240 - j % 2 * 16},${240 - j % 2 * 16},${238 - j % 2 * 14})`; g.fillRect(x, -3 - j * 3, 44, 2.6); } x += 50; }
+    else if (k < .8) { const h = 40 + r() * 16; const gr = g.createLinearGradient(x, 0, x + 26, 0); gr.addColorStop(0, 'rgba(120,80,40,.8)'); gr.addColorStop(.5, 'rgba(200,150,80,.85)'); gr.addColorStop(1, 'rgba(110,70,36,.8)'); g.fillStyle = gr; g.fillRect(x, -h, 26, h); g.fillStyle = 'rgb(40,40,44)'; g.fillRect(x + 8, -h - 8, 10, 8); x += 32; }
+    else { g.fillStyle = 'rgb(206,210,216)'; g.fillRect(x, -22, 52, 22); g.fillStyle = 'rgba(0,0,0,.25)'; g.fillRect(x, -22, 52, 3); g.fillStyle = 'rgb(250,248,240)'; g.fillRect(x + 8, -16, 22, 7); g.fillStyle = 'rgb(30,30,34)'; g.font = '5px monospace'; g.fillText(['FONDO', 'DEMI', 'SAL', 'ROUX'][r() * 4 | 0], x + 9, -10.5); x += 58; }
+    x += r() * 10; }
+  return S; }
+function paintPrinter() { const S = spr([-24, -28, 24, 2], 4), g = S.g; g.fillStyle = 'rgb(40,42,48)'; g.fillRect(-22, -22, 44, 22); g.fillStyle = 'rgb(60,62,70)'; g.fillRect(-22, -26, 44, 6); g.fillStyle = 'rgb(20,20,24)'; g.fillRect(-14, -27, 28, 2); g.fillStyle = 'rgb(90,255,150)'; g.fillRect(14, -16, 3, 3); marcaLogo(g, 'tikket', -18, -12, 8, { sub: false, mono: [200, 204, 210], monoBg: [40, 42, 48] }); return S; }
+function paintTicket(seed) { const S = spr([-9, 0, 9, 34], 4), g = S.g, r = mulberry32(seed); g.fillStyle = 'rgb(250,248,240)'; g.fillRect(-8, 0, 16, 34); g.fillStyle = 'rgba(0,0,0,.08)'; g.fillRect(6, 0, 2, 34); g.fillStyle = 'rgb(40,40,44)'; g.fillRect(-6, 3, 9, 2); for (let k = 0; k < 8; k++) g.fillRect(-6, 8 + k * 3, 4 + r() * 8, 1); if (r() < .4) { g.fillStyle = 'rgb(200,40,40)'; g.fillRect(-6, 30, 12, 1.5); } return S; }
+function paintPassItems() { const S = spr([0, -40, 800, 2], 3), g = S.g;
+  for (const [x, c] of [[540, [70, 170, 70]], [556, [240, 196, 40]], [572, [140, 70, 40]], [588, [250, 248, 240]]]) { g.fillStyle = cssc(c); g.beginPath(); g.moveTo(x - 6, 0); g.lineTo(x + 6, 0); g.lineTo(x + 6, -26); g.lineTo(x + 2, -30); g.lineTo(x + 1, -38); g.lineTo(x - 1, -38); g.lineTo(x - 2, -30); g.lineTo(x - 6, -26); g.fill(); g.fillStyle = 'rgba(255,255,255,.45)'; g.fillRect(x - 4, -24, 2, 20); }
+  g.fillStyle = 'rgba(240,244,246,.9)'; g.fillRect(596, -1, 120, 2); for (let k = 0; k < 4; k++) { const x = 600 + k * 28; g.fillStyle = 'rgba(220,236,240,.55)'; g.fillRect(x, -16, 24, 16); g.strokeStyle = 'rgba(255,255,255,.8)'; g.lineWidth = .6; g.strokeRect(x, -16, 24, 16); for (let j = 0; j < 16; j++) { g.fillStyle = cssc([[80, 160, 70], [120, 190, 80], [200, 120, 220], [250, 220, 80], [250, 250, 250]][(k + j) % 5 === 0 ? 2 + k % 3 : j % 2]); g.beginPath(); g.arc(x + 3 + (j * 7.3) % 18, -3 - (j * 3.7) % 10, 1.6, 0, TAU); g.fill(); } }
+  for (let k = 0; k < 2; k++) { for (let j = 0; j < 7; j++) { g.fillStyle = k ? `rgb(${30 + j % 2 * 12},${30 + j % 2 * 12},${34 + j % 2 * 12})` : `rgb(${244 - j % 2 * 14},${244 - j % 2 * 14},${240 - j % 2 * 12})`; g.beginPath(); g.ellipse(30 + k * 60, -2 - j * 2.6, 26, 3, 0, 0, TAU); g.fill(); } }
+  g.fillStyle = 'rgb(200,170,90)'; g.beginPath(); g.arc(762, -8, 8, PI, TAU); g.fill(); g.fillStyle = 'rgb(60,60,64)'; g.fillRect(754, -8, 16, 8); g.fillStyle = 'rgb(240,230,200)'; g.fillRect(761, -18, 2, 4);   // campana del pase
+  return S; }
+function paintDining() {   /* el comedor a media luz, visto por la puerta: madera oscura, manteles, velas */
+  const T = tex(110, 210, 3), g = T.g, r = mulberry32(112); const gr = g.createLinearGradient(0, 0, 0, 210); gr.addColorStop(0, 'rgb(40,28,24)'); gr.addColorStop(1, 'rgb(70,46,34)'); g.fillStyle = gr; g.fillRect(0, 0, 110, 210);
+  for (let k = 0; k < 7; k++) { const x = r() * 110, y = 40 + r() * 80, rr = 6 + r() * 12, rg = g.createRadialGradient(x, y, 0, x, y, rr); rg.addColorStop(0, 'rgba(255,200,120,.8)'); rg.addColorStop(1, 'rgba(255,170,90,0)'); g.fillStyle = rg; g.fillRect(x - rr, y - rr, rr * 2, rr * 2); }
+  g.fillStyle = 'rgb(236,228,214)'; g.fillRect(-4, 150, 70, 18); g.fillStyle = 'rgba(0,0,0,.4)'; g.fillRect(-4, 168, 70, 42); g.fillStyle = 'rgb(236,228,214)'; g.fillRect(74, 140, 50, 14);
+  return T; }
+function paintSwingDoor() { const T = matSteel(110, 210, { seed: 103, vert: true, bands: [[.3, .1, .4]] }), g = T.g; g.fillStyle = 'rgb(40,40,44)'; g.beginPath(); g.arc(55, 70, 22, 0, TAU); g.fill(); g.fillStyle = 'rgba(200,180,140,.8)'; g.beginPath(); g.arc(55, 70, 18, 0, TAU); g.fill(); g.fillStyle = 'rgba(255,255,255,.35)'; g.beginPath(); g.arc(49, 64, 6, 0, TAU); g.fill(); g.fillStyle = 'rgb(150,154,160)'; g.fillRect(10, 150, 90, 40); return T; }
+function paintWallClock() { const S = spr([-34, -34, 34, 34], 4), g = S.g; g.fillStyle = 'rgb(40,40,44)'; g.beginPath(); g.arc(0, 0, 33, 0, TAU); g.fill(); g.fillStyle = 'rgb(246,246,242)'; g.beginPath(); g.arc(0, 0, 29, 0, TAU); g.fill(); for (let k = 0; k < 12; k++) { const a = k / 12 * TAU; g.fillStyle = 'rgb(30,30,34)'; g.save(); g.rotate(a); g.fillRect(-1, -27, 2, k % 3 ? 4 : 7); g.restore(); } marcaLogo(g, 'kronotek', -9, 8, 6, { sub: false }); return S; }
+function cocinaPaint() {
+  KIX.tile = matSubway(1500, 260, { seed: 91 }); KIX.plaster = matPlaster(1500, 70, { seed: 92, c: [236, 238, 236], cracks: 0 });
+  KIX.floor = matQuarry(1500, 750, { seed: 97 }); KIX.ceil = matPlaster(1500, 750, { seed: 93, c: [226, 228, 230], cracks: 0 });
+  KIX.wallL = matSubway(750, 330, { seed: 94 }); KIX.wallR = matSubway(750, 330, { seed: 95 });
+  KIX.rangeF = paintRangeFront(); KIX.rangeTop = matSteel(800, 180, { seed: 104, c: [120, 124, 130], bands: [[.3, .1, .3]] });
+  KIX.hoodF = paintHoodFront(); KIX.hoodB = matSteel(800, 260, { seed: 105, c: [150, 154, 160] });
+  KIX.passTop = matSteel(800, 140, { seed: 106, bands: [[.25, .06, .55], [.7, .04, .35]] }); KIX.passF = paintPassFront(); KIX.shelf = paintShelf(160, 111); KIX.dining = paintDining(); KIX.printer = paintPrinter(); KIX.tickets = [0, 1, 2, 3, 4, 5].map(k => paintTicket(120 + k)); KIX.passItems = paintPassItems();
+  KIX.side = matSteel(200, 200, { seed: 108, c: [160, 164, 170] }); KIX.counter = matSteel(200, 120, { seed: 109 });
+  KIX.pans = [[0, 26, 1], [1, 20, 0], [2, 32, 1], [3, 16, 0], [4, 24, 1], [5, 18, 0], [6, 28, 1]].map(([s, r, l]) => paintCopperPan(300 + s, r, l));
+  KIX.knives = paintKnifeBar(); KIX.ladles = [paintLadle(70), paintLadle(84), paintLadle(64)]; KIX.roner = paintRoner(); KIX.lamp = paintPassLamp(); KIX.door = paintSwingDoor(); KIX.clock = paintWallClock();
+  for (const k of ['tile', 'floor', 'wallL', 'wallR', 'plaster', 'ceil']) texShade(KIX[k], COLD, .14);
+}
+/* ---------- vivos ---------- */
+function burnerFlame(x, z, t, k = 1) {   /* corona de llamitas azules */
+  const s = PS(z), c = PJ(x, KI.RANGE.top - 1, z);
+  ctx.save(); ctx.globalCompositeOperation = 'lighter';
+  for (let i = 0; i < 14; i++) { const a = i / 14 * TAU, px = x + Math.cos(a) * 14, pz = z + Math.sin(a) * 14, p = PJ(px, KI.RANGE.top - 1, pz), h = (6 + 3 * Math.sin(t * 17 + i * 2.3)) * k * s;
+    const gr = ctx.createLinearGradient(0, p[1], 0, p[1] - h); gr.addColorStop(0, 'rgba(120,170,255,.95)'); gr.addColorStop(.6, 'rgba(60,110,255,.5)'); gr.addColorStop(1, 'rgba(255,200,120,0)'); ctx.fillStyle = gr; ctx.beginPath(); ctx.moveTo(p[0] - 1.6 * s, p[1]); ctx.quadraticCurveTo(p[0], p[1] - h * 1.2, p[0] + 1.6 * s, p[1]); ctx.fill(); }
+  ctx.restore(); LGT(c[0], c[1], 60 * s * k, '90,140,255', .5 * k);
+}
+function stockPot(x, z, r, h, t) {   /* olla grande de acero con el caldo borboteando lento */
+  const s = PS(z), top = KI.RANGE.top - h;
+  box3({ x0: x - r, x1: x + r, y0: top, y1: KI.RANGE.top, z0: z - r * .5, z1: z + r * .5 }, { front: KIX.side, left: [120, 124, 130], right: [130, 134, 140] });
+  const c = PJ(x, top, z), rx = r * s, ry = rx * Math.max(.1, (top - CAM.y) / Math.max(60, z - CAM.z) * 1.2);
+  if (CAM.y < top) { ctx.fillStyle = 'rgb(176,124,70)'; ctx.beginPath(); ctx.ellipse(c[0], c[1], rx * .92, ry * .92, 0, 0, TAU); ctx.fill(); for (let i = 0; i < 7; i++) { const ph = (t * .6 + i / 7 + hsh(i, x)) % 1, bx = c[0] + (hsh(i, 1) - .5) * rx * 1.4, by = c[1] + (hsh(i, 2) - .5) * ry; ctx.strokeStyle = `rgba(255,236,200,${.7 * Math.sin(ph * PI)})`; ctx.lineWidth = Math.max(.5, s * .8); ctx.beginPath(); ctx.ellipse(bx, by, ph * 5 * s, ph * 5 * s * ry / rx, 0, 0, TAU); ctx.stroke(); } }
+  ctx.strokeStyle = 'rgb(210,214,220)'; ctx.lineWidth = Math.max(1, 2.5 * s); ctx.beginPath(); ctx.ellipse(c[0], c[1], rx, ry, 0, 0, TAU); ctx.stroke();
+  steamCols(t, { x, y: top, z }, { n: 4, h: 200, w: 5, a: .28, sway: 16, spread: r, drift: -.15 });
+}
+function robata(t, flare = 0) {   /* parrilla robata: caja de ladrillo refractario, carbón binchotan al rojo, chispas que suben */
+  const R = KI.ROB, top = KI.RANGE.top - 22;
+  box3({ x0: R.x0, x1: R.x1, y0: top, y1: KI.RANGE.top, z0: R.z - 40, z1: R.z + 40 }, { front: [110, 70, 50], top: [60, 40, 34], left: [90, 60, 44] });
+  for (let i = 0; i < 18; i++) { const x = R.x0 + 12 + (i % 9) * 22, z = R.z - 20 + Math.floor(i / 9) * 26, p = PJ(x, top - 2, z), s = PS(z), fl = .6 + .4 * Math.sin(t * (2 + hsh(i, 1) * 3) + i), gr = ctx.createRadialGradient(p[0], p[1], 0, p[0], p[1], 11 * s);
+    gr.addColorStop(0, `rgba(255,${180 + 60 * fl | 0},${80 + 80 * fl | 0},1)`); gr.addColorStop(.5, `rgba(220,60,30,${.8 * fl})`); gr.addColorStop(1, 'rgba(60,20,20,.9)'); ctx.fillStyle = gr; ctx.fillRect(p[0] - 10 * s, p[1] - 4 * s, 20 * s, 8 * s); }
+  for (let k = 0; k < 9; k++) { const a = PJ(R.x0 + 4, top - 6, R.z - 30 + k * 7), b = PJ(R.x1 - 4, top - 6, R.z - 30 + k * 7); ctx.strokeStyle = 'rgb(60,60,64)'; ctx.lineWidth = Math.max(.6, PS(R.z) * 1.2); ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.stroke(); }
+  for (let k = 0; k < 6; k++) { const x = R.x0 + 24 + k * 33, a = PJ(x, top - 9, R.z - 38), b = PJ(x, top - 9, R.z + 38), s = PS(R.z); ctx.strokeStyle = 'rgb(214,190,140)'; ctx.lineWidth = Math.max(1, s * 1.1); ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.stroke();   // brochetas de bambú (yakitori)
+    for (let j = 0; j < 4; j++) { const p = PJ(x, top - 10, R.z - 22 + j * 15); ctx.fillStyle = j % 2 ? 'rgb(150,80,40)' : 'rgb(176,104,54)'; ctx.beginPath(); ctx.ellipse(p[0], p[1], 5.5 * s, 3.4 * s, 0, 0, TAU); ctx.fill(); ctx.fillStyle = 'rgba(255,220,170,.5)'; ctx.fillRect(p[0] - 3 * s, p[1] - 2.6 * s, 2.4 * s, 1 * s); } }
+  ctx.save(); ctx.globalCompositeOperation = 'lighter';
+  for (let i = 0; i < 40; i++) { const ph = (t * (.35 + hsh(i, 3) * .4) + hsh(i, 4)) % 1, x = R.x0 + hsh(i, 5) * (R.x1 - R.x0) + Math.sin(ph * 9 + i) * 10, y = top - ph * (160 + 140 * flare) , z = R.z + (hsh(i, 6) - .5) * 60, p = PJ(x, y, z), s = PS(z); ctx.fillStyle = `rgba(255,${160 + 80 * hsh(i, 7) | 0},80,${(1 - ph) * .9})`; ctx.fillRect(p[0], p[1], Math.max(1.5, 2 * s), Math.max(1.5, 2 * s)); }
+  ctx.restore();
+  const c = PJ((R.x0 + R.x1) / 2, top - 4, R.z); LGT(c[0], c[1], 220 * PS(R.z), '255,90,40', .55 + .1 * Math.sin(t * 3)); LGF(c[0], c[1], 60 * PS(R.z), '255,140,60', .35);
+}
+function ronerDisplay(x, z, t) { const p = PJ(x + 30, -95 - 92, z), s = PS(z); ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); const P = toPx(p), h = 5.4 * s * U; ctx.fillStyle = 'rgb(10,14,12)'; ctx.fillRect(P[0] - 2 * s * U, P[1] - 2 * s * U, 21 * s * U, 9.5 * s * U); seg7(ctx, '62.5', P[0], P[1], h, 'rgb(90,255,150)', 'rgba(20,60,30,.4)'); ctx.restore(); T0(); LGT(p[0] + 8 * s, p[1] + 4 * s, 30 * s, '90,255,150', .3); }
+/* ---------- la cocina en t ---------- */
+function drawCocina(t, o = {}) {
+  lightsBegin(); T0();
+  const ZB = KI.ZB, HD = KI.HOOD, Rg = KI.RANGE, Pa = KI.PASS, flare = o.flare ? o.flare(t) : 0, hum = Math.sin(t * 60) * .25;
+  /* techo con tiras LED, suelo, paredes */
+  hplane(KIX.ceil, KI.X0, KI.X1, 20, ZB, KI.Y0);
+  hplane(KIX.floor, KI.X0, KI.X1, 20, ZB, 0);
+  vplane(KIX.plaster, [KI.X0, ZB], [KI.X1, ZB], KI.Y0, -260); vplane(KIX.tile, [KI.X0, ZB], [KI.X1, ZB], -260, 0);
+  vplane(KIX.wallL, [KI.X0, 20], [KI.X0, ZB], KI.Y0, 0, { u0: 0, u1: 1 }); vplane(KIX.wallR, [KI.X1, ZB], [KI.X1, 20], KI.Y0, 0);
+  for (const z of [380, 620]) { const P = poly3([[KI.X0 + 60, KI.Y0 + .5, z - 6], [KI.X1 - 60, KI.Y0 + .5, z - 6], [KI.X1 - 60, KI.Y0 + .5, z + 6], [KI.X0 + 60, KI.Y0 + .5, z + 6]]); if (P) { ctx.fillStyle = `rgba(250,252,255,${o.lights ? o.lights(t, z) : 1})`; ctx.fill(P); } }
+  /* puerta batiente con ojo de buey */
+  const da = o.door ? o.door(t) : 0, Dr = KI.DOOR;
+  vplane(KIX.dining, [Dr.x0, ZB - .3], [Dr.x1, ZB - .3], -210, 0);
+  { const fr = poly3([[Dr.x0 - 6, -216, ZB - .4], [Dr.x1 + 6, -216, ZB - .4], [Dr.x1 + 6, 0, ZB - .4], [Dr.x1, 0, ZB - .4], [Dr.x1, -210, ZB - .4], [Dr.x0, -210, ZB - .4], [Dr.x0, 0, ZB - .4], [Dr.x0 - 6, 0, ZB - .4]]); if (fr) { ctx.fillStyle = 'rgb(150,154,162)'; ctx.fill(fr); } }
+  /* oclusión: zócalo oscuro donde el suelo toca las paredes, sombra de la campana sobre el azulejo */
+  ctx.save(); ctx.globalCompositeOperation = 'multiply';
+  { const a = PJ(KI.X0, -26, ZB - .5), b = PJ(KI.X1, 0, ZB - .5), gr = ctx.createLinearGradient(0, a[1], 0, b[1]); gr.addColorStop(0, 'rgba(120,124,136,0)'); gr.addColorStop(1, 'rgba(90,94,106,.9)'); ctx.fillStyle = gr; ctx.fillRect(a[0], a[1], b[0] - a[0], b[1] - a[1]); }
+  { const a = PJ(HD.x0 - 40, HD.y1, ZB - .5), b = PJ(HD.x1 + 40, HD.y1 + 70, ZB - .5), gr = ctx.createLinearGradient(0, a[1], 0, b[1]); gr.addColorStop(0, 'rgba(110,116,130,.85)'); gr.addColorStop(1, 'rgba(110,116,130,0)'); ctx.fillStyle = gr; ctx.fillRect(a[0], a[1], b[0] - a[0], b[1] - a[1]); }
+  ctx.restore();
+  /* reflejos fríos de las tiras en los azulejos */
+  ctx.save(); ctx.globalCompositeOperation = 'screen'; for (const x of [-500, -100, 300, 650]) { const a = PJ(x, -250, ZB - 1), b = PJ(x + 60, -10, ZB - 1); ctx.fillStyle = 'rgba(220,236,255,.12)'; ctx.fillRect(a[0], a[1], b[0] - a[0], b[1] - a[1]); } ctx.restore();
+  /* cobre colgado, cuchillos, reloj */
+  const rail = (x0, x1) => { const a = PJ(x0, -262, ZB - 6), b = PJ(x1, -262, ZB - 6); ctx.strokeStyle = 'rgb(60,62,68)'; ctx.lineWidth = Math.max(1, 3 * PS(ZB)); ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.stroke(); };
+  rail(-680, -440); rail(690, 790);
+  [[-660, 0], [-610, 1], [-555, 2], [-500, 3], [-458, 4], [712, 5], [764, 6]].forEach(([x, k]) => bill(KIX.pans[k], x, -262, ZB - 8, { rot: Math.sin(t * .4 + k) * .01 + (flare > .3 ? Math.sin(t * 20 + k) * .01 * flare : 0), px: 0, py: 0 }));
+  bill(KIX.knives, -6, -204, ZB - 4); bill(KIX.shelf, 392, -228, ZB - 6);
+  bill(KIX.clock, KI.CLK[0], KI.CLK[1], ZB - 3); { const c = PJ(KI.CLK[0], KI.CLK[1], ZB - 4), s = PS(ZB), hm = o.clock ? o.clock(t) : [8.5, 30]; ctx.strokeStyle = 'rgb(30,30,34)'; ctx.lineCap = 'round'; for (const [a, L, w] of [[hm[0] / 12 * TAU, 15, 2.6], [hm[1] / 60 * TAU, 24, 1.6]]) { ctx.lineWidth = Math.max(1, w * s); ctx.beginPath(); ctx.moveTo(c[0], c[1]); ctx.lineTo(c[0] + Math.sin(a) * L * s, c[1] - Math.cos(a) * L * s); ctx.stroke(); } }
+  /* cucharones colgados y sus sombras (la llamarada las proyecta enormes sobre el azulejo) */
+  if (flare > .02) { const L = [o.flareX ?? -250, -118, 748]; ctx.save(); ctx.globalCompositeOperation = 'multiply'; ctx.fillStyle = `rgba(80,40,30,${.55 * flare})`;
+    for (const [lx, lz] of LADLES) { const pts = [[lx - 3, -205, lz], [lx + 3, -205, lz], [lx + 12, -110, lz], [lx - 12, -110, lz]].map(p => { const k = (ZB - .5 - L[2]) / (p[2] - L[2]); return [L[0] + (p[0] - L[0]) * k, L[1] + (p[1] - L[1]) * k, ZB - .5]; }); const P = poly3(pts); if (P) ctx.fill(P); } ctx.restore(); }
+  LADLES.forEach(([x, z], i) => bill(KIX.ladles[i % 3], x, -205, z, { rot: Math.sin(t * .8 + i) * .02 + hum * .004, px: 0, py: 0 }));
+  /* gotitas de condensación en los azulejos que brillan con la llamarada */
+  if (flare > .05) { ctx.fillStyle = `rgba(255,240,200,${.9 * flare})`; for (let i = 0; i < 70; i++) { const p = PJ(-420 + hsh(i, 1) * 800, -250 + hsh(i, 2) * 160, ZB - 1); if (Math.sin(t * 6 + i) > -.2) ctx.fillRect(p[0], p[1], 1.6, 1.6); } }
+  /* roners a la izquierda */
+  box3({ x0: -680, x1: -440, y0: -92, y1: 0, z0: 760, z1: 890 }, { front: KIX.counter, right: KIX.side, top: KIX.counter });
+  bill(KIX.roner, -610, -92, 830); bill(KIX.roner, -500, -92, 830); ronerDisplay(-610, 830, t); ronerDisplay(-500, 830, t);
+  put(ZB - 2, () => { const Dr = KI.DOOR, de = [Dr.x0 + Math.cos(da) * 110, ZB - 1 - Math.sin(da) * 110]; vplane(KIX.door, [Dr.x0, ZB - 1], de, -210, 0, { n: da > .02 ? 12 : 1 }); });
+  /* el fogón: frente, sobre, quemadores, ollas, robata; la campana encima (vibra un poco) */
+  put(Rg.z0 + 1, () => {
+    box3({ x0: Rg.x0, x1: Rg.x1, y0: Rg.top, y1: 0, z0: Rg.z0, z1: Rg.z1 }, { front: KIX.rangeF, top: KIX.rangeTop, left: KIX.side });
+    for (const [x, z] of BURN) { const P = poly3(ellP(x, z, 20, 20, 16).map(([a, b]) => [a, Rg.top - .5, b])); if (P) { ctx.fillStyle = 'rgb(30,30,34)'; ctx.fill(P); } }
+    for (const [x, z] of BURN.slice(0, 2)) burnerFlame(x, z, t, o.burner ? o.burner(t) : .7);
+    for (const [x, z] of BURN.slice(2)) burnerFlame(x, z, t, .5);
+    for (const [x, z, r, h] of POTS) stockPot(x, z, r, h, t);
+    robata(t, flare);
+    if (o.onRange) o.onRange(t);
+  });
+  put(HD.z0 - 1, () => { ctx.save(); ctx.translate(hum * .4, 0); box3({ x0: HD.x0, x1: HD.x1, y0: HD.y0, y1: HD.y1, z0: HD.z0, z1: ZB }, { front: KIX.hoodF, bottom: KIX.hoodB, left: KIX.side }); const a = PJ(HD.x0 + 10, HD.y1 + 1, HD.z0 + 8), b = PJ(HD.x1 - 10, HD.y1 + 1, HD.z0 + 8); ctx.fillStyle = 'rgba(250,252,255,.95)'; ctx.fillRect(a[0], a[1] - 1.5, b[0] - a[0], 3); ctx.restore(); const c = PJ(-20, HD.y1 + 10, 780); LGT(c[0], c[1], 420 * PS(780), '230,240,255', .12); });
+  /* el pase: mesa de acero con reflejo de las tiras, lámparas infrarrojas */
+  put(Pa.z0, () => {
+    box3({ x0: Pa.x0, x1: Pa.x1, y0: Pa.top, y1: 0, z0: Pa.z0, z1: Pa.z1 }, { front: KIX.passF, top: KIX.passTop, left: KIX.side, right: KIX.side });
+    const band = PJ(CAM.x * .3, Pa.top - .5, 490); ctx.save(); ctx.globalCompositeOperation = 'screen'; const q = poly3([[Pa.x0, Pa.top - .5, 470], [Pa.x1, Pa.top - .5, 470], [Pa.x1, Pa.top - .5, 500], [Pa.x0, Pa.top - .5, 500]]); if (q) { ctx.fillStyle = 'rgba(230,240,255,.35)'; ctx.fill(q); } ctx.restore();
+    { const sh = poly3([[Pa.x0, -.5, Pa.z0 - 2], [Pa.x1, -.5, Pa.z0 - 2], [Pa.x1 + 20, -.5, Pa.z0 - 40], [Pa.x0 - 20, -.5, Pa.z0 - 40]]); if (sh) { ctx.fillStyle = 'rgba(30,26,30,.35)'; ctx.fill(sh); } }
+    bill(KIX.passItems, Pa.x0, Pa.top, 540); bill(KIX.printer, KI.PRN, Pa.top, 520);
+    const pl = o.printer ? o.printer(t) : 0; if (pl > 0) { const a = PJ(KI.PRN, Pa.top - 26, 520), s = PS(520); ctx.fillStyle = 'rgb(250,248,240)'; ctx.fillRect(a[0] - 10 * s, a[1] - pl * s, 20 * s, pl * s); ctx.fillStyle = 'rgba(40,40,44,.6)'; for (let k = 4; k < pl; k += 4) ctx.fillRect(a[0] - 7 * s, a[1] - k * s, (5 + hsh(k, 3) * 9) * s, .9 * s); }
+    if (o.onPass) o.onPass(t);
+  });
+  put(Pa.z0 - 2, () => {
+    { const a = PJ(Pa.x0 + 20, -178, 500), b = PJ(Pa.x1 - 20, -178, 500), s = PS(500); ctx.fillStyle = 'rgb(176,180,188)'; ctx.fillRect(a[0], a[1] - 2 * s, b[0] - a[0], 4 * s); const nT = o.tickets ? o.tickets(t) : 5; for (let k = 0; k < nT; k++) bill(KIX.tickets[k % 6], -40 + (k * 44) % 300, -178, 500, { rot: Math.sin(t * 1.3 + k) * .03, px: 0, py: 0 }); }
+    for (const x of [-100, 140, 380]) { bill(KIX.lamp, x, -200, 490); const c = PJ(x, -200, 490); LGT(c[0], c[1] + 20 * PS(490), 80 * PS(490), '255,90,50', .32); const g0 = PJ(x, Pa.top, 490); LGT(g0[0], g0[1], 70 * PS(490), '255,110,60', .26); } });
+  if (o.items) o.items(put, t);
+  flush();
+  /* la llamarada ilumina todo de golpe */
+  if (flare > .01) { const c = PJ(o.flareX ?? -250, -200, 740); LGT(c[0], c[1], 900 * PS(740) * (.6 + .4 * flare), '255,150,60', .9 * flare); LGF(c[0], c[1], 260 * PS(740) * flare, '255,200,120', .6 * flare); }
+  if (o.fx) o.fx(t);
+  lightsComp(0);
+  if (flare > .01) { ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalCompositeOperation = 'soft-light'; ctx.globalAlpha = .5 * flare; ctx.fillStyle = 'rgb(255,140,60)'; ctx.fillRect(0, 0, W, H); ctx.restore(); T0(); }
+}
+
+/* =====================================================================
+   ESCENA 4 · LAS DOS RECETAS (insertos a pantalla completa, en unidades de pantalla: alto 1000, origen al centro)
+   A · la sartén de hierro: el corte cae, el aceite salta en microgotas que rebotan en el acero, humo; vuelta y vuelta;
+       el coñac, la llamarada azul y naranja; el arroser: mantequilla que espuma y se tuesta, tomillo, ajo, la cuchara
+       que baña la carne una y otra vez.
+   B · el emplatado bajo las lámparas infrarrojas del pase: plato volcánico negro, lágrima de jugo que refleja las
+       lámparas, láminas de carne, puntos de clorofila y azafrán, brotes y flores con pinzas, y la hoja de oro que
+       tiembla con el aire acondicionado.
+   ===================================================================== */
+const RC = { drop: 216.6, flip: 221.4, pour: 226.3, ign: 227.55, butter: 233.2, baste: 234.4, endA: 244.0,
+  plate: 256.4, tear: 259.6, slices: 262.6, green: 265.9, saff: 268.3, garn: 270.6, gold: 276.4, goldOff: 279.2, endB: 283.0 };
+const RCX = {};
+/* ---------- pintado una vez ---------- */
+function rcPuff(col, n = 96) { const c = mk(n, n), g = c.getContext('2d'), gr = g.createRadialGradient(n / 2, n / 2, 0, n / 2, n / 2, n / 2); gr.addColorStop(0, `rgba(${col},1)`); gr.addColorStop(.45, `rgba(${col},.45)`); gr.addColorStop(1, `rgba(${col},0)`); g.fillStyle = gr; g.fillRect(0, 0, n, n); return c; }
+function rcSteak(crust) {   /* la cara de arriba del corte, en una caja de 440×240 px (elipse inscrita) */
+  const w = 440, h = 240, c = mk(w, h), g = c.getContext('2d'), r = mulberry32(crust ? 501 : 502);
+  g.fillStyle = crust ? 'rgb(104,52,24)' : 'rgb(176,48,54)'; g.fillRect(0, 0, w, h);
+  if (!crust) { for (let k = 0; k < 220; k++) { g.strokeStyle = `rgba(${240 - r() * 20},${196 + r() * 30},${196 + r() * 20},${.15 + r() * .35})`; g.lineWidth = .6 + r() * 1.8; g.beginPath(); let x = r() * w, y = r() * h; g.moveTo(x, y); for (let j = 0; j < 5; j++) { x += (r() - .5) * 30; y += (r() - .5) * 14; g.lineTo(x, y); } g.stroke(); }
+    for (let k = 0; k < 60; k++) { g.fillStyle = `rgba(120,20,30,${r() * .3})`; g.beginPath(); g.ellipse(r() * w, r() * h, 8 + r() * 30, 4 + r() * 12, r() * 3, 0, TAU); g.fill(); }
+    const fat = g.createLinearGradient(0, 0, 0, 40); fat.addColorStop(0, 'rgba(244,228,206,1)'); fat.addColorStop(1, 'rgba(244,228,206,0)'); g.fillStyle = fat; g.fillRect(0, 0, w, 40); }
+  else { for (let k = 0; k < 900; k++) { const d = r(); g.fillStyle = d < .45 ? `rgba(54,24,10,${.2 + r() * .5})` : d < .85 ? `rgba(160,92,40,${.2 + r() * .4})` : `rgba(255,236,200,${.3 + r() * .5})`; const s = d < .85 ? 2 + r() * 9 : .8 + r() * 1.6; g.beginPath(); g.ellipse(r() * w, r() * h, s, s * (.4 + r() * .6), r() * 3, 0, TAU); g.fill(); }
+    for (let k = 0; k < 6; k++) { g.strokeStyle = 'rgba(50,22,10,.35)'; g.lineWidth = 6; g.beginPath(); g.moveTo(0, 30 + k * 36); g.lineTo(w, 50 + k * 36); g.stroke(); }   // marcas de la parrilla de hierro (rejilla)
+    const fat = g.createLinearGradient(0, 0, 0, 40); fat.addColorStop(0, 'rgba(226,170,96,1)'); fat.addColorStop(1, 'rgba(226,170,96,0)'); g.fillStyle = fat; g.fillRect(0, 0, w, 40); }
+  const v = g.createRadialGradient(w / 2, h / 2, h * .2, w / 2, h / 2, w * .55); v.addColorStop(0, 'rgba(0,0,0,0)'); v.addColorStop(1, crust ? 'rgba(30,12,4,.6)' : 'rgba(90,10,20,.35)'); g.fillStyle = v; g.fillRect(0, 0, w, h);
+  return c; }
+const STK = (() => { const o = []; for (let i = 0; i < 44; i++) { const a = i / 44 * TAU, k = 1 + .07 * Math.sin(3 * a + 1) + .05 * Math.sin(5 * a + 2) + .03 * Math.sin(7 * a); o.push([Math.cos(a) * k, Math.sin(a) * k]); } return o; })();
+function rcPlate() {   /* plato de piedra volcánica: poros, borde de esmalte irregular */
+  const n = 720, c = mk(n, n), g = c.getContext('2d'), r = mulberry32(503), R = n / 2 - 4;
+  g.save(); g.beginPath(); g.arc(n / 2, n / 2, R, 0, TAU); g.clip();
+  const gr = g.createRadialGradient(n / 2 - 60, n / 2 - 80, 20, n / 2, n / 2, R); gr.addColorStop(0, 'rgb(52,50,52)'); gr.addColorStop(.75, 'rgb(30,30,32)'); gr.addColorStop(.92, 'rgb(40,38,40)'); gr.addColorStop(1, 'rgb(70,66,66)'); g.fillStyle = gr; g.fillRect(0, 0, n, n);
+  for (let k = 0; k < 5000; k++) { const x = r() * n, y = r() * n, s = .4 + r() * 1.6; g.fillStyle = r() < .55 ? `rgba(0,0,0,${.3 + r() * .5})` : `rgba(120,116,116,${.15 + r() * .3})`; g.beginPath(); g.arc(x, y, s, 0, TAU); g.fill(); }
+  for (let k = 0; k < 260; k++) { const x = r() * n, y = r() * n, s = 1.4 + r() * 2.6; g.fillStyle = 'rgba(8,8,8,.85)'; g.beginPath(); g.arc(x, y, s, 0, TAU); g.fill(); g.strokeStyle = 'rgba(120,116,112,.35)'; g.lineWidth = .7; g.beginPath(); g.arc(x - .4, y - .4, s, PI * .9, PI * 1.6); g.stroke(); }
+  g.restore();
+  g.lineWidth = 7; g.strokeStyle = 'rgba(96,92,90,.8)'; g.beginPath(); for (let i = 0; i <= 120; i++) { const a = i / 120 * TAU, rr = R - 8 - Math.abs(Math.sin(a * 7) * Math.sin(a * 3)) * 9; i ? g.lineTo(n / 2 + Math.cos(a) * rr, n / 2 + Math.sin(a) * rr) : g.moveTo(n / 2 + Math.cos(a) * rr, n / 2 + Math.sin(a) * rr); } g.stroke();
+  g.lineWidth = 3; g.strokeStyle = 'rgba(16,16,16,.9)'; g.beginPath(); g.arc(n / 2, n / 2, R - 1, 0, TAU); g.stroke();
+  return c; }
+function rcSlice(seed) {   /* lámina de carne vista desde el corte: costra, gris fino, rosado al centro */
+  const w = 240, h = 110, c = mk(w, h), g = c.getContext('2d'), r = mulberry32(seed);
+  const P = new Path2D(); P.moveTo(10, 30); P.bezierCurveTo(60, 4, 180, 2, 232, 26); P.bezierCurveTo(240, 60, 226, 96, 196, 104); P.bezierCurveTo(130, 110, 50, 106, 16, 90); P.bezierCurveTo(2, 70, 4, 44, 10, 30); P.closePath();
+  g.fillStyle = 'rgb(78,36,16)'; g.fill(P); g.save(); g.clip(P);
+  g.fillStyle = 'rgb(150,96,78)'; g.beginPath(); g.ellipse(w / 2, h / 2 + 2, w * .46, h * .38, -.03, 0, TAU); g.fill();
+  const gr = g.createRadialGradient(w / 2, h / 2, 4, w / 2, h / 2, w * .42); gr.addColorStop(0, 'rgb(214,74,90)'); gr.addColorStop(.6, 'rgb(222,110,114)'); gr.addColorStop(1, 'rgba(200,120,110,.0)'); g.fillStyle = gr; g.beginPath(); g.ellipse(w / 2, h / 2 + 2, w * .43, h * .34, -.03, 0, TAU); g.fill();
+  for (let k = 0; k < 40; k++) { g.strokeStyle = `rgba(250,220,220,${r() * .35})`; g.lineWidth = .6 + r(); g.beginPath(); const x = 30 + r() * 180, y = 25 + r() * 60; g.moveTo(x, y); g.quadraticCurveTo(x + 10, y + (r() - .5) * 10, x + 20 + r() * 20, y + (r() - .5) * 8); g.stroke(); }
+  for (let k = 0; k < 30; k++) { g.fillStyle = 'rgba(255,255,255,.55)'; g.fillRect(40 + r() * 160, 30 + r() * 50, 1.4, 1.4); }   // jugo brillante
+  g.restore(); g.strokeStyle = 'rgba(40,16,6,.8)'; g.lineWidth = 2; g.stroke(P);
+  return c; }
+function rcGarnish(type, seed) { const n = 90, c = mk(n, n), g = c.getContext('2d'), r = mulberry32(seed), cx = n / 2, cy = n / 2;
+  if (type === 'sprig') { g.strokeStyle = 'rgb(150,200,110)'; g.lineWidth = 2; g.beginPath(); g.moveTo(cx - 20, cy + 26); g.quadraticCurveTo(cx - 4, cy + 6, cx + 6, cy - 14); g.stroke();
+    for (const [x, y, a, s] of [[cx + 6, cy - 14, -.6, 1], [cx + 2, cy - 12, -2.4, .9], [cx - 6, cy + 4, -1.9, .7], [cx - 2, cy + 2, .2, .75]]) { g.save(); g.translate(x, y); g.rotate(a); const gr = g.createLinearGradient(0, -6, 0, 6); gr.addColorStop(0, 'rgb(150,214,90)'); gr.addColorStop(1, 'rgb(70,140,50)'); g.fillStyle = gr; g.beginPath(); g.ellipse(14 * s, 0, 15 * s, 7 * s, 0, 0, TAU); g.fill(); g.strokeStyle = 'rgba(40,90,30,.6)'; g.lineWidth = .8; g.beginPath(); g.moveTo(2, 0); g.lineTo(26 * s, 0); g.stroke(); g.restore(); } }
+  else if (type === 'viola' || type === 'blossom') { const N = 5, col = type === 'viola' ? [[120, 60, 170], [70, 30, 120]] : [[252, 250, 244], [220, 214, 220]], rad = type === 'viola' ? 16 : 11;
+    for (let k = 0; k < N; k++) { const a = k / N * TAU + r() * .3; g.save(); g.translate(cx, cy); g.rotate(a); const gr = g.createRadialGradient(0, rad, 1, 0, rad, rad * 1.1); gr.addColorStop(0, cssc(col[0])); gr.addColorStop(1, cssc(col[1])); g.fillStyle = gr; g.beginPath(); g.ellipse(0, rad, rad * .75, rad, 0, 0, TAU); g.fill();
+      if (type === 'viola' && k > 1) { g.strokeStyle = 'rgba(30,10,50,.7)'; g.lineWidth = .8; for (let j = -1; j <= 1; j++) { g.beginPath(); g.moveTo(0, 3); g.lineTo(j * 4, rad * .9); g.stroke(); } } g.restore(); }
+    g.fillStyle = type === 'viola' ? 'rgb(250,210,40)' : 'rgb(240,200,80)'; g.beginPath(); g.arc(cx, cy, type === 'viola' ? 5 : 3.5, 0, TAU); g.fill(); }
+  else { const gr = g.createRadialGradient(cx - 6, cy - 6, 2, cx, cy, 22); gr.addColorStop(0, 'rgb(150,206,100)'); gr.addColorStop(1, 'rgb(64,130,56)'); g.fillStyle = gr; g.beginPath(); g.arc(cx, cy, 20, 0, TAU); g.fill(); g.strokeStyle = 'rgba(220,250,200,.6)'; g.lineWidth = .9; for (let k = 0; k < 7; k++) { const a = k / 7 * TAU; g.beginPath(); g.moveTo(cx, cy); g.lineTo(cx + Math.cos(a) * 18, cy + Math.sin(a) * 18); g.stroke(); } }
+  return c; }
+function rcPaper() { const w = 520, h = 900, c = mk(w, h), g = c.getContext('2d'), r = mulberry32(504); g.fillStyle = 'rgb(232,234,232)'; g.fillRect(0, 0, w, h); for (let k = 0; k < 400; k++) { g.strokeStyle = `rgba(${r() < .5 ? '255,255,255' : '170,176,180'},${.2 + r() * .3})`; g.lineWidth = .8 + r() * 1.5; g.beginPath(); const x = r() * w, y = r() * h; g.moveTo(x, y); g.lineTo(x + (r() - .5) * 60, y + (r() - .5) * 20); g.stroke(); } for (let k = 0; k < 18; k++) { g.fillStyle = 'rgba(160,170,176,.12)'; g.beginPath(); g.ellipse(r() * w, r() * h, 40 + r() * 80, 20 + r() * 50, r() * 3, 0, TAU); g.fill(); } return c; }
+function rcBox(seed) {   /* caja de acrílico con brotes y flores sobre papel húmedo */
+  const w = 300, h = 220, c = mk(w, h), g = c.getContext('2d'), r = mulberry32(seed);
+  g.fillStyle = 'rgba(236,244,246,.35)'; g.fillRect(0, 0, w, h); g.fillStyle = 'rgba(214,224,222,.9)'; g.fillRect(10, 10, w - 20, h - 20);
+  for (let k = 0; k < 70; k++) { const t = r(), x = 20 + r() * (w - 40), y = 20 + r() * (h - 40); const sp = RCX.garn ? RCX.garn[(t < .55 ? 0 : t < .75 ? 1 : t < .9 ? 2 : 3)] : null; if (sp) g.drawImage(sp, x - 26, y - 26, 52, 52); }
+  g.strokeStyle = 'rgba(255,255,255,.9)'; g.lineWidth = 4; g.strokeRect(2, 2, w - 4, h - 4); g.fillStyle = 'rgba(255,255,255,.35)'; g.fillRect(6, 6, w - 12, 10);
+  return c; }
+function recetasPaint() {
+  RCX.smoke = rcPuff('200,198,204'); RCX.steam = rcPuff('255,255,255'); RCX.glow = rcPuff('255,170,90');
+  RCX.raw = rcSteak(false); RCX.crust = rcSteak(true); RCX.plate = rcPlate();
+  RCX.slices = [0, 1, 2, 3, 4].map(k => rcSlice(520 + k));
+  RCX.garn = [rcGarnish('sprig', 530), rcGarnish('viola', 531), rcGarnish('blossom', 532), rcGarnish('leaf', 533), rcGarnish('sprig', 534)];
+  RCX.paper = rcPaper(); RCX.boxes = [rcBox(540), rcBox(541)];
+  RCX.steel = matSteel(1800, 1000, { seed: 545, c: [70, 72, 80], bands: [[.4, .1, .3]] }); RCX.passSteel = matSteel(1800, 1000, { seed: 546, c: [176, 180, 188], bands: [[.3, .08, .4], [.75, .05, .3]] });
+}
+/* ---------- utilidades de inserto ---------- */
+function insBg(T, k = 1) { ctx.drawImage(T.c, -SW / 2, -500, SW, 1000); if (k < 1) { ctx.fillStyle = `rgba(0,0,0,${1 - k})`; ctx.fillRect(-SW / 2, -500, SW, 1000); } }
+function puffAt(img, x, y, r, a) { if (a <= .003) return; ctx.globalAlpha = a; ctx.drawImage(img, x - r, y - r, r * 2, r * 2); ctx.globalAlpha = 1; }
+function smokeWisps(t, cx, cy, w, amp, img = RCX.smoke, n = 30, rise = 700) { if (amp < .01) return; for (let i = 0; i < n; i++) { const P = 2.2 + hsh(i, 1) * 1.4, a = ((t + hsh(i, 2) * P) % P) / P, x = cx + (hsh(i, 3) - .5) * w + Math.sin(a * 4 + i) * 60 * a, y = cy - a * rise; puffAt(img, x, y, 40 + a * 230, amp * .2 * Math.sin(a * PI)); } }
+/* pinzas largas de acero: punta en (x, y), entran desde el ángulo a; open 0–1 */
+function tweezers(x, y, a, open = 0) { const L = 1100, d = [Math.cos(a), Math.sin(a)], nrm = [-d[1], d[0]], gap = 6 + open * 16;
+  for (const sg of [-1, 1]) { const bx = x + nrm[0] * sg * gap * .5, by = y + nrm[1] * sg * gap * .5, ex = x + d[0] * L + nrm[0] * sg * 26, ey = y + d[1] * L + nrm[1] * sg * 26;
+    const gr = ctx.createLinearGradient(bx + nrm[0] * 6, by + nrm[1] * 6, bx - nrm[0] * 6, by - nrm[1] * 6); gr.addColorStop(0, 'rgb(120,124,132)'); gr.addColorStop(.5, 'rgb(240,242,246)'); gr.addColorStop(1, 'rgb(110,114,122)');
+    ctx.fillStyle = gr; ctx.beginPath(); ctx.moveTo(bx - nrm[0] * 2, by - nrm[1] * 2); ctx.lineTo(bx + nrm[0] * 2, by + nrm[1] * 2); ctx.lineTo(ex + nrm[0] * 7, ey + nrm[1] * 7); ctx.lineTo(ex - nrm[0] * 7, ey - nrm[1] * 7); ctx.fill(); } }
+/* Teo se asoma por el borde del inserto (pixel grande) */
+function teoPeek(f, side = 1, show = 18, flip) { const c = elencoCanvas('teo', f), cell = Math.max(2, Math.round(H / 95)), fx = side > 0 ? W - 150 * (H / 1000) : 150 * (H / 1000), fy = H + (c.height - show) * cell; pxBlit(c, fx, fy, cell, { flip: flip ?? side > 0 }); }
+/* ---------- A · la sartén ---------- */
+const PAN = { x: 30, y: 90, rx: 560, ry: 270, wall: 70 };
+function flameAmp(t) { if (t < RC.ign) return 0; const a = t - RC.ign; return a < .25 ? eio(a / .25) : Math.exp(-(a - .25) * .45); }
+function sizzle(t) { if (t < RC.drop) return 0; let k = .55 + 1.4 * Math.exp(-(t - RC.drop) * 1.4); if (t > RC.flip + .5) k += 1.2 * Math.exp(-(t - RC.flip - .5) * 1.6); if (t > RC.butter) k = .35 + .2 * Math.sin(t * 3); return k; }
+function steakPose(t) {   /* centro, escala, cara de arriba, volteo */
+  const cx = PAN.x - 60, cy = PAN.y - 6; let y = cy, k = 1, sy = 1, top = 'raw', rot = -.06;
+  if (t < RC.drop) { const u = clamp((t - (RC.drop - .4)) / .4); y = lerp(-900, cy, u * u); k = lerp(1.35, 1, u); }
+  else if (t < RC.drop + .2) { const u = (t - RC.drop) / .2; sy = 1 - .12 * Math.sin(u * PI); }
+  if (t >= RC.flip && t < RC.flip + .6) { const u = (t - RC.flip) / .6; y -= hop(u, 220); sy = Math.cos(u * PI); rot += Math.sin(u * PI) * .25; }
+  if (t >= RC.flip + .3) top = 'crust';
+  return { x: cx, y, k, sy, top, rot };
+}
+function drawSteak(S, t, sear, gloss = 0) {
+  const rx = 225 * S.k, ry = 112 * S.k * Math.abs(S.sy), th = 46 * S.k * (.4 + .6 * Math.abs(S.sy)), img = S.top === 'crust' ? RCX.crust : RCX.raw;
+  ctx.save(); ctx.translate(S.x, S.y); ctx.rotate(S.rot);
+  const shape = (dy = 0) => { ctx.beginPath(); STK.forEach(([a, b], i) => i ? ctx.lineTo(a * rx, b * ry + dy) : ctx.moveTo(a * rx, b * ry + dy)); ctx.closePath(); };
+  /* canto: costra abajo según el sellado, rosado arriba */
+  shape(th); const sg = ctx.createLinearGradient(0, -ry, 0, ry + th); sg.addColorStop(0, S.top === 'crust' ? 'rgb(110,54,24)' : 'rgb(170,60,60)'); sg.addColorStop(.55, 'rgb(196,90,90)'); sg.addColorStop(1, cssc(mixc([186, 74, 70], [70, 32, 14], clamp(sear)))); ctx.fillStyle = sg; ctx.fill();
+  ctx.fillStyle = sg; for (let k = 1; k < 6; k++) { shape(th * k / 6); ctx.fill(); }
+  shape(); ctx.save(); ctx.clip(); ctx.drawImage(img, -rx, -ry, rx * 2, ry * 2);
+  if (gloss > 0) { ctx.globalCompositeOperation = 'screen'; for (let i = 0; i < 14; i++) { const x = (hsh(i, 1) - .5) * rx * 1.5, y = (hsh(i, 2) - .5) * ry * 1.3; ctx.fillStyle = `rgba(255,200,120,${gloss * (.16 + .14 * Math.sin(t * 5 + i))})`; ctx.beginPath(); ctx.ellipse(x, y, 20 + hsh(i, 3) * 34, 2 + hsh(i, 4) * 3, -.15, 0, TAU); ctx.fill(); } }
+  ctx.restore(); ctx.strokeStyle = 'rgba(40,14,6,.6)'; ctx.lineWidth = 2; shape(); ctx.stroke();
+  ctx.restore();
+}
+/* microgotas de aceite: saltan del borde de la carne, caen y rebotan en el hierro */
+function oilPop(t, S, amp) {
+  if (amp < .02) return; const g = 2600, N = 110; ctx.save(); ctx.globalCompositeOperation = 'lighter';
+  for (let i = 0; i < N; i++) { const P = .55 + hsh(i, 1) * .9, tt = t + hsh(i, 2) * P, cyc = Math.floor(tt / P), a = tt - cyc * P; if (hsh(i + cyc * 13.1, 5) > amp * .55) continue;
+    const r1 = hsh(i + cyc * 7.3, 3), ang = r1 * TAU, ox = S.x + Math.cos(ang) * 230 * 1.02, oy = S.y + Math.sin(ang) * 115 * 1.02, sp = 140 + hsh(i + cyc, 4) * 420, vx = Math.cos(ang) * sp * (.6 + hsh(i, 9) * .6), vy = -(320 + hsh(i + cyc * 3.3, 6) * 760), yl = oy + 14 + hsh(i + cyc, 7) * 70;
+    const tl = (-vy + Math.sqrt(vy * vy + 2 * g * (yl - oy))) / g; let x, y, vxx, vyy, alive = 1;
+    if (a < tl) { x = ox + vx * a; y = oy + vy * a + g * a * a / 2; vxx = vx; vyy = vy + g * a; }
+    else { const b = a - tl, v2 = -(vy + g * tl) * .3, h2 = 2 * -v2 / g; if (b > h2 + .25) continue; const bb = Math.min(b, h2); x = ox + vx * tl + vx * .45 * bb; y = yl + v2 * bb + g * bb * bb / 2; vxx = vx * .45; vyy = v2 + g * bb; alive = b > h2 ? 1 - (b - h2) / .25 : 1; }
+    const s = 2.2 + hsh(i, 8) * 3.2, al = .85 * alive; ctx.strokeStyle = `rgba(255,232,180,${al * .6})`; ctx.lineWidth = s * .8; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x - vxx * .018, y - vyy * .018); ctx.stroke(); ctx.fillStyle = `rgba(255,248,226,${al})`; ctx.beginPath(); ctx.arc(x, y, s * .6, 0, TAU); ctx.fill(); }
+  ctx.restore();
+}
+function panBody(t, tilt, inner) {   /* la sartén de hierro fundido; inner() dibuja lo de dentro con el recorte del fondo */
+  const { x, y, rx, ry, wall } = PAN;
+  ctx.save(); ctx.translate(x, y); ctx.rotate(tilt); ctx.translate(-x, -y);
+  /* mango */
+  ctx.fillStyle = 'rgb(30,30,32)'; ctx.beginPath(); ctx.moveTo(x + rx - 30, y - 34); ctx.lineTo(x + rx + 520, y - 100); ctx.lineTo(x + rx + 540, y - 30); ctx.lineTo(x + rx - 20, y + 40); ctx.fill(); ctx.fillStyle = 'rgba(160,160,170,.25)'; ctx.fillRect(x + rx + 40, y - 70, 380, 6);
+  /* cuerpo exterior y pared */
+  const wg = ctx.createLinearGradient(x - rx, 0, x + rx, 0); wg.addColorStop(0, 'rgb(58,58,62)'); wg.addColorStop(.3, 'rgb(30,30,32)'); wg.addColorStop(1, 'rgb(20,20,22)');
+  ctx.fillStyle = wg; ctx.beginPath(); ctx.ellipse(x, y + wall, rx, ry, 0, 0, PI); ctx.lineTo(x - rx, y); ctx.ellipse(x, y, rx, ry, 0, PI, 0, true); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = 'rgb(34,34,38)'; ctx.beginPath(); ctx.ellipse(x, y, rx, ry, 0, 0, TAU); ctx.fill();
+  ctx.strokeStyle = 'rgba(150,150,160,.35)'; ctx.lineWidth = 5; ctx.beginPath(); ctx.ellipse(x, y, rx - 3, ry - 2, 0, PI * 1.05, PI * 1.6); ctx.stroke();
+  /* fondo con aceite */
+  const ix = rx - 34, iy = ry - 18, fg = ctx.createRadialGradient(x - 80, y - 40, 20, x, y, ix); fg.addColorStop(0, 'rgb(40,36,30)'); fg.addColorStop(1, 'rgb(16,16,18)');
+  ctx.save(); ctx.beginPath(); ctx.ellipse(x, y + 8, ix, iy, 0, 0, TAU); ctx.clip(); ctx.fillStyle = fg; ctx.fillRect(x - rx, y - ry, rx * 2, ry * 2);
+  ctx.globalCompositeOperation = 'screen'; for (let i = 0; i < 9; i++) { const a = hsh(i, 1) * TAU, px = x + Math.cos(a) * ix * .7, py = y + Math.sin(a) * iy * .7; ctx.strokeStyle = `rgba(255,220,160,${.12 + .1 * Math.sin(t * 4 + i * 2)})`; ctx.lineWidth = 3; ctx.beginPath(); ctx.ellipse(px, py, 40 + hsh(i, 2) * 60, 8, a, 0, PI * .8); ctx.stroke(); }
+  ctx.globalCompositeOperation = 'source-over'; if (inner) inner();
+  ctx.restore();
+  ctx.restore();
+}
+function burnerUnder(t, k) {   /* corona azul que asoma por delante de la sartén */
+  ctx.save(); ctx.globalCompositeOperation = 'lighter';
+  for (let i = 0; i < 26; i++) { const a = lerp(.15, PI - .15, i / 25), bx = PAN.x + Math.cos(a) * (PAN.rx * .74), by = PAN.y + PAN.wall + Math.sin(a) * PAN.ry * .74 + 40, h = (40 + 26 * Math.sin(t * 19 + i * 2.1)) * k, gr = ctx.createLinearGradient(0, by, 0, by - h);
+    gr.addColorStop(0, 'rgba(90,140,255,.9)'); gr.addColorStop(.7, 'rgba(60,90,255,.4)'); gr.addColorStop(1, 'rgba(255,180,120,0)'); ctx.fillStyle = gr; ctx.beginPath(); ctx.moveTo(bx - 12, by); ctx.quadraticCurveTo(bx, by - h * 1.3, bx + 12, by); ctx.fill(); }
+  ctx.restore(); }
+function flameField(t, amp, cx, cy, w, h0, n = 60) {   /* llamarada: lenguas azules en la base, naranja y amarillo arriba */
+  if (amp < .01) return; ctx.save(); ctx.globalCompositeOperation = 'lighter';
+  for (let i = 0; i < n; i++) { const bx = cx + (hsh(i, 1) - .5) * w, by = cy + (hsh(i, 2) - .5) * w * .3, fl = .75 + .25 * Math.sin(t * 11 + i * 1.7) + .1 * Math.sin(t * 23 + i), h = amp * h0 * (.45 + hsh(i, 3)) * fl, ww = (40 + hsh(i, 4) * 70) * (h0 / 700), sw = Math.sin(t * 7 + i) * 40 * (h0 / 700);
+    const gr = ctx.createLinearGradient(0, by, 0, by - h); gr.addColorStop(0, `rgba(70,110,255,${.5 * amp})`); gr.addColorStop(.16, `rgba(255,110,30,${.36 * amp})`); gr.addColorStop(.55, `rgba(255,190,70,${.24 * amp})`); gr.addColorStop(1, 'rgba(255,240,180,0)');
+    ctx.fillStyle = gr; ctx.beginPath(); ctx.moveTo(bx - ww / 2, by); ctx.quadraticCurveTo(bx - ww * .7 + sw, by - h * .5, bx + sw * 1.5, by - h); ctx.quadraticCurveTo(bx + ww * .7 + sw, by - h * .5, bx + ww / 2, by); ctx.fill(); }
+  ctx.restore(); }
+function butterPool(t) {   /* espuma de mantequilla: rubia → avellana; burbujas que crecen y revientan, tomillo y ajo */
+  const cx = PAN.x - 290, cy = PAN.y + 140, rx = 300, ry = 104, k = seg(t, RC.butter, RC.endA - 1), m = seg(t, RC.butter, RC.butter + 1.4);
+  if (m <= 0) return; const col = mixc([250, 210, 100], [190, 112, 40], k);
+  ctx.save(); ctx.beginPath(); ctx.ellipse(cx, cy, rx * (.4 + .6 * m), ry * (.4 + .6 * m), -.05, 0, TAU); ctx.clip();
+  const gr = ctx.createRadialGradient(cx, cy, 10, cx, cy, rx); gr.addColorStop(0, cssc(shc(col, .1))); gr.addColorStop(1, cssc(shc(col, -.2))); ctx.fillStyle = gr; ctx.fillRect(cx - rx, cy - ry, rx * 2, ry * 2);
+  for (let i = 0; i < 70 * k; i++) { ctx.fillStyle = 'rgba(110,60,20,.6)'; ctx.fillRect(cx + (hsh(i, 11) - .5) * rx * 1.8, cy + (hsh(i, 12) - .5) * ry * 1.6, 2.4, 2.4); }   // sólidos de leche tostados
+  for (let i = 0; i < 180; i++) { const P = .35 + hsh(i, 1) * .8, a = ((t + hsh(i, 2) * P) % P) / P, bx = cx + (hsh(i, 3) - .5) * rx * 1.8, by = cy + (hsh(i, 4) - .5) * ry * 1.6, r = (2.5 + hsh(i, 5) * 11) * Math.sin(a * PI * .5) * m;
+    ctx.fillStyle = cssc(shc(col, .25), .55); ctx.beginPath(); ctx.arc(bx, by, r, 0, TAU); ctx.fill(); ctx.strokeStyle = `rgba(255,250,232,${.75 * (1 - a * .4)})`; ctx.lineWidth = 1.1; ctx.stroke(); ctx.fillStyle = 'rgba(255,255,255,.85)'; ctx.fillRect(bx - r * .45, by - r * .5, Math.max(1, r * .25), Math.max(1, r * .25));
+    if (a > .94) { ctx.strokeStyle = 'rgba(255,250,232,.7)'; for (let j = 0; j < 4; j++) { const aa = j * PI / 2 + i; ctx.beginPath(); ctx.moveTo(bx + Math.cos(aa) * r, by + Math.sin(aa) * r); ctx.lineTo(bx + Math.cos(aa) * r * 1.8, by + Math.sin(aa) * r * 1.8); ctx.stroke(); } } }
+  ctx.restore();
+  if (t < RC.butter + 1.4) { const u = seg(t, RC.butter - .35, RC.butter), s = 70 * (1 - m * .8); ctx.fillStyle = 'rgb(252,236,170)'; ctx.fillRect(cx - s / 2, lerp(-700, cy - s * .6, u * u), s, s * .7); }   // el trozo de mantequilla que cae y se funde
+  if (t > RC.butter + .4) { for (const [dx, dy, a] of [[-120, -10, .4], [60, 16, -.3]]) { ctx.save(); ctx.translate(cx + dx, cy + dy); ctx.rotate(a + Math.sin(t * 2) * .03); ctx.strokeStyle = 'rgb(70,96,50)'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(-60, 0); ctx.lineTo(60, 0); ctx.stroke(); for (let j = 0; j < 9; j++) { ctx.fillStyle = 'rgb(90,120,60)'; ctx.beginPath(); ctx.ellipse(-52 + j * 13, (j % 2 ? -6 : 6), 7, 3, j % 2 ? -.6 : .6, 0, TAU); ctx.fill(); } ctx.restore(); }
+    for (const [dx, dy] of [[-30, -24], [110, -8]]) { ctx.fillStyle = 'rgb(236,214,170)'; ctx.beginPath(); ctx.ellipse(cx + dx, cy + dy, 24, 15, .4, 0, TAU); ctx.fill(); ctx.strokeStyle = 'rgba(150,110,60,.7)'; ctx.lineWidth = 2; ctx.stroke(); } }
+}
+function spoonBaste(t, S) {   /* la cuchara: hunde en la espuma, sube, baña la carne, vuelve */
+  if (t < RC.baste) return 0; const P = 1.15, u = ((t - RC.baste) % P) / P, pool = [PAN.x - 300, PAN.y + 150], over = [S.x + 30, S.y - 120];
+  let p, tilt = 0, full = 0;
+  if (u < .25) { p = pool; full = u / .25; } else if (u < .5) { const v = eio((u - .25) / .25); p = [lerp(pool[0], over[0], v), lerp(pool[1], over[1], v) - Math.sin(v * PI) * 80]; full = 1; } else if (u < .82) { p = over; tilt = (u - .5) / .32; full = 1 - tilt; } else { const v = eio((u - .82) / .18); p = [lerp(over[0], pool[0], v), lerp(over[1], pool[1], v)]; }
+  if (u > .52 && u < .84) for (let k = 0; k < 10; k++) { const ph = ((t * 5 + k / 10) % 1), x = p[0] + 40 + Math.sin(k * 3) * 10, y = p[1] + 10 + ph * 120; ctx.fillStyle = `rgba(214,160,80,${.85 * (1 - ph)})`; ctx.beginPath(); ctx.ellipse(x, y, 6, 9, 0, 0, TAU); ctx.fill(); ctx.fillStyle = 'rgba(255,250,230,.8)'; ctx.fillRect(x - 2, y - 4, 2, 3); }
+  ctx.save(); ctx.translate(p[0], p[1]); ctx.rotate(-.5 + tilt * .9);
+  const hg = ctx.createLinearGradient(0, -8, 0, 8); hg.addColorStop(0, 'rgb(140,144,152)'); hg.addColorStop(.5, 'rgb(244,246,250)'); hg.addColorStop(1, 'rgb(120,124,132)'); ctx.fillStyle = hg; ctx.beginPath(); ctx.moveTo(-40, -7); ctx.lineTo(-900, -26); ctx.lineTo(-900, 4); ctx.lineTo(-40, 7); ctx.fill();
+  const bg = ctx.createRadialGradient(10, -10, 4, 0, 0, 70); bg.addColorStop(0, 'rgb(250,252,255)'); bg.addColorStop(.6, 'rgb(170,174,182)'); bg.addColorStop(1, 'rgb(96,100,108)'); ctx.fillStyle = bg; ctx.beginPath(); ctx.ellipse(10, 0, 70, 40, 0, 0, TAU); ctx.fill();
+  if (full > .05) { ctx.fillStyle = `rgba(206,150,74,${.9 * full})`; ctx.beginPath(); ctx.ellipse(12, 2, 56 * full, 28 * full, 0, 0, TAU); ctx.fill(); for (let k = 0; k < 6; k++) { ctx.strokeStyle = 'rgba(255,248,226,.8)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(-20 + k * 12, -4 + (k % 2) * 8, 3 + (k % 3), 0, TAU); ctx.stroke(); } }
+  ctx.restore(); return u > .52 && u < .84 ? 1 : 0;
+}
+function bottlePour(t) {   /* el coñac: la botella entra, chorro ámbar que tiembla, salpica */
+  const u0 = seg(t, RC.pour - .4, RC.pour), u1 = seg(t, RC.ign - .3, RC.ign + .1); if (u0 <= 0 || u1 >= 1) return; const k = eio(u0) * (1 - eio(u1)), nx = lerp(-1100, -260, k), ny = lerp(-760, -360, k), pour = t > RC.pour && t < RC.ign - .2;
+  if (pour) { const ex = PAN.x - 80, ey = PAN.y - 10; ctx.strokeStyle = 'rgba(214,130,40,.85)'; ctx.lineWidth = 11; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(nx + 20, ny + 10); ctx.bezierCurveTo(nx + 90, ny + 60, ex - 40 + Math.sin(t * 30) * 6, ey - 200, ex, ey); ctx.stroke(); ctx.strokeStyle = 'rgba(255,230,170,.7)'; ctx.lineWidth = 2.5; ctx.stroke();
+    ctx.save(); ctx.globalCompositeOperation = 'lighter'; for (let i = 0; i < 12; i++) { const ph = (t * 4 + i / 12) % 1, a = hsh(i, 1) * PI; ctx.fillStyle = `rgba(255,200,120,${1 - ph})`; ctx.beginPath(); ctx.arc(ex + Math.cos(a) * ph * 90, ey - Math.sin(a) * ph * 70 + ph * ph * 60, 3, 0, TAU); ctx.fill(); } ctx.restore(); }
+  ctx.save(); ctx.translate(nx, ny); ctx.rotate(2.35); const bg = ctx.createLinearGradient(0, -60, 0, 60); bg.addColorStop(0, 'rgba(90,40,14,.95)'); bg.addColorStop(.4, 'rgba(180,96,30,.95)'); bg.addColorStop(1, 'rgba(60,24,8,.95)'); ctx.fillStyle = bg;
+  ctx.beginPath(); ctx.moveTo(-20, -18); ctx.lineTo(-90, -24); ctx.quadraticCurveTo(-130, -60, -170, -64); ctx.lineTo(-560, -64); ctx.lineTo(-560, 64); ctx.lineTo(-170, 64); ctx.quadraticCurveTo(-130, 60, -90, 24); ctx.lineTo(-20, 18); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = 'rgba(255,240,210,.35)'; ctx.fillRect(-520, -48, 330, 10); ctx.fillStyle = 'rgb(240,232,214)'; ctx.fillRect(-420, -50, 150, 100); ctx.fillStyle = 'rgb(120,40,30)'; ctx.font = 'italic 700 30px "Playfair Display", serif'; ctx.save(); ctx.translate(-345, 0); ctx.rotate(PI / 2); ctx.textAlign = 'center'; ctx.fillText('Almagre', 0, 10); ctx.restore(); ctx.restore();
+}
+function insertPan(t) {
+  T0(); insBg(RCX.steel, .9);
+  /* rejilla de hierro del fogón */
+  ctx.strokeStyle = 'rgb(18,18,20)'; ctx.lineWidth = 34; ctx.lineCap = 'butt'; for (const a of [.35, 1.2, 2.0, 2.8]) { ctx.beginPath(); ctx.moveTo(PAN.x + Math.cos(a) * 1200, PAN.y + 60 + Math.sin(a) * 600); ctx.lineTo(PAN.x - Math.cos(a) * 1200, PAN.y + 60 - Math.sin(a) * 600); ctx.stroke(); }
+  const fA = flameAmp(t), arro = t >= RC.butter, tilt = arro ? -.1 * sm(seg(t, RC.butter - .2, RC.butter + .6)) : t > RC.pour - .6 && t < RC.ign + 1 ? -.06 * Math.sin(seg(t, RC.pour - .6, RC.ign + 1) * PI) : 0;
+  burnerUnder(t, t < RC.drop - 1 ? .7 : 1);
+  const S = steakPose(t), sear = seg(t, RC.drop, RC.flip) * .9 + (t > RC.flip ? .1 : 0), sz = sizzle(t);
+  panBody(t, tilt, () => {
+    if (arro) butterPool(t);
+    if (t > RC.drop - .4) drawSteak(S, t, sear, arro ? seg(t, RC.baste, RC.baste + 3) : 0);
+  });
+  ctx.save(); ctx.translate(PAN.x, PAN.y); ctx.rotate(tilt); ctx.translate(-PAN.x, -PAN.y);
+  if (arro) spoonBaste(t, S);
+  ctx.restore();
+  oilPop(t, S, sz);
+  smokeWisps(t, S.x, S.y - 20, 420, clamp(sz * .7 + fA * .3), RCX.smoke, 30, 760);
+  if (t >= RC.drop && t < RC.drop + .6) { const a = t - RC.drop; ctx.save(); ctx.globalCompositeOperation = 'lighter'; for (let i = 0; i < 40; i++) { const ang = -PI * hsh(i, 1), v = 400 + hsh(i, 2) * 900, x = S.x + Math.cos(ang) * (240 + v * a), y = S.y + Math.sin(ang) * v * a * .6 + 1800 * a * a; ctx.fillStyle = `rgba(255,236,190,${1 - a / .6})`; ctx.fillRect(x, y, 4, 4); } ctx.restore(); }
+  bottlePour(t);
+  if (fA > .01) { flameField(t, fA, PAN.x - 40, PAN.y, PAN.rx * 1.5, 900, 46); ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalCompositeOperation = 'screen'; ctx.globalAlpha = .28 * fA; ctx.fillStyle = 'rgb(255,130,50)'; ctx.fillRect(0, 0, W, H); ctx.restore(); T0(); }
+  /* luz fría de arriba, viñeta caliente cuando hay fuego */
+  const lg = ctx.createLinearGradient(0, -500, 0, 500); lg.addColorStop(0, 'rgba(210,226,255,.10)'); lg.addColorStop(1, 'rgba(0,0,0,.25)'); ctx.fillStyle = lg; ctx.fillRect(-SW / 2, -500, SW, 1000);
+  /* Teo se asoma: concentrado; ojos como platos con la llamarada; feliz con el arroser */
+  const f = t > RC.ign - .1 && t < RC.ign + 2.5 ? { wide: true, mouthO: true } : arro ? { happy: t % 3 < 1.6 } : { flat: true, blink: (t * .5) % 1 < .05 };
+  teoPeek(f, 1, t > RC.ign && t < RC.ign + 2.5 ? 30 : 26);
+}
+/* ---------- B · el emplatado ---------- */
+const PLT = { x: 150, y: 40, r: 330, sy: .86 };
+const tearPt = s => { const a = lerp(2.5, 5.2, s), R = 214 + 26 * Math.sin(s * PI); return [PLT.x + Math.cos(a) * R, PLT.y + Math.sin(a) * R * PLT.sy]; };
+const tearW = s => 38 * Math.pow(1 - s, .8) + 1.8;
+function sauceTear(t) {
+  const pr = eio(seg(t, RC.tear, RC.tear + 1.8)); if (pr <= 0) return null; const N = 60, L = [], R_ = [];
+  for (let i = 0; i <= N; i++) { const s = i / N * pr, p = tearPt(s), q = tearPt(Math.min(1, s + .01)), d = Math.hypot(q[0] - p[0], q[1] - p[1]) || 1, nx = -(q[1] - p[1]) / d, ny = (q[0] - p[0]) / d, w = tearW(s); L.push([p[0] + nx * w, p[1] + ny * w]); R_.push([p[0] - nx * w, p[1] - ny * w]); }
+  const head = tearPt(0); ctx.fillStyle = 'rgb(66,24,12)'; ctx.beginPath(); L.forEach(([x, y], i) => i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); for (let i = R_.length - 1; i >= 0; i--) ctx.lineTo(R_[i][0], R_[i][1]); ctx.closePath(); ctx.fill(); ctx.beginPath(); ctx.arc(head[0], head[1], tearW(0), 0, TAU); ctx.fill();
+  ctx.strokeStyle = 'rgba(130,56,24,.85)'; ctx.lineWidth = 6; ctx.beginPath(); for (let i = 0; i <= N; i++) { const p = tearPt(i / N * pr); i ? ctx.lineTo(p[0], p[1] - tearW(i / N * pr) * .35) : ctx.moveTo(p[0], p[1] - tearW(0) * .35); } ctx.stroke();
+  /* las lámparas del pase reflejadas en la lágrima */
+  ctx.save(); ctx.globalCompositeOperation = 'screen'; for (const [s, k] of [[.04, 1], [.22, .7], [.45, .5]]) { if (s > pr) continue; const p = tearPt(s), w = tearW(s); ctx.fillStyle = `rgba(255,150,110,${.7 * k})`; ctx.beginPath(); ctx.ellipse(p[0] - w * .25, p[1] - w * .45, w * .45, w * .16, -.4, 0, TAU); ctx.fill(); ctx.fillStyle = `rgba(255,255,250,${.9 * k})`; ctx.beginPath(); ctx.ellipse(p[0] - w * .3, p[1] - w * .5, w * .16, w * .06, -.4, 0, TAU); ctx.fill(); } ctx.restore();
+  return tearPt(pr);
+}
+const SLICES = [0, 1, 2, 3, 4].map(k => ({ x: PLT.x + 6 + k * 46, y: PLT.y + 56 - k * 30, a: -.6 + k * .1 }));
+const inward = (s, o) => { const p = tearPt(s), dx = PLT.x - p[0], dy = PLT.y - p[1], d = Math.hypot(dx, dy) || 1; return [p[0] + dx / d * (tearW(s) + o), p[1] + dy / d * (tearW(s) + o)]; };
+const GREEN = [0, 1, 2, 3, 4, 5, 6].map(k => { const s = .06 + k * .13, [x, y] = inward(s, 24); return { x, y, r: 19 - k * 1.8, t: RC.green + k * .3 }; });
+const SAFF = [0, 1, 2, 3, 4, 5].map(k => { const s = .13 + k * .14, [x, y] = inward(s, 62); return { x, y, r: 13 - k * 1.1, t: RC.saff + k * .34 }; });
+const GARN = [[0, 120, -40, .4, 76], [1, 186, -66, 0, 58], [3, 70, 10, 0, 50], [2, 230, -20, .5, 40], [4, 30, 64, -1.2, 70], [2, 144, 20, 1.1, 34], [1, -40, -150, .2, 46]].map(([k, dx, dy, a, s], i) => ({ k, x: PLT.x + dx, y: PLT.y + dy, a, s, t: RC.garn + i * .78 }));
+function dotDraw(x, y, r, c, sc) { if (sc <= 0) return; const rr = r * sc, gr = ctx.createRadialGradient(x - rr * .3, y - rr * .35, rr * .1, x, y, rr); gr.addColorStop(0, cssc(shc(c, .35))); gr.addColorStop(.6, cssc(c)); gr.addColorStop(1, cssc(shc(c, -.3))); ctx.fillStyle = gr; ctx.beginPath(); ctx.ellipse(x, y, rr, rr * .9, 0, 0, TAU); ctx.fill(); ctx.fillStyle = 'rgba(255,255,255,.85)'; ctx.beginPath(); ctx.ellipse(x - rr * .35, y - rr * .4, rr * .22, rr * .12, -.5, 0, TAU); ctx.fill(); }
+function squeezeTip(x, y, col, press) { ctx.save(); ctx.translate(x + 6, y - 14 - (1 - press) * 20); ctx.rotate(.5); ctx.fillStyle = 'rgb(240,240,236)'; ctx.beginPath(); ctx.moveTo(-3, 0); ctx.lineTo(3, 0); ctx.lineTo(16, -120); ctx.lineTo(-16, -120); ctx.fill(); const bg = ctx.createLinearGradient(-60, 0, 60, 0); bg.addColorStop(0, cssc(shc(col, -.3), .9)); bg.addColorStop(.4, cssc(shc(col, .2), .9)); bg.addColorStop(1, cssc(shc(col, -.4), .9)); ctx.fillStyle = bg; ctx.fillRect(-62, -800, 124, 690); ctx.fillStyle = 'rgba(255,255,255,.4)'; ctx.fillRect(-40, -780, 14, 650); ctx.restore(); }
+function goldLeaf(x, y, t, flut) { const N = 11; ctx.beginPath(); for (let i = 0; i < N; i++) { const a = i / N * TAU, r = 30 * (1 + .25 * Math.sin(a * 3 + 1) + .15 * Math.sin(a * 5)) + flut * 7 * Math.sin(t * 31 + i * 1.7); i ? ctx.lineTo(x + Math.cos(a) * r, y + Math.sin(a) * r * .8) : ctx.moveTo(x + Math.cos(a) * r, y + Math.sin(a) * r * .8); } ctx.closePath();
+  const sh = .5 + .5 * Math.sin(t * 9 + flut * 3), gr = ctx.createLinearGradient(x - 30, y - 30, x + 30, y + 30); gr.addColorStop(0, 'rgb(190,140,40)'); gr.addColorStop(clamp(.2 + sh * .6), 'rgb(255,236,150)'); gr.addColorStop(1, 'rgb(170,120,30)'); ctx.fillStyle = gr; ctx.fill(); ctx.strokeStyle = 'rgba(120,80,20,.6)'; ctx.lineWidth = 1; ctx.stroke();
+  ctx.strokeStyle = 'rgba(255,250,220,.7)'; for (let k = 0; k < 4; k++) { ctx.beginPath(); ctx.moveTo(x - 20 + k * 11, y - 14 + Math.sin(k) * 6); ctx.lineTo(x - 12 + k * 11, y + 10); ctx.stroke(); } }
+const goldFlutter = t => t < RC.goldOff ? .15 : Math.exp(-(t - RC.goldOff) * .55) * (1.2 + .5 * Math.sin(t * 2.7));
+function insertPlate(t) {
+  T0(); insBg(RCX.passSteel);
+  /* papel húmedo con las cajas de brotes y flores (a la izquierda) */
+  ctx.drawImage(RCX.paper, -SW / 2 - 40, -520, 420, 1040); ctx.drawImage(RCX.boxes[0], -SW / 2 + 10, -430, 300, 220); ctx.drawImage(RCX.boxes[1], -SW / 2 + 30, -150, 300, 220);
+  ctx.fillStyle = 'rgba(0,0,0,.18)'; ctx.fillRect(-SW / 2 + 380, -500, 20, 1000);
+  /* el plato entra deslizando */
+  { ctx.save(); ctx.globalCompositeOperation = 'screen'; const rg = ctx.createRadialGradient(0, -380, 40, 0, -200, 1100); rg.addColorStop(0, 'rgba(255,90,40,.5)'); rg.addColorStop(1, 'rgba(255,60,30,0)'); ctx.fillStyle = rg; ctx.fillRect(-SW / 2, -500, SW, 1000); ctx.restore(); }
+  const pin = eio(seg(t, RC.plate, RC.plate + 1.2)), px = lerp(1400, 0, pin);
+  ctx.save(); ctx.translate(px, 0); ctx.translate(PLT.x, PLT.y); ctx.scale(1.32, 1.32); ctx.translate(-PLT.x, -PLT.y);
+  ctx.fillStyle = 'rgba(20,10,10,.35)'; ctx.beginPath(); ctx.ellipse(PLT.x + 16, PLT.y + 24, PLT.r + 6, (PLT.r + 6) * PLT.sy, 0, 0, TAU); ctx.fill();
+  ctx.drawImage(RCX.plate, PLT.x - PLT.r, PLT.y - PLT.r * PLT.sy, PLT.r * 2, PLT.r * 2 * PLT.sy);
+  const tip = sauceTear(t);
+  /* la cuchara que arrastra la lágrima */
+  if (tip && t < RC.tear + 2.1) { ctx.save(); ctx.translate(tip[0], tip[1]); ctx.rotate(-.9); ctx.globalAlpha = 1 - seg(t, RC.tear + 1.8, RC.tear + 2.1); const bg = ctx.createRadialGradient(0, 0, 2, 0, 0, 40); bg.addColorStop(0, 'rgb(250,250,252)'); bg.addColorStop(1, 'rgb(120,124,132)'); ctx.fillStyle = bg; ctx.beginPath(); ctx.ellipse(0, -10, 26, 40, 0, 0, TAU); ctx.fill(); ctx.fillStyle = 'rgb(200,204,212)'; ctx.fillRect(-5, -900, 10, 860); ctx.restore(); ctx.globalAlpha = 1; }
+  /* láminas de carne, una a una con las pinzas */
+  let tw = null;
+  SLICES.forEach((S_, k) => { const t0 = RC.slices + k * .62; if (t < t0) return; const u = eio(seg(t, t0, t0 + .4)), x = lerp(PLT.x + 900, S_.x, u), y = lerp(-700, S_.y, u), img = RCX.slices[k];
+    ctx.save(); ctx.translate(x, y); ctx.rotate(S_.a); ctx.fillStyle = 'rgba(0,0,0,.35)'; ctx.beginPath(); ctx.ellipse(6, 12, 82, 34, 0, 0, TAU); ctx.fill(); ctx.drawImage(img, -85, -39, 170, 78); ctx.restore(); if (u < 1 || t < t0 + .55) tw = [x + 30, y - 10, -.75, u < 1 ? 0 : seg(t, t0 + .4, t0 + .55)]; });
+  /* puntos: clorofila y azafrán */
+  let sq = null;
+  for (const [L, col] of [[GREEN, [60, 160, 50]], [SAFF, [246, 184, 26]]]) L.forEach(d => { const sc = sm(seg(t, d.t, d.t + .16)); dotDraw(d.x, d.y, d.r, col, sc); if (t > d.t - .25 && t < d.t + .22) sq = [d.x, d.y, col, seg(t, d.t - .1, d.t + .05)]; });
+  /* brotes y flores */
+  GARN.forEach(G => { if (t < G.t) return; const u = eio(seg(t, G.t, G.t + .45)), x = lerp(-SW / 2 + 160, G.x, u), y = lerp(-320 + G.k * 60, G.y, u) - Math.sin(u * PI) * 120; ctx.save(); ctx.translate(x, y); ctx.rotate(G.a + (1 - u) * .6); ctx.drawImage(RCX.garn[G.k], -G.s * .7, -G.s * .7, G.s * 1.4, G.s * 1.4); ctx.restore(); if (u < 1 || t < G.t + .6) tw = [x - 6, y, -2.6, u < 1 ? 0 : seg(t, G.t + .45, G.t + .6)]; });
+  /* la hoja de oro: llega con pinzas, se suelta y tiembla con el aire */
+  if (t > RC.gold) { const u = eio(seg(t, RC.gold, RC.gold + 1.4)), gx = lerp(PLT.x + 700, SLICES[2].x + 6, u), gy = lerp(-640, SLICES[2].y - 6, u) - (t < RC.goldOff ? 10 + Math.sin(t * 3) * 3 : 0); goldLeaf(gx, gy, t, goldFlutter(t));
+    if (t < RC.goldOff + .35) tw = [gx + 18, gy - 12, -.7, seg(t, RC.goldOff, RC.goldOff + .3)]; }
+  if (sq) squeezeTip(sq[0], sq[1], sq[2], sq[3]);
+  if (tw) tweezers(tw[0], tw[1], tw[2], tw[3]);
+  ctx.restore();
+  /* el rojo de las lámparas infrarrojas por encima */
+  ctx.save(); ctx.globalCompositeOperation = 'soft-light'; ctx.fillStyle = 'rgba(255,80,40,.14)'; ctx.fillRect(-SW / 2, -500, SW, 1000); ctx.globalCompositeOperation = 'screen';
+  ctx.fillStyle = `rgba(255,120,80,${.18 + .03 * Math.sin(t * 2)})`; ctx.beginPath(); ctx.ellipse(PLT.x + px - 120, PLT.y - 270, 150, 26, -.3, 0, TAU); ctx.fill(); ctx.restore();
+  /* Teo se asoma desde abajo, conteniendo el aliento con el oro */
+  const f = t > RC.gold ? { wide: t > RC.goldOff && t < RC.endB - .8, sweat: t > RC.goldOff, mouthO: false, flat: t < RC.goldOff, happy: t > RC.endB - .8 } : { flat: true, blink: (t * .4) % 1 < .05 };
+  if (t > RC.tear) teoPeek(f, 1, 25);
+}
+/* el plato terminado en el mundo (sobre el pase) */
+function plate3D(x, z, full, t) { const top = KI.PASS.top - .6, P = poly3(ellP(x, z, 30, 30, 28).map(([a, b]) => [a, top, b])); if (!P) return; ctx.fillStyle = 'rgb(34,32,34)'; ctx.fill(P); ctx.strokeStyle = 'rgba(110,104,104,.8)'; ctx.lineWidth = Math.max(1, PS(z) * .8); ctx.stroke(P);
+  if (!full) { const c = PJ(x - 4, top, z - 4), s = PS(z); ctx.fillStyle = 'rgba(255,170,130,.35)'; ctx.beginPath(); ctx.ellipse(c[0], c[1], 12 * s, 3 * s, -.2, 0, TAU); ctx.fill(); return; }
+  for (const [dx, dz, c, r] of [[-8, -6, 'rgb(70,26,14)', 6.4], [4, 2, 'rgb(210,90,96)', 5.2], [10, -4, 'rgb(210,90,96)', 4.8], [-12, 6, 'rgb(70,160,60)', 2.2], [-6, 10, 'rgb(246,184,26)', 2], [12, 10, 'rgb(120,60,170)', 2.4], [6, -2, 'rgb(250,220,120)', 2.6]]) { const p = PJ(x + dx, top - .5, z + dz), s = PS(z); ctx.fillStyle = c; ctx.beginPath(); ctx.ellipse(p[0], p[1], r * s, r * s * .4, 0, 0, TAU); ctx.fill(); }
+  const g = PJ(x + 6, top - 1, z - 2); ctx.fillStyle = `rgba(255,230,140,${.7 + .3 * Math.sin(t * 6)})`; ctx.fillRect(g[0] - 1.4 * PS(z), g[1] - .8 * PS(z), 2.8 * PS(z), 1.2 * PS(z)); }
+/* la sartén de hierro sobre el fogón, en el mundo (planos generales) */
+function castIron3D(x, z, t, o = {}) {
+  const top = KI.RANGE.top, s = PS(z), r = 26;
+  const H_ = poly3([[x + r - 2, top - 7, z - 3], [x + r + 46, top - 9, z - 8], [x + r + 46, top - 6, z - 4], [x + r - 2, top - 3, z + 3]]); if (H_) { ctx.fillStyle = 'rgb(26,26,28)'; ctx.fill(H_); }
+  const B = poly3(ellP(x, z, r, r, 24).map(([a, b]) => [a, top - 1, b])), Tp = poly3(ellP(x, z, r, r, 24).map(([a, b]) => [a, top - 8, b]));
+  if (B) { ctx.fillStyle = 'rgb(22,22,24)'; ctx.fill(B); } if (Tp) { ctx.fillStyle = 'rgb(30,30,32)'; ctx.fill(Tp); ctx.strokeStyle = 'rgb(70,70,76)'; ctx.lineWidth = Math.max(1, s * 1.2); ctx.stroke(Tp); }
+  if (o.steak) { const p = PJ(x - 3, top - 9, z), q = PS(z); ctx.fillStyle = o.crust ? 'rgb(110,54,24)' : 'rgb(170,60,60)'; ctx.beginPath(); ctx.ellipse(p[0], p[1], 13 * q, 4 * q, 0, 0, TAU); ctx.fill(); }
+  if (o.smoke) steamCols(t, { x, y: top - 10, z }, { n: 4, h: 160, w: 6, a: .16 * o.smoke, sway: 20, spread: 16, drift: .1 });
+}
+function flame3D(t, x, z, amp) {   /* la llamarada en el plano general */
+  if (amp < .01) return; const c = PJ(x, KI.RANGE.top - 10, z), s = PS(z); ctx.save(); ctx.translate(c[0], c[1]); ctx.scale(s, s); flameField(t, amp, 0, 0, 60, 120, 34); ctx.restore();
+}
+
+/* =====================================================================
+   ESCENA 4 · BRASA Y BRUMA (08:30 → 13:00) — 182 a 312 s
+   Teo entra por la puerta batiente y derrapa sobre el pase · Rosa Mijares, segunda de cocina, lo espera con el reloj
+   («Llegas tarde, Cazorla») · la Guía Brújula viene a la una, mesa siete · mise en place: cuchillos Tsukiyo, roners a
+   62,5 °C, binchotan · RECETA 1 (inserto A): sellado, vuelta, coñac y llamarada (plano general: la cocina se enciende
+   de naranja, los cucharones proyectan sombras enormes en el azulejo), arroser · salto a las 13:00: la comanda de la
+   mesa siete · RECETA 2 (inserto B): el emplatado bajo las lámparas · «¡Servicio!» · la espera · el plato vuelve limpio.
+   ===================================================================== */
+const S4 = { A: 182.0, END: 312.0, IN: 184.5 };
+const PASSY = -KI.PASS.top, RANGEY = -KI.RANGE.top;
+const CAMDBG = (() => { const q = new URLSearchParams(location.search).get('cam'); return q ? q.split(',').map(Number) : null; })();
+/* ---------- quién está dónde ---------- */
+function teo4(t) {
+  const base = { clogs: true }, carry = { clogs: true, top: 'cuaderno', cup: true };
+  if (t < S4.IN + .15) return { hide: true };
+  /* sale por la puerta del fondo, corre hacia el pase por detrás (lo tapa), salta encima y derrapa sobre el acero */
+  if (t < 185.5) { const u = seg(t, S4.IN + .15, 185.5); return { x: lerp(615, 540, u), y: 0, z: lerp(880, 640, u), f: runPose(t, { ...carry, wide: true }, 1.2), run: true, on: 'floor', flip: true }; }
+  if (t < 186.0) { const u = seg(t, 185.5, 186.0); return { x: lerp(540, 470, u), y: 0, z: lerp(640, 600, u), f: runPose(t, carry, 1.2), run: true, on: 'floor', flip: true }; }
+  if (t < 186.6) { const u = seg(t, 186.0, 186.6); return { x: lerp(470, 440, u), y: lerp(0, PASSY, u) + hop(u, 70), z: lerp(600, 480, u), f: { ...carry, legL: 2, legR: 2, happy: true }, on: u < .55 ? 'floor' : 'pass', flip: true }; }
+  if (t < 187.6) { const a = t - 186.6; return { x: 440 - 400 * (1 - Math.pow(1 - a, 2.2)), y: PASSY, z: 480, f: { ...carry, wide: true, legL: 1 }, skid: a, rot: .1 * (1 - a), on: 'pass', flip: true }; }
+  if (t < 202.9) { const f = { ...(t < 188.6 ? carry : base), blink: (t * .45) % 1 < .05 }; if (t > 192.2 && t < 197.2) { f.wide = t < 194.6; f.sweat = true; } if (t > 197.2 && t < 202.8) f.wide = t > 197.6 && t < 199.4; if (t > 201.8) { f.happy = true; f.wide = false; }
+    return { x: 40, y: PASSY + (t < 189 ? Math.abs(Math.sin(t * 7)) * 4 : 0), z: 480, f, on: 'pass' }; }
+  if (t < 249.6) { const f = { ...base }; if (t < 216.6) f.flat = true; else if (t < 217.4) f.wide = true; else if (t > RC.ign && t < RC.ign + 2.6) { f.wide = true; f.mouthO = t < RC.ign + 1; } else if (t > RC.butter) f.happy = (t % 3) < 1.6; else f.blink = (t * .5) % 1 < .05;
+    return { x: -255, y: RANGEY, z: 712, f, flip: true, on: 'range' }; }
+  if (t < 251.4) { const u = seg(t, 249.6, 251.4); return { x: lerp(-260, 160, u), y: PASSY, z: 480, f: runPose(t, { ...base, wide: true }), run: true, on: 'pass' }; }
+  const f = { ...base, blink: (t * .45) % 1 < .05 };
+  if (t < 256.4) { f.flat = true; return { x: 160, y: PASSY, z: 480, f, on: 'pass' }; }
+  if (t < 292) { f.sweat = t > 284.6; f.wide = t > 284.6 && t < 286; return { x: 160, y: PASSY, z: 480, f, on: 'pass' }; }
+  if (t < 300.6) { f.flat = true; f.sweat = true; f.blink = false; return { x: 160, y: PASSY + (t > 297.4 && t < 297.8 ? 6 : 0), z: 480, f, on: 'pass' }; }
+  if (t < 302.2) return { x: 160, y: PASSY, z: 480, f: { ...base, wide: true, mouthO: true }, on: 'pass' };
+  const jump = t > 306.6 && t < 308.6 ? Math.abs(Math.sin((t - 306.6) * PI * 2)) * 34 : 0;
+  return { x: 160, y: PASSY + jump, z: 480, f: { ...base, happy: true, legL: jump > 4 ? 2 : 0, legR: jump > 4 ? 2 : 0 }, on: 'pass' };
+}
+function rosa4(t) {
+  const f = { clogs: true, blink: (t * .37 + .2) % 1 < .05 }; let x = 230, y = PASSY; const flip = t < 249.6 ? t > 186.6 : true;
+  const walk = (a, b, x0, x1) => { const u = seg(t, a, b); if (u > 0 && u < 1) { f.legL = Math.floor(t * 6) % 2 ? 2 : 0; f.legR = f.legL ? 0 : 2; } return lerp(x0, x1, u); };
+  if (t < 202.9) x = walk(182.4, 184.2, 330, 230);
+  else if (t < 249.6) x = walk(203.0, 204.4, 230, 430);
+  else x = t < 283.4 ? walk(249.8, 251.0, 430, 400) : t < 285.4 ? walk(283.4, 283.9, 400, KI.BELL - 12) : walk(285.4, 286.4, KI.BELL - 12, 360);
+  if (t > 184.6 && t < 186.6) f.wide = true;
+  if (t > 190.4 && t < 192.0) f.tired = true;   // la mirada por encima de las gafas
+  if (t > 229.0 && t < 233) f.happy = true;
+  if (t > 253.6 && t < 256) f.happy = true;
+  if (t > 283.9 && t < 284.6) y = PASSY + hop(seg(t, 283.9, 284.4), 26);
+  if (t > 299 && t < 302) f.tired = true;
+  if (t > 302.2) f.happy = true;
+  return { x, y, z: 490, f, flip };
+}
+/* el plato: aparece al terminar el emplatado, sale por el extremo del pase (lo recoge el camarero) y vuelve limpio */
+function plate4(t) { if (t < RC.endB) return null; if (t < 287.4) return { x: 280, full: true }; if (t < 288.4) return { x: lerp(280, 620, eio(seg(t, 287.4, 288.4))), full: true }; if (t < 297.6) return null; return { x: lerp(620, 280, eio(seg(t, 297.6, 298.7))), full: false }; }
+const DOOR4 = [S4.IN, 288.5, 297.0];
+function door4(t) { let a = 0; for (const t0 of DOOR4) { const d = t - t0; if (d > 0 && d < 4) a += 1.3 * Math.exp(-d * 1.5) * Math.sin(d * 5.5); } return Math.max(0, a); }
+function clock4(t) { let m;   /* minutos desde la medianoche */
+  if (t < 194.3) m = 8 * 60 + 29 + Math.max(0, t - 182) / 60; else if (t < 244) m = 510 + (t - 194.3) / 49.7 * 22; else if (t < 247.2) m = lerp(532, 780, eio(seg(t, 244, 247.2))); else m = 780 + (t - 247.2) / 65 * 20;
+  const h = Math.floor(m / 60), mm = m - h * 60; return [(h % 12) + mm / 60, mm]; }
+function printer4(t) { if (t > 247.2 && t < 249.3) return 42 * seg(t, 247.3, 248.8); if (t > 305) return 40 + (t - 305) * 22; return 0; }
+function tickets4(t) { return t < 249.3 ? 5 : t < 305 ? 3 : 3 + Math.min(3, Math.floor((t - 305) / 1.5)); }
+const flare4 = t => t >= 228.4 && t < 233.2 ? Math.min(1, flameAmp(t) * 1.3) : 0;
+/* ---------- cámara ---------- */
+const WIDE4 = { x: 0, y: -240, zoom: .78, ty: -24 };
+function camCocina(t) {
+  if (CAMDBG) return { x: CAMDBG[0], y: CAMDBG[1], zoom: CAMDBG[2], ty: CAMDBG[3] };
+  const C = KI.CLK;
+  if (t < 186.4) return camKeys(t, [[182, { x: -60, y: -250, zoom: .84, ty: -30 }], [186.4, { x: 40, y: -240, zoom: .9, ty: -28 }]]);
+  if (t < 189.4) return camKeys(t, [[186.4, { x: 40, y: -240, zoom: .9, ty: -28 }], [189.4, { x: 100, y: -200, zoom: 1.3, ty: -10 }]]);
+  if (t < 193.8) return camKeys(t, [[189.4, { x: 135, y: -150, zoom: 1.9, ty: 20 }], [193.8, { x: 135, y: -150, zoom: 1.98, ty: 20 }]]);
+  if (t < 195.2) return { x: C[0], y: C[1], zoom: 5.4, ty: 0 };
+  if (t < 202.9) return camKeys(t, [[195.2, { x: 135, y: -150, zoom: 2.0, ty: 20 }], [202.9, { x: 135, y: -150, zoom: 2.14, ty: 20 }]]);
+  if (t < 205.4) return camKeys(t, [[202.9, { x: 40, y: -190, zoom: 6.2, ty: 40 }], [205.4, { x: 80, y: -190, zoom: 6.5, ty: 40 }]]);
+  if (t < 207.8) return camKeys(t, [[205.4, { x: -560, y: -150, zoom: 3.5, ty: 20 }], [207.8, { x: -560, y: -150, zoom: 3.75, ty: 20 }]]);
+  if (t < 210.4) return camKeys(t, [[207.8, { x: 230, y: -260, zoom: 3.0, ty: -600 }], [210.4, { x: 270, y: -260, zoom: 3.2, ty: -640 }]]);
+  if (t < 228.4) return camKeys(t, [[210.4, { x: -270, y: -230, zoom: 2.3, ty: -300 }], [216, { x: -270, y: -230, zoom: 2.5, ty: -330 }]]);
+  if (t < 233.2) return { x: -120, y: -232, zoom: .96, ty: -26 };
+  if (t < 247.2) return camKeys(t, [[244, { x: C[0], y: C[1], zoom: 5.0, ty: 0 }], [247.2, { x: C[0], y: C[1], zoom: 5.6, ty: 0 }]]);
+  if (t < 249.6) return { x: KI.PRN + 5, y: -118, zoom: 4.2, ty: 0 };
+  if (t < 292) return camKeys(t, [[249.6, { x: 280, y: -150, zoom: 1.95, ty: 20 }], [256.4, { x: 280, y: -150, zoom: 2.05, ty: 20 }], [283, { x: 290, y: -150, zoom: 2.05, ty: 20 }], [292, { x: 290, y: -150, zoom: 2.2, ty: 20 }]]);
+  if (t < 303.4) return camKeys(t, [[292, { x: 250, y: -175, zoom: 1.28, ty: 0 }], [303.4, { x: 260, y: -175, zoom: 1.45, ty: 0 }]]);
+  return WIDE4;
+}
+const ins4 = t => (t >= 216 && t < 228.4) || (t >= 233.2 && t < 244) ? 'A' : t >= 256.4 && t < 283 ? 'B' : null;
+/* ---------- personajes pixel sobre los muebles ---------- */
+function pxShadowOn(id, x, y, z, a = .3) { const cell = pxCell(id, z), [fx, fy] = pxFoot(x, y, z), w = 14 * cell; ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.fillStyle = `rgba(30,30,40,${a})`; ctx.fillRect(Math.round(fx - w / 2), Math.round(fy - cell * .5), w, cell * 2); ctx.restore(); T0(); }
+function drawPx4(id, B, t, base) { if (!B || B.hide) return; pxShadowOn(id, B.x, base, B.z, .3 * clamp(1 - (B.y - base) / 60)); pxDraw(id, B.f, B.x, B.y, B.z, { flip: B.flip, rot: B.rot });
+  if (B.skid !== undefined) { const [fx, fy] = pxFoot(B.x, B.y, B.z), c = pxCell(id, B.z); pxBurst(fx - 8 * c, fy, c, B.skid % .5, 10, Math.floor(B.skid * 2), [[255, 255, 255], [200, 210, 220]], 10, 8, .5); } }
+function passProps(t) { if (t < 188.6) return; const s = PS(470), c = PJ(-225, KI.PASS.top, 470); ctx.fillStyle = 'rgb(246,242,234)'; ctx.beginPath(); ctx.moveTo(c[0] - 4 * s, c[1]); ctx.lineTo(c[0] + 4 * s, c[1]); ctx.lineTo(c[0] + 5 * s, c[1] - 12 * s); ctx.lineTo(c[0] - 5 * s, c[1] - 12 * s); ctx.fill(); ctx.fillStyle = 'rgb(252,252,250)'; ctx.fillRect(c[0] - 5.5 * s, c[1] - 14 * s, 11 * s, 2.4 * s); ctx.fillStyle = 'rgb(186,142,96)'; ctx.fillRect(c[0] - 4.5 * s, c[1] - 8 * s, 9 * s, 3 * s);
+  const P = poly3([[-280, KI.PASS.top - .5, 455], [-246, KI.PASS.top - .5, 452], [-244, KI.PASS.top - .5, 476], [-278, KI.PASS.top - .5, 479]]); if (P) { ctx.fillStyle = 'rgb(244,238,222)'; ctx.fill(P); ctx.strokeStyle = 'rgb(40,40,46)'; ctx.lineWidth = Math.max(1, s * .6); ctx.stroke(P); } }
+function scene4(t) {
+  const ins = ins4(t);
+  ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.fillStyle = ins ? '#141416' : '#aab0b8'; ctx.fillRect(0, 0, W, H); ctx.restore(); T0();
+  if (ins === 'A') { const fa = flameAmp(t); if (fa > .3) { SHX = Math.sin(t * 61) * 4 * fa * (H / 720); SHY = Math.cos(t * 47) * 3 * fa * (H / 720); } insertPan(t); postFx(t, { tone: [255, 236, 220], vig: .72 }); return; }
+  if (ins === 'B') { insertPlate(t); postFx(t, { tone: [255, 230, 220], vig: .72 }); return; }
+  SOL.on = 0; camSet(camCocina(t)); const fl = flare4(t); if (fl > .3) { SHX = Math.sin(t * 53) * 3 * fl * (H / 720); SHY = Math.cos(t * 41) * 2 * fl * (H / 720); }
+  const Bt = teo4(t), Br = rosa4(t), pl = plate4(t);
+  drawCocina(t, {
+    flare: flare4, flareX: -330, door: door4, clock: clock4, printer: printer4, tickets: tickets4,
+    burner: t2 => t2 > 210 ? 1 : .7,
+    onRange: t2 => { castIron3D(-330, 750, t2, { steak: t2 > RC.drop, crust: t2 > RC.flip + .3, smoke: t2 > 210 ? (t2 > RC.drop ? 1 : .5) : 0 }); flame3D(t2, -330, 750, fl); if (Bt.on === 'range') drawPx4('teo', Bt, t2, RANGEY); },
+    onPass: t2 => { passProps(t2); if (pl && pl.x < 512) plate3D(pl.x, 480, pl.full, t2); drawPx4('rosa', Br, t2, PASSY); if (Bt.on === 'pass') drawPx4('teo', Bt, t2, PASSY); },
+    items: (put_, t2) => { if (Bt.on === 'floor' && !Bt.hide) put_(Bt.z, () => drawPx4('teo', Bt, t2, 0)); },
+  });
+  postFx(t, { tone: [232, 240, 255], vig: .5 });
+}
+/* ---------- diálogos y rótulos ---------- */
+const DLG4 = [
+  { t: 188.0, who: 'teo', mood: 'prisa', txt: '¡Llegué! ¡Llegué! ¡Buenos días, chef!', face: { wide: true }, hold: .3 },
+  { t: 190.4, who: 'rosa', mood: 'normal', txt: 'Llegas tarde, Cazorla.', face: { tired: true }, hold: .5 },
+  { t: 192.3, who: 'teo', mood: 'prisa', txt: '¡Son las ocho y veintinueve!', face: { wide: true, sweat: true }, hold: .3 },
+  { t: 195.4, who: 'rosa', mood: 'tecnico', txt: 'Ocho y treinta.', face: {}, hold: .7 },
+  { t: 197.3, who: 'rosa', mood: 'tecnico', txt: 'La Guía Brújula llega a la una. Mesa siete. Lo de siempre... pero perfecto.', face: {}, hold: .3 },
+  { t: 203.1, who: 'teo', mood: 'tecnico', txt: 'Sí, chef. Cuchillos Tsukiyo, afilados.', face: { happy: true }, hold: .1 },
+  { t: 205.6, who: 'teo', mood: 'tecnico', txt: 'Roners a sesenta y dos y medio.', face: {}, hold: .1 },
+  { t: 208.0, who: 'teo', mood: 'tecnico', txt: 'Binchotan al rojo.', face: {}, hold: .7 },
+  { t: 211.2, who: 'teo', mood: 'tecnico', txt: 'Sartén de hierro, humeando. Ahora.', face: { flat: true }, hold: 1.4 },
+  { t: 222.2, who: 'teo', mood: 'tecnico', txt: 'Vuelta... y costra perfecta.', face: { happy: true }, hold: .8 },
+  { t: 225.0, who: 'teo', mood: 'prisa', txt: '¡Coñac! ¡Atrás todos!', face: { wide: true }, hold: .4 },
+  { t: 229.2, who: 'rosa', mood: 'normal', txt: '¡Eso es, cazo!', face: { happy: true }, hold: 1.0 },
+  { t: 235.0, who: 'teo', mood: 'tecnico', txt: 'Arroser: mantequilla noisette... y bañar, bañar, bañar.', face: { happy: true }, hold: .8 },
+  { t: 247.7, who: 'rosa', mood: 'normal', txt: '¡Mesa siete, marchando! Es ella: la Guía.', face: { wide: true }, hold: .6 },
+  { t: 251.0, who: 'teo', mood: 'tecnico', txt: 'Respira, Teo. Es solo un plato...', face: { flat: true, sweat: true }, hold: .3 },
+  { t: 253.7, who: 'rosa', mood: 'normal', txt: 'Es TU plato. Hazlo como tú sabes.', face: { happy: true }, hold: .6 },
+  { t: 260.8, who: 'teo', mood: 'tecnico', txt: 'Lágrima de jugo.', face: { flat: true }, hold: 1.2 },
+  { t: 266.0, who: 'teo', mood: 'tecnico', txt: 'Clorofila... azafrán.', face: { flat: true }, hold: 1.4 },
+  { t: 276.7, who: 'teo', mood: 'sueno', txt: '...y el oro. No respires.', face: { flat: true, sweat: true }, hold: .8 },
+  { t: 284.6, who: 'rosa', mood: 'prisa', txt: '¡SERVICIO! ¡Mesa siete!', face: { wide: true }, hold: .8 },
+  { t: 299.0, who: 'rosa', mood: 'sueno', txt: '...Plato limpio.', face: { tired: true }, hold: .2 },
+  { t: 300.8, who: 'teo', mood: 'prisa', txt: '¿¡LE GUSTÓ!?', face: { wide: true, mouthO: true }, hold: .3 },
+  { t: 302.3, who: 'rosa', mood: 'normal', txt: 'No te emociones, cazo. Quedan sesenta cubiertos.', face: { happy: true }, hold: .6 },
+  { t: 306.9, who: 'teo', mood: 'prisa', txt: '¡Sí, chef!', face: { happy: true }, hold: .8 },
+];
+const LABELS4 = [{ t0: 182.6, t1: 187.6, big: '08:30 AM', small: 'BRASA Y BRUMA' }, { t0: 244.6, t1: 249.4, big: '01:00 PM', small: 'MESA 7 · GUÍA BRÚJULA', col: '#ff8a5a' }];
+
+/* =====================================================================
    ENTRE EL VAPOR Y EL BIT · SONIDO DE LA ESCENA 1 (nada de lo-fi: cada escena tendrá su propio color)
    · «Dos estrellas»: el motivo de Teo en caja de música (FM de campana), con un colchón suave, al amanecer
    · «Prisa»: chiptune a 150 BPM (pulso 25 % de melodía, arpegio de pulso 12 %, triángulo de bajo, ruido de batería)
@@ -3171,7 +3804,7 @@ function filmEvents() {
   for (let k = 0; k < 6; k++) E.push([40.5 + k * .16, at => clogClack(at, .5 - k * .07)]);
   E.push([46.0, at => whoosh(at, .5, 1, 800, 3000)]); E.push([47.5, at => tone(300, at, .2, .04, 'square', 900)]); E.push([47.85, at => clogClack(at, 1)]);
   E.push([49.6, at => whoosh(at, .5, 1, 800, 3000)]);
-  return E.concat(scene2Events(), scene3Events());
+  return E.concat(scene2Events(), scene3Events(), scene4Events());
 }
 /* ---------- escena 2 ---------- */
 function bellDing(at, v = 1) { for (const [f, d, a] of [[2637, 1.4, .05], [3951, .9, .025], [5274, .5, .012]]) tone(f, at, d, a * v, 'sine', f * .998); }
@@ -3252,10 +3885,87 @@ function scene3Events() {
   for (let t = 124; t < 181; t += .9 + hsh(t, 1) * 1.6) E.push([t, at => chirp(at, 1)]);
   return E;
 }
+/* ---------- escena 4: Brasa y Bruma ---------- */
+function crackle(at, dur, dens = 40, v = 1, f = 3200) { for (let k = 0; k < dur * dens; k++) { const a = at + Math.random() * dur; noiseHit(a, .008 + Math.random() * .02, { type: 'bandpass', f: f * (.6 + Math.random() * .9), q: 3, vol: (.012 + Math.random() * .03) * v }); } }
+function sizzleOn(at, dur, v = 1) { noiseHit(at, dur, { type: 'highpass', f: 3800, vol: .06 * v, atk: .03 }); noiseHit(at, dur * .7, { type: 'bandpass', f: 1400, q: .8, vol: .03 * v, atk: .05 }); crackle(at, dur, 60, v); }
+function whoomp(at, v = 1) { noiseHit(at, 1.2, { type: 'lowpass', f: 220, f2: 900, vol: .3 * v, atk: .08, brown: true }); thump(at + .05, .8 * v, 60); noiseHit(at + .1, 4.5, { type: 'bandpass', f: 500, q: .6, vol: .09 * v, atk: .2, brown: true }); crackle(at + .1, 3.5, 45, .9 * v, 2400); }
+function metalClank(at, v = 1) { tone(1860, at, .35, .03 * v, 'sine', 1830); tone(2940, at, .2, .015 * v, 'sine'); noiseHit(at, .03, { type: 'bandpass', f: 3000, q: 3, vol: .06 * v }); }
+function knifeShing(at, v = 1) { noiseHit(at, .45, { type: 'bandpass', f: 4000, f2: 9000, q: 6, vol: .05 * v, atk: .05 }); tone(5200, at + .1, .4, .008 * v, 'sine', 5600); }
+function printerChat(at, dur, v = 1) { for (let k = 0; k < dur * 26; k++) noiseHit(at + k / 26, .022, { type: 'bandpass', f: 2200 + (k % 3) * 300, q: 5, vol: .05 * v }); tone(140, at, dur, .012 * v, 'square', null, AU.bS, .01); }
+function paperTear(at) { noiseHit(at, .18, { type: 'highpass', f: 2000, f2: 5000, vol: .07, atk: .01 }); }
+function tick(at, v = 1) { noiseHit(at, .012, { type: 'bandpass', f: 4200, q: 8, vol: .05 * v }); tone(2100, at, .02, .01 * v, 'square'); }
+function glug(at, v = 1) { for (let k = 0; k < 4; k++) tone(260 + k * 30, at + k * .22, .14, .03 * v, 'sine', 420 + k * 40); noiseHit(at, 1, { type: 'bandpass', f: 900, q: 2, vol: .02 * v, atk: .2 }); }
+function swingDoor(at, v = 1) { whoosh(at, .35, .5 * v, 300, 1400); for (let k = 0; k < 3; k++) thump(at + .3 + k * .55, .16 * v * Math.exp(-k), 120 - k * 10); }
+const RBPM = 92, RB = 60 / RBPM;
+const RMEL = [[0, 72, 1], [1, 77, 1], [2, 76, 1], [3, 74, 2], [5, 72, 1], [6, 70, 1], [7, 72, 1], [8, 74, 1], [9, 72, 3], [12, 72, 1], [13, 77, 1], [14, 79, 1], [15, 81, 2], [17, 79, 1], [18, 77, 1], [19, 76, 1], [20, 74, 1], [21, 77, 3]];
+const RCH = [[41, [65, 69, 72]], [46, [65, 70, 74]], [48, [64, 67, 72]], [41, [65, 69, 72]], [41, [65, 69, 72]], [46, [65, 70, 74]], [48, [64, 67, 70]], [41, [65, 69, 72]]];   // F · Bb · C · F · F · Bb · C7 · F
+const KBPM = 104, KB = 60 / KBPM;
+const KCH = [45, 41, 43, 40];   // Am · F · G · E
+const KMEL = [[0, 76, 1], [1, 79, .5], [1.5, 76, .5], [2, 74, 1], [3, 72, 1], [4, 72, 1], [5, 74, .5], [5.5, 76, .5], [6, 77, 2], [8, 79, 1], [9, 77, .5], [9.5, 76, .5], [10, 74, 1], [11, 76, 1], [12, 71, 2], [14, 68, 1], [15, 71, 1]];
+function scene4Events() {
+  const E = [];
+  /* el tema de Rosa: un vals de panadería (tri de bajo, caja de música suave, flauta de triángulo) */
+  { const r0 = 189.0; for (let bar = 0; bar < 8; bar++) { const t0 = r0 + bar * RB * 3, [b, ch] = RCH[bar]; E.push([t0, at => tri(b, at, RB * .9, .8)]); for (const q of [1, 2]) E.push([t0 + q * RB, at => { for (const n of ch) mbox(n, at, .22); }]); }
+    for (const [b, n, d] of RMEL) E.push([r0 + b * RB, at => lead(n, at, d * RB * .92, .6, 'triangle')]);
+    E.push([r0 + 24 * RB, at => { for (const n of [65, 69, 72, 77]) mbox(n + 12, at, .35); }]); }
+  /* «Servicio»: el tema de la cocina (la menor, 104) */
+  const groove = (a, b, o = {}) => { for (let bar = 0; ; bar++) { const t0 = a + bar * KB * 4; if (t0 >= b) break; const r = KCH[bar % 4];
+    for (let e = 0; e < 8; e++) { const at0 = t0 + e * KB / 2; if (at0 >= b) break; E.push([at0, at => tri(r + [0, 12, 0, 7, 0, 12, 10, 7][e], at, KB * .42, .62 * (o.v ?? 1))]); E.push([at0, at => nhat(at, (e % 2 ? .4 : .7) * (o.v ?? 1))]); }
+    if (o.drums) { E.push([t0, at => nkick(at, .8)]); E.push([t0 + 2 * KB, at => nkick(at, .6)]); for (const q of [1, 3]) E.push([t0 + q * KB, at => noiseHit(at, .03, { type: 'bandpass', f: 1900, q: 3, vol: .07, dest: AU.bM })]); }
+    if (o.mel) for (const [bb, n, d] of KMEL) { if (Math.floor(bb / 4) !== bar % 4) continue; const at0 = t0 + (bb % 4) * KB; if (at0 < b) E.push([at0, at => lead(n, at, d * KB * .9, .55)]); } } };
+  groove(202.9, 216.0, { drums: true }); groove(217.4, 226.3, { v: .55 }); groove(228.4, 233.2, { drums: true, v: 1.1 }); groove(233.2, 244.0, { drums: true, mel: true });
+  E.push([226.3, at => slowSweep(at, false)]); E.push([227.0, at => tone(220, at, .6, .03, 'sawtooth', 880, AU.bM)]);
+  E.push([228.0, at => { pad([45, 52, 57, 64], at, 2.4, 1.6); for (let k = 0; k < 8; k++) mbox([69, 72, 76, 81, 84, 88, 84, 81][k], at + k * .07, .4); }]);
+  for (let k = 0; k < 24; k++) E.push([244.0 + 3.2 * (1 - Math.pow(1 - k / 24, .6)), at => lead([69, 72, 76, 79][k % 4] + 12, at, .08, .35)]);
+  E.push([244.0, at => tapeDive(at)]);
+  /* suspense: la comanda de la Guía */
+  E.push([247.6, at => pad([45, 52, 59, 64], at, 8.8, 1)]);
+  /* el emplatado: un dron y notas sueltas de pentatónica; con el oro casi silencio; al posarse, un acorde de cristal */
+  E.push([256.4, at => pad([45, 52, 57], at, 10, .9)]); E.push([266.4, at => pad([45, 52, 60], at, 10, .9)]);
+  for (let t = 257.0, k = 0; t < 275.6; t += 1.3 + hsh(k, 2) * .9, k++) { const n = [69, 72, 74, 76, 79, 81][(k * 5 + 2) % 6]; E.push([t, at => mbox(n, at, .4)]); }
+  for (let t = 256.6; t < 276; t += KB * 8) E.push([t, at => tri(33, at, KB * 6, .5)]);
+  E.push([276.4, at => tone(1760, at, 2.8, .006, 'sine', 1700, AU.bM, .8)]);
+  E.push([282.5, at => { for (const n of [81, 84, 88, 93]) mbox(n, at, .45); pad([57, 60, 64, 69], at, 3, 1.1); }]);
+  /* ¡servicio!: un compás del tema y se corta con la puerta */
+  groove(284.6, 288.5, { drums: true, v: .8 });
+  /* la espera: latido y reloj */
+  for (let t = 292.0; t < 297.4; t += .86) { E.push([t, at => nkick(at, .55)]); E.push([t + .2, at => nkick(at, .35)]); }
+  E.push([292.0, at => pad([33, 40, 45], at, 5.5, .7)]);
+  /* ¡le gustó!: «dos estrellas» brillante, con bajo y caja de música */
+  { const q = 60 / 120, off = 302.3; for (const [b, n, d] of MOTIF) E.push([off + b * q, at => lead(n, at, d * q * .9, .8)]); for (const [k, r] of [[0, 50], [2, 45], [4, 47], [6, 43], [8, 50]]) E.push([off + k * q, at => tri(r, at, q * 1.8, .9)]); E.push([off, at => pad([62, 66, 69, 74], at, 5.5, 1)]); for (let k = 0; k < 10; k++) E.push([off + 4.6 + k * .1, at => mbox([74, 78, 81, 86][k % 4] + 12, at, .35)]); }
+  /* foley */
+  for (const t0 of DOOR4) E.push([t0, at => swingDoor(at, 1)]);
+  let last = null; for (let t = S4.A; t < S4.END; t += 1 / 60) { const B = teo4(t); if (!B || B.hide || !B.run) { last = null; continue; } const st = Math.floor(t / (STEP / 1.2)); if (last !== null && st !== last) E.push([t, at => B.on === 'floor' ? clogClack(at, .5) : metalClank(at, .25)]); last = st; }
+  E.push([186.0, at => tone(300, at, .25, .04, 'square', 900)]); E.push([186.6, at => { metalClank(at, 1); squeak(at); }]);
+  for (const [a, b] of [[182.4, 184.2], [203.0, 204.4], [249.8, 251.0], [283.4, 283.9], [285.4, 286.4]]) for (let t = a; t < b; t += .34) E.push([t, at => stepTap(at, .4, 1500)]);
+  E.push([194.3, at => { tick(at, 2); latch(at); }]); for (let t = 193.9; t < 195.2; t += 1) E.push([t, at => tick(at, 1.2)]);
+  for (let k = 0; k < 30; k++) E.push([244.0 + k * .107, at => tick(at, .8)]);
+  E.push([202.95, at => knifeShing(at)]); E.push([205.5, at => { tone(2093, at, .08, .03, 'square'); tone(2093, at + .14, .08, .03, 'square'); }]);
+  E.push([207.8, at => crackle(at, 2.6, 30, .9, 1800)]);
+  E.push([210.6, at => { latch(at); latch(at + .18); noiseHit(at + .3, .8, { type: 'lowpass', f: 300, f2: 900, vol: .12, atk: .1, brown: true }); }]);
+  E.push([RC.drop, at => { sizzleOn(at, 9.6, 1.2); thump(at, .3, 140); }]); E.push([RC.flip, at => whoosh(at, .4, .7, 500, 2200)]); E.push([RC.flip + .55, at => { thump(at, .25, 130); sizzleOn(at, 4.2, .9); }]);
+  E.push([RC.pour + .05, at => glug(at, 1)]); E.push([RC.ign, at => whoomp(at, 1)]);
+  E.push([RC.butter, at => { plop(at, .8); sizzleOn(at, 10.6, .6); }]);
+  for (let t = RC.baste; t < RC.endA; t += 1.15) { E.push([t + .05, at => tone(2600, at, .06, .012, 'sine')]); E.push([t + .62, at => crackle(at, .4, 60, .8, 3600)]); }
+  E.push([247.3, at => printerChat(at, 1.5)]); E.push([249.0, at => paperTear(at)]);
+  E.push([RC.plate, at => cupSlide(at, 1.1)]); E.push([RC.plate + 1.15, at => { ceramic(at, .8); thump(at, .12, 160); }]);
+  E.push([RC.tear, at => noiseHit(at, 1.8, { type: 'bandpass', f: 700, f2: 400, q: 2, vol: .03, atk: .3 })]);
+  for (let k = 0; k < 5; k++) { const t0 = RC.slices + k * .62; E.push([t0 + .38, at => tone(3400, at, .02, .012, 'square')]); E.push([t0 + .4, at => thump(at, .05, 200)]); }
+  for (const d of GREEN.concat(SAFF)) E.push([d.t, at => noiseHit(at, .06, { type: 'lowpass', f: 900, vol: .05 })]);
+  for (const G of GARN) E.push([G.t + .45, at => tone(3600, at, .02, .01, 'square')]);
+  E.push([RC.goldOff, at => { for (const n of [93, 96, 100]) mbox(n, at, .2); }]); E.push([RC.goldOff - .5, at => noiseHit(at, 4, { type: 'highpass', f: 5000, vol: .02, atk: 1.2 })]);
+  for (let t = 279.0; t < 282.6; t += 1) E.push([t, at => tick(at, .6)]);
+  E.push([284.35, at => bellDing(at, 1.3)]);
+  E.push([287.4, at => cupSlide(at, 1)]); E.push([297.6, at => cupSlide(at, 1.1)]); E.push([298.7, at => ceramic(at, 1)]);
+  for (let t = 292.0; t < 299; t += 1) E.push([t, at => tick(at, .7)]);
+  for (const t0 of [306.6, 307.1, 307.6, 308.1]) E.push([t0, at => tone(400, at, .18, .03, 'square', 1000)]);
+  E.push([305.0, at => printerChat(at, 7.2, .8)]);
+  return E;
+}
 /* ---------- lechos ---------- */
 function filmAudioInit() {
   auBed('room', AU.brown, 'lowpass', 180, .5); auBed('city', AU.brown, 'bandpass', 420, .7); auBed('hiss', AU.white, 'highpass', 7000, .5); auBed('hall', AU.brown, 'lowpass', 300, .6);
-  auBed('traffic', AU.brown, 'lowpass', 260, .6); auBed('wind', AU.white, 'bandpass', 900, .5); auBed('murmur', AU.white, 'bandpass', 620, 2.4); auBed('cafe', AU.brown, 'lowpass', 400, .6); auBed('leaves', AU.white, 'bandpass', 2600, .4); auBed('water', AU.brown, 'bandpass', 320, .8);
+  auBed('traffic', AU.brown, 'lowpass', 260, .6); auBed('wind', AU.white, 'bandpass', 900, .5); auBed('murmur', AU.white, 'bandpass', 620, 2.4); auBed('cafe', AU.brown, 'lowpass', 400, .6); auBed('leaves', AU.white, 'bandpass', 2600, .4); auBed('water', AU.brown, 'bandpass', 320, .8); auBed('hood', AU.brown, 'lowpass', 130, .7); auBed('sizzle', AU.white, 'highpass', 4200, .5);
 }
 function filmBeds(t, n) {
   const s1 = t < S1END + .5, s2a = t >= S1END && t < S2.B, s2b = t >= S2.B;
@@ -3263,7 +3973,8 @@ function filmBeds(t, n) {
   bedSet('city', s1 ? .028 * (1 - slowK(t) * .7) : 0, n);
   bedSet('hall', s1 && t > 40 ? .03 : 0, n);
   bedSet('traffic', s2a ? .07 : s2b ? .015 : 0, n); bedSet('wind', s2a ? .012 : 0, n);
-  const s3 = t >= S3.A - .5; bedSet('murmur', s2b && !s3 ? .016 : 0, n); bedSet('cafe', s2b && !s3 ? .04 : 0, n);
+  const s3 = t >= S3.A - .5 && t < S4.A, s4 = t >= S4.A - .5, ins = s4 ? ins4(t) : null;
+  bedSet('hood', s4 ? (ins ? .05 : .09) : 0, n); bedSet('sizzle', s4 ? (ins === 'A' ? .03 : .006) : 0, n); if (s4) { bedSet('hall', ins === 'B' ? .01 : .02, n); bedSet('traffic', 0, n); } bedSet('murmur', s2b && t < S3.A - .5 ? .016 : 0, n); bedSet('cafe', s2b && t < S3.A - .5 ? .04 : 0, n);
   bedSet('leaves', s3 ? .012 + .006 * Math.sin(t * .4) : 0, n); bedSet('water', s3 && t < 152 ? .03 : 0, n); if (s3) bedSet('traffic', .01, n);
   if (AU.bedL.murmur) AU.bedL.murmur.fl.frequency.setTargetAtTime(560 + 140 * Math.sin(t * .7), n, .3);
   const k = slowK(t); AU.sfx.gain.setTargetAtTime(1 - .4 * k, n, .1);
@@ -3303,12 +4014,12 @@ const DLG1 = [
   { t: 38.3, who: 'teo', mood: 'prisa', txt: '¡Allá voooy!', face: { happy: true }, hold: .5 },
   { t: 48.2, who: 'teo', mood: 'normal', txt: 'Perdón, Kronotek. Buenos días.', face: { happy: true }, hold: .7 },
 ];
-const DLG = DLG1.concat(DLG2, DLG3);
-const LABELS = [{ t0: 14.5, t1: 19.3, big: '07:15 AM', small: 'EL ESTUDIO DE TEO' }, { t0: 62.0, t1: 66.6, big: '07:35 AM', small: 'CALLE ALMAGRE' }, { t0: 124.2, t1: 128.8, big: '07:50 AM', small: 'PARQUE DEL INVERNADERO' }, { t0: 182.2, t1: 186.4, big: '08:30 AM', small: 'CONTINÚA: BRASA Y BRUMA', col: '#ffd84a' }];
+const DLG = DLG1.concat(DLG2, DLG3, DLG4);
+const LABELS = [{ t0: 14.5, t1: 19.3, big: '07:15 AM', small: 'EL ESTUDIO DE TEO' }, { t0: 62.0, t1: 66.6, big: '07:35 AM', small: 'CALLE ALMAGRE' }, { t0: 124.2, t1: 128.8, big: '07:50 AM', small: 'PARQUE DEL INVERNADERO' }].concat(LABELS4);
 const S1END = 60.4;
 /* quién habla y dónde está (para subir la caja si está abajo) */
 function speakerY(t) { const d = DLG.find(q => t >= q.t - .12 && t < q.end + .15); if (!d) return 0; let B;
-  if (d.who === 'valeria') B = valeriaAt(t); else if (d.who === 'ramiro') { const D = duckAt(t, 0); B = { x: D.x, y: 0, z: D.z }; } else B = t < S2.A ? teoAt(t) : t < S2.B ? teoCalle(t) : t < S3.A ? teoCafe(t) : teoParque(t);
+  if (t >= S4.A) { if (ins4(t)) return H * .9; B = d.who === 'rosa' ? rosa4(t) : teo4(t); } else if (d.who === 'valeria') B = valeriaAt(t); else if (d.who === 'ramiro') { const D = duckAt(t, 0); B = { x: D.x, y: 0, z: D.z }; } else B = t < S2.A ? teoAt(t) : t < S2.B ? teoCalle(t) : t < S3.A ? teoCafe(t) : teoParque(t);
   if (!B || B.hide) return 0; return pxFoot(B.x, (B.y || 0) + 40, B.z)[1]; }
 function scene1(t) {
   estudioSol(false); SOL.on = 1; camSet(camEstudio(t));
@@ -3321,12 +4032,12 @@ function scene2b(t) { SOL.on = 0; camSet(camCafe(t)); ctx.save(); ctx.setTransfo
 function scene3(t) { SOL.on = 0; camSet(camParque(t)); ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.fillStyle = '#cfe0d8'; ctx.fillRect(0, 0, W, H); ctx.restore(); T0(); drawParque(t); postFx(t, { tone: [246, 252, 236], vig: .55 }); }
 function black() { ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H); ctx.restore(); T0(); }
 const FILM = {
-  DUR: 186.6, CHAPTERS: [[0, 'El estudio'], [14.4, 'La alarma'], [25, 'El salto'], [46, 'Vuelve'], [61.5, 'La calle'], [86.6, 'Molienda'], [109, 'El cortado'], [123.6, 'El parque'], [146.6, 'El invernadero']],
+  DUR: 314.2, CHAPTERS: [[0, 'El estudio'], [14.4, 'La alarma'], [25, 'El salto'], [46, 'Vuelve'], [61.5, 'La calle'], [86.6, 'Molienda'], [109, 'El cortado'], [123.6, 'El parque'], [146.6, 'El invernadero'], [182, 'Brasa y Bruma'], [216, 'Sellado y llamarada'], [244, 'Mesa siete'], [256.4, 'El emplatado'], [283, '¡Servicio!']],
   fonts: ['700 20px "Playfair Display"', '20px "Bebas Neue"', '700 20px "Josefin Sans"', '20px "Pacifico"', '20px "Space Mono"', '600 20px "Caveat"'],
   load: [['Pintando el ladrillo, el yeso y el parqué…', () => estudioPaint()], ['Llenando la estantería de post-its…', () => utileriaPaint()], ['Tendiendo las sábanas de lino…', () => sheetBake()],
-    ['Pintando la calle Almagre…', () => callePaint()], ['Encendiendo las bombillas de Molienda…', () => cafePaint()], ['Regando el parque…', () => { parquePaint(); steps3Init(); }],
+    ['Pintando la calle Almagre…', () => callePaint()], ['Encendiendo las bombillas de Molienda…', () => cafePaint()], ['Regando el parque…', () => { parquePaint(); steps3Init(); }], ['Puliendo el acero de Brasa y Bruma…', () => cocinaPaint()], ['Sellando la carne y templando el oro…', () => recetasPaint()],
     ['Afinando los bleeps…', () => { FILM.bleeps = dlgPrep(DLG).concat(...LABELS.map(labelBleeps)); }]],
-  door: doorAt, events: () => filmEvents(), audioInit: () => filmAudioInit(), beds: (t, n) => filmBeds(t, n), fade: t => 1 - sm((t - 181.6) / 4.5),
+  door: doorAt, events: () => filmEvents(), audioInit: () => filmAudioInit(), beds: (t, n) => filmBeds(t, n), fade: t => 1 - sm((t - 309.6) / 4.2),
   draw(t) {
     if (t < S1END) scene1(t);
     else if (t < S2.A) pxWipe(() => scene1(t), () => scene2a(t), (t - S1END) / (S2.A - S1END), { dir: 'right' });
@@ -3334,8 +4045,8 @@ const FILM = {
     else if (t < S2.END) scene2b(t);
     else if (t < S3.A) pxWipe(() => scene2b(t), () => scene3(t), (t - S2.END) / (S3.A - S2.END), { dir: 'right' });
     else if (t < S3.END) scene3(t);
-    else if (t < S3.END + 1) pxWipe(() => scene3(t), black, t - S3.END, { dir: 'center' });
-    else black();
+    else if (t < S4.A) pxWipe(() => scene3(t), () => scene4(t), (t - S3.END) / (S4.A - S3.END), { dir: 'right' });
+    else scene4(t);
     fadeTo('#000', 1 - sm(t / 2.6));
     dlgDraw(DLG, t, { anchor: () => speakerY(t) }); for (const L of LABELS) labelDraw(L, t);
   },

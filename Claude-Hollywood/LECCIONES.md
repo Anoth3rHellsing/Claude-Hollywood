@@ -400,3 +400,15 @@ Prueba de 3:00 con todo lo nuevo: el rig, la magia de tinta y fondos con mucho d
 - **Los círculos de color desenfocados en primer plano distraen** (parecen manchas de la lente); en primer plano, verdes.
 - **Un parque largo necesita un final:** la reja de salida con el escudo de la ciudad cierra el recorrido.
 - **Personajes de paso:** un pato que solo dice «Cuac.» (voz de pulso grave, ánimo de sueño) y la respuesta seca de Teo funcionan mejor que un diálogo largo.
+
+## Entre el Vapor y el Bit · fase 4 (la cocina Brasa y Bruma)
+- **Lo que entra y sale por una puerta tiene que estar donde mira la cámara.** La cámara no gira; una puerta en la pared lateral, cerca del plano de cámara, queda fuera de cuadro en todos los planos. En la pared del fondo se ve en el general, en el plano medio y en la espera.
+- **Personajes sobre muebles:** si están encima de un mostrador se dibujan dentro del callback de ese mueble (`onPass`, `onRange`), después de la caja; si no, la tapa del mueble les tapa los pies.
+- **El mobiliario de delante tapa a quien está detrás.** Para ver a Teo en el fogón por encima del pase, la cámara sube (`y` −230) y `ty` muy negativo recentra la imagen: la impresora queda por debajo de sus pies.
+- **Las luces aditivas escalan con el zoom.** Un `LGT` de radio `k·PS(z)` cubre toda la pantalla en un primer plano y lava la imagen (neblina rosa de las lámparas). Hay que bajar el alfa o el radio.
+- **Llamas con `lighter`:** muchas lenguas superpuestas se queman a blanco. Con alfas de 0,25–0,5 y unas 45 lenguas se lee naranja, azul en la base y amarillo arriba.
+- **Las sombras enormes de una llamarada** solo aparecen si los objetos están entre la llama y la pared y lejos de la pared (factor `(z_pared − z_luz)/(z_obj − z_luz)`). Cucharones pegados al azulejo dan sombras del mismo tamaño.
+- **Insertos de receta a pantalla completa** (en unidades de pantalla, sin cámara 3D): el detalle de cocina (microgotas con rebote calculado sin estado, espuma con burbujas que crecen y revientan, láminas pintadas una vez) solo se lee de cerca. Un brillo rojo encima del plato negro lo vuelve marrón: la luz de las lámparas va **debajo** del plato y encima solo un `soft-light` suave.
+- **Teo se asoma por el borde del inserto** (pixel grande, cortado): mantiene al personaje en los planos de manos sin dibujar manos.
+- **Los textos de diálogo largos se salen de la caja:** tres líneas como máximo; recortar la frase.
+

@@ -274,6 +274,7 @@ const SEG7 = { 0: 'abcdef', 1: 'bc', 2: 'abdeg', 3: 'abcdg', 4: 'bcfg', 5: 'acdf
 function seg7(g, s, x, y, h, col, off = 'rgba(80,10,10,.5)') {
   const w = h * .52, th = h * .12; let cx = x;
   for (const ch of s) {
+    if (ch === '.') { g.fillStyle = col; g.fillRect(cx, y + h - th, th * 1.2, th * 1.2); cx += th * 3; continue; }
     if (ch === ':') { g.fillStyle = col; g.fillRect(cx + w * .1, y + h * .28, th, th); g.fillRect(cx + w * .1, y + h * .66, th, th); cx += w * .45; continue; }
     const on = SEG7[ch] || '', seg = { a: [cx + th, y, w - th * 2, th], b: [cx + w - th, y + th, th, h / 2 - th * 1.5], c: [cx + w - th, y + h / 2 + th / 2, th, h / 2 - th * 1.5], d: [cx + th, y + h - th, w - th * 2, th], e: [cx, y + h / 2 + th / 2, th, h / 2 - th * 1.5], f: [cx, y + th, th, h / 2 - th * 1.5], g: [cx + th, y + h / 2 - th / 2, w - th * 2, th] };
     for (const k in seg) { g.fillStyle = on.includes(k) ? col : off; g.fillRect(...seg[k]); }

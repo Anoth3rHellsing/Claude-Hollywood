@@ -6,7 +6,7 @@ license: GPL-3.0
 
 # Películas animadas en Canvas (un solo HTML): acuarela, papel y mapas 3D
 
-Procedimiento probado en «Kurenai» (samurái, 6:26), la serie «El Juramento Roto» (tres episodios de ~10 min), un rig de personajes 2.5D (§4 bis), el «Atlas de ciudades» (§4 ter), «El Invernadero de Cristal y Ceniza» (§4 quater) y «Entre el Vapor y el Bit · Crónica de dos Estrellas» (7:58, seis mapas 3D con el motor **Escenarios**, §4 quinquies, **el estándar actual de mapas**). Produce una película animada de 1–10 min, autónoma (HTML + CSS + JS vanilla, sin librerías), con sonido 100 % sintetizado. Sirve para cualquier mundo.
+Procedimiento probado en «Kurenai» (samurái, 6:26), la serie «El Juramento Roto» (tres episodios de ~10 min), un rig de personajes 2.5D (§4 bis), el «Atlas de ciudades» (§4 ter), «El Invernadero de Cristal y Ceniza» (§4 quater) y «Entre el Vapor y el Bit · Crónica de dos Estrellas» (7:58, seis mapas 3D con el motor **Escenarios**, §4 quinquies, **el estándar actual de mapas**). Produce una película animada de 1–10 min, autónoma (HTML + CSS + JS vanilla, sin librerías), con sonido sintetizado y, si se quiere, voces reales con ElevenLabs (§6). Sirve para cualquier mundo.
 
 ## Lo que trae este skill
 - `assets/plantilla/`: **punto de partida que funciona**. Motor Escenarios completo (`motor/`), elenco pixel y marcas de ejemplo, `shell.html`, `build.py` y una escena de 20 s (`src/60_demo.js`: habitación con sol por la persiana, polvo en los haces, un personaje que camina y habla con bleeps, rótulo de hora y música). Copia la carpeta al proyecto, ejecuta `python build.py` y abre `dist/pelicula.html` (`?t=SEG` = modo prueba).
@@ -21,7 +21,7 @@ Procedimiento probado en «Kurenai» (samurái, 6:26), la serie «El Juramento R
   - `audio.py`: prueba de eventos y render del audio;
   - `rendimiento.py`: ms por cuadro;
   - `notas.js`.
-- `assets/tiquete.html`: plantilla del tiquete de producción (§0 bis).
+- `assets/tiquete.html`: plantilla del tiquete de producción (§0 bis); `assets/ticket.html` es la misma en inglés.
 
 Si el usuario ya tiene una carpeta con películas anteriores (por ejemplo `Claude-Hollywood/`), esa es la referencia: reutiliza su código y añade ahí lo nuevo al terminar.
 
@@ -38,10 +38,10 @@ Si el usuario ya tiene una carpeta con películas anteriores (por ejemplo `Claud
 - Para una serie, mantén una **biblia** (personajes, siluetas, sellos, motivos, guiones por tiempos de cada episodio) y escribe en ella el guion del episodio nuevo antes de programar.
 
 ## 0 bis. Modos de trabajo y tiquete de producción
-El modo llega como argumento (`/sumi-e-canvas-film control|auto|asistido`) o en el campo «modo» del tiquete; sin nada, **control**.
+El modo llega como argumento (`/sumi-e-canvas-film control|auto|asistido`; `assisted` = `asistido`) o en el campo «modo» del tiquete; sin nada, **control**.
 
-**El tiquete** (opcional) es un formulario del usuario para pedir películas. Su fuente está en `assets/tiquete.html`: se publica como artifact con base de datos, y el usuario comparte su enlace.
-- **Cómo leerlo:** con `ArtifactData` → `list` de la colección `tickets` (un documento por tiquete; el que está en estado `listo` es el pedido). Si el usuario pega un bloque que empieza por `# TIQUETE`, ese es el mismo contenido. Sin tiquete, el pedido llega por el chat.
+**El tiquete** (opcional) es un formulario del usuario para pedir películas. Su fuente está en `assets/tiquete.html` (en inglés, `assets/ticket.html`): se publica como artifact con base de datos, y el usuario comparte su enlace. Las dos versiones guardan los mismos campos y valores; solo cambian los textos de la página.
+- **Cómo leerlo:** con `ArtifactData` → `list` de la colección `tickets` (un documento por tiquete; el que está en estado `listo` es el pedido). Si el usuario pega un bloque que empieza por `# TIQUETE` (o `# TICKET`, la versión inglesa), ese es el mismo contenido; con el tiquete en inglés, responde en inglés. Sin tiquete, el pedido llega por el chat.
 - **Campos:**
   - ficha: título, duración, estilo, universo, estado, modo;
   - `logline` y `tono`;
@@ -278,6 +278,16 @@ Base: compresor + reverb por convolución con impulso generado. **Lechos** conti
 - Japón: shakuhachi (ataque *meri*, escala miyako-bushi), koto Karplus-Strong, taiko, latidos, *shing*, whoosh, boom, trueno, cuervos.
 - Mágico/victoriano: caja de música, arpa, cuerdas, coro por formantes (720/1150/2500 Hz), campana FM, metales, ostinato, hechizo (sierra con barrido + FM), energía que se acumula, varita rota, risa fría, golpe, jadeo, búho, pasos, chispa fallida, crack de aparición.
 - **Temas por personaje o idea** y reutilizarlos con otro instrumento u octava según la emoción (infancia en caja de música, nostalgia en arpa grave; un tema frigio para la amenaza). Un acorde mayor inesperado para el momento cálido; final suspendido para «Continuará».
+- **Voces reales con ElevenLabs (opcional).** Si el conector de ElevenLabs está disponible y el usuario quiere voces de verdad en vez de bleeps o narración escrita:
+  1. Elige la voz con la herramienta de listar voces, o diséñala a partir de su descripción. Di cuál elegiste.
+  2. Genera **una línea por llamada**, de una en una y todas en el mismo flow:
+     - lanzar muchas en paralelo da error 429 y puede bloquear un plan gratuito;
+     - pide **una sola variación** por línea, porque las demás también se cobran;
+     - nunca repitas una llamada para «reintentar»: consulta su estado.
+  3. Cuenta los caracteres antes y avisa del coste aproximado.
+  4. Baja cada audio y **mide su duración real** al decodificarlo. Saca de ahí los tiempos de subtítulos y animación.
+  5. Incrusta los MP3 en base64 en el HTML (sigue siendo un solo archivo) y baja la música mientras hablan (*ducking*).
+  6. El resto del sonido sigue siendo sintetizado.
 - Toda nota usada (incluidas las octavas graves de un tema transpuesto) debe existir en la tabla `NOTE`, ampliada con `Object.assign` antes de `auInit`; si falta, el evento falla con un AudioParam no finito.
 
 ## 7. Textos y UI

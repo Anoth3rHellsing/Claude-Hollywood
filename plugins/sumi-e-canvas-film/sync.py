@@ -16,6 +16,7 @@ for n in ['ESCENARIOS.md', 'LECCIONES.md', 'FONDOS.md', 'RIG.md']:   # en la edi
     txt = open(os.path.join(HW, n), encoding='utf-8').read().replace('Notas de dirección de Nico', 'Notas de dirección').replace('el PC de Nico', 'el PC del director').replace('Nico', 'el director')
     os.makedirs(os.path.join(SK, 'references'), exist_ok=True); open(os.path.join(SK, 'references', n), 'w', encoding='utf-8').write(txt)
 cp(os.path.join(HW, 'tiquetes', 'tiquete.html'), os.path.join(SK, 'assets', 'tiquete.html'))
+cp(os.path.join(HW, 'tiquetes', 'ticket.html'), os.path.join(SK, 'assets', 'ticket.html'))
 for f in sorted(glob.glob(os.path.join(HW, 'herramientas', '*'))): cp(f, os.path.join(SK, 'scripts', os.path.basename(f)))
 r = subprocess.run([sys.executable, os.path.join(PL, 'build.py')], capture_output=True, text=True); print('plantilla:', (r.stdout + r.stderr).strip())
 if r.returncode: sys.exit(1)

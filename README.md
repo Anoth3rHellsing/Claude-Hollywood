@@ -9,6 +9,7 @@
   <img alt="Un solo HTML" src="https://img.shields.io/badge/salida-un%20solo%20HTML-2b2b2b">
   <img alt="Sin librerías" src="https://img.shields.io/badge/librer%C3%ADas-0-2b2b2b">
   <img alt="Sonido sintetizado" src="https://img.shields.io/badge/sonido-100%25%20sintetizado-6a4c93">
+  <a href="#voces-reales-con-elevenlabs--real-voices-with-elevenlabs"><img alt="Voces con ElevenLabs" src="https://img.shields.io/badge/voces-ElevenLabs-000000"></a>
   <a href="LICENSE"><img alt="Licencia GPL-3.0" src="https://img.shields.io/badge/licencia-GPL--3.0-blue"></a>
 </p>
 
@@ -74,6 +75,34 @@ claude plugin install sumi-e-canvas-film@claude-hollywood
 1. Descarga **[`dist/sumi-e-canvas-film.zip`](dist/sumi-e-canvas-film.zip)**.
 2. En Claude, abre **Customize → Skills**, pulsa **+ → Create skill → Upload a skill** y elige el zip.
 3. Asegúrate de tener activadas la **ejecución de código** y la **creación de archivos**.
+
+## Voces reales con ElevenLabs / Real voices with ElevenLabs
+
+**🇪🇸 Español:**
+- **Por defecto, todo el sonido es sintético:** música, efectos y voces de 8 bits.
+- **Voces reales:** si tienes el **conector de ElevenLabs** en Claude, el skill puede dar a tus personajes voces de verdad. Así se hizo la narración de *Claude Hollywood 101*.
+- **Qué hace Claude:**
+  - elige una voz de la biblioteca o diseña una nueva a partir de tu descripción;
+  - genera cada línea del guion;
+  - mide cuánto dura y sincroniza subtítulos y animación;
+  - incrusta el audio dentro del mismo HTML, que sigue siendo un solo archivo.
+- **Dónde funciona:**
+  - en claude.ai y Claude Desktop, activa el conector en **Settings → Connectors**;
+  - en Claude Code, añade el servidor MCP de ElevenLabs.
+- **Créditos:** genera una línea por llamada y una sola variación por línea. Las variaciones extra también se cobran.
+
+**🇬🇧 English:**
+- **By default, all sound is synthesized:** music, sound effects and 8-bit voices.
+- **Real voices:** with the **ElevenLabs connector** in Claude, the skill can give your characters real voices. That is how *Claude Hollywood 101* was narrated.
+- **What Claude does:**
+  - picks a voice from the library or designs a new one from your description;
+  - generates each line of the script;
+  - measures how long it runs and syncs subtitles and animation;
+  - embeds the audio in the same HTML, which stays a single file.
+- **Where it works:**
+  - in claude.ai and Claude Desktop, enable the connector under **Settings → Connectors**;
+  - in Claude Code, add the ElevenLabs MCP server.
+- **Credits:** generate one line per call and a single variation per line. Extra variations are billed too.
 
 ## Cómo se usa
 

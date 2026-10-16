@@ -14,17 +14,17 @@ Así se hicieron «Kurenai», la serie «El Juramento Roto» y «Entre el Vapor 
 ## Instalar en Claude Code
 
 ```
-/plugin marketplace add Anoth3rHellsing/Code-Corn
-/plugin install sumi-e-canvas-film@code-corn
+/plugin marketplace add Anoth3rHellsing/Claude-Hollywood
+/plugin install sumi-e-canvas-film@claude-hollywood
 ```
 
 En una sola línea (Claude Code 2.1.275 o posterior):
 
 ```
-/plugin install sumi-e-canvas-film --marketplace Anoth3rHellsing/Code-Corn
+/plugin install sumi-e-canvas-film --marketplace Anoth3rHellsing/Claude-Hollywood
 ```
 
-Desde la terminal: `claude plugin marketplace add Anoth3rHellsing/Code-Corn` y luego `claude plugin install sumi-e-canvas-film@code-corn`.
+Desde la terminal: `claude plugin marketplace add Anoth3rHellsing/Claude-Hollywood` y luego `claude plugin install sumi-e-canvas-film@claude-hollywood`.
 
 Úsalo con `/sumi-e-canvas-film:sumi-e-canvas-film`, o simplemente pide una película. Admite un modo como argumento: `control` (por defecto), `auto` o `asistido`.
 

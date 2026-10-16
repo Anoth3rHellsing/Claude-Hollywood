@@ -1,6 +1,6 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
-  "name": "code-corn",
+  "name": "claude-hollywood",
   "description": "Claude Hollywood: skills para hacer películas animadas en un solo HTML con Canvas 2D y sonido sintetizado.",
   "owner": { "name": "Anoth3rHellsing", "url": "https://github.com/Anoth3rHellsing" },
   "plugins": [

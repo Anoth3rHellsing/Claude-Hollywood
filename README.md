@@ -29,7 +29,7 @@
 ## ▶ Míralo en acción: *Claude Hollywood 101*
 
 <p align="center">
-  <a href="https://htmlpreview.github.io/?https://github.com/Anoth3rHellsing/Code-Corn/blob/main/claude-hollywood-101.html">
+  <a href="https://htmlpreview.github.io/?https://github.com/Anoth3rHellsing/Claude-Hollywood/blob/main/claude-hollywood-101.html">
     <img src="assets/claude-hollywood-101.gif" alt="Fragmentos de Claude Hollywood 101: Aguada en el invernadero, el mundo congelado en su esqueleto, la acuarela que se forma, la piedra en cámara lenta y la tarjeta final" width="720">
   </a>
 </p>
@@ -41,28 +41,28 @@ En este corto de 3:26, **Aguada**, una tacita con boina, explica cómo funciona 
 3. Lanza una piedra en cámara lenta.
 4. Toca los cristales como si fueran notas.
 
-**[Ver Claude Hollywood 101](https://htmlpreview.github.io/?https://github.com/Anoth3rHellsing/Code-Corn/blob/main/claude-hollywood-101.html)** (con sonido, en Chrome o Edge). También puedes descargar [`claude-hollywood-101.html`](claude-hollywood-101.html) y abrirlo.
+**[Ver Claude Hollywood 101](https://htmlpreview.github.io/?https://github.com/Anoth3rHellsing/Claude-Hollywood/blob/main/claude-hollywood-101.html)** (con sonido, en Chrome o Edge). También puedes descargar [`claude-hollywood-101.html`](claude-hollywood-101.html) y abrirlo.
 
 ## Instalar
 
 ### En Claude Code
 
 ```text
-/plugin marketplace add Anoth3rHellsing/Code-Corn
-/plugin install sumi-e-canvas-film@code-corn
+/plugin marketplace add Anoth3rHellsing/Claude-Hollywood
+/plugin install sumi-e-canvas-film@claude-hollywood
 ```
 
 En una sola línea (Claude Code 2.1.275 o posterior):
 
 ```text
-/plugin install sumi-e-canvas-film --marketplace Anoth3rHellsing/Code-Corn
+/plugin install sumi-e-canvas-film --marketplace Anoth3rHellsing/Claude-Hollywood
 ```
 
 Desde la terminal:
 
 ```bash
-claude plugin marketplace add Anoth3rHellsing/Code-Corn
-claude plugin install sumi-e-canvas-film@code-corn
+claude plugin marketplace add Anoth3rHellsing/Claude-Hollywood
+claude plugin install sumi-e-canvas-film@claude-hollywood
 ```
 
 ### En claude.ai o Claude Desktop
@@ -113,8 +113,8 @@ Al terminar entrega el `.html` y, si estás en claude.ai, lo publica como artifa
 | Película | Duración | Qué tiene |
 |---|---|---|
 | **[Entre el Vapor y el Bit · Crónica de dos Estrellas](https://claude.ai/artifact/X2gP4MZQSCj5p5PDUGTahL)** ([html](entre-el-vapor-y-el-bit.html)) | 7:58 | Un día entero de Teo Cazorla, un cazo de cobre que es chef en un restaurante de dos estrellas: del despertar con prisa a medianoche. Seis mapas 3D, siete personajes, diálogos de 8 bits. |
-| **[Claude Hollywood 101](https://htmlpreview.github.io/?https://github.com/Anoth3rHellsing/Code-Corn/blob/main/claude-hollywood-101.html)** ([html](claude-hollywood-101.html)) | 3:26 | La clase de introducción: Aguada explica el skill dentro de un invernadero en otoño. |
-| **[Lo-Fi Codes](https://htmlpreview.github.io/?https://github.com/Anoth3rHellsing/Code-Corn/blob/main/lo-fi-codes.html)** ([html](lo-fi-codes.html)) | 3:36 | Fondos animados con música lo-fi sintetizada: invernadero, ciudad, café, auto, mar. |
+| **[Claude Hollywood 101](https://htmlpreview.github.io/?https://github.com/Anoth3rHellsing/Claude-Hollywood/blob/main/claude-hollywood-101.html)** ([html](claude-hollywood-101.html)) | 3:26 | La clase de introducción: Aguada explica el skill dentro de un invernadero en otoño. |
+| **[Lo-Fi Codes](https://htmlpreview.github.io/?https://github.com/Anoth3rHellsing/Claude-Hollywood/blob/main/lo-fi-codes.html)** ([html](lo-fi-codes.html)) | 3:36 | Fondos animados con música lo-fi sintetizada: invernadero, ciudad, café, auto, mar. |
 | «Kurenai», «El Juramento Roto» (3 episodios y tráiler), «El Invernadero de Cristal y Ceniza», «Atlas de ciudades» | 3–10 min | Acuarela, papel recortado, siluetas y magia de tinta. Están en [`Claude-Hollywood/peliculas/`](Claude-Hollywood/peliculas/). |
 
 ## Cómo funciona por dentro
@@ -142,7 +142,7 @@ flowchart LR
 | Ruta | Qué es |
 |---|---|
 | [`plugins/sumi-e-canvas-film/`](plugins/sumi-e-canvas-film/) | **El skill publicable**: instrucciones, guías, herramientas de prueba y una plantilla que funciona (motor Escenarios + una escena de 20 s). |
-| [`.claude-plugin/marketplace.json`](.claude-plugin/marketplace.json) | El marketplace `code-corn` para Claude Code. |
+| [`.claude-plugin/marketplace.json`](.claude-plugin/marketplace.json) | El marketplace `claude-hollywood` para Claude Code. |
 | [`dist/sumi-e-canvas-film.zip`](dist/sumi-e-canvas-film.zip) | El skill listo para subir a claude.ai. |
 | [`Claude-Hollywood/`](Claude-Hollywood/) | El estudio completo:<br>• los motores (acuarela, rig 2.5D, fondos, Escenarios);<br>• el código de cada película;<br>• las marcas ficticias y el elenco pixel;<br>• los manuales (`ESCENARIOS.md`, `FONDOS.md`, `RIG.md`) y las lecciones. |
 | `*.html` | Las películas terminadas, listas para abrir. |

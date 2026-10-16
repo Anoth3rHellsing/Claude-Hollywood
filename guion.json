@@ -3,7 +3,7 @@
   "nombre": "Fruna - Playful, mischievous, sweet",
   "voice_id": "2CGcaXd1E04jesxY7nfq"
  },
- "total_chars": 1517,
+ "total_chars": 1529,
  "lineas": [
   {
    "bloque": "B0",
@@ -19,9 +19,9 @@
    "desde": "0:00",
    "titulo": "Apertura",
    "id": "L02",
-   "texto": "No hay cámara, ni actores, ni dibujos guardados. Solo código… y una tacita con boina.",
-   "chars": 85,
-   "seg_aprox": 5.9
+   "texto": "No hay cámara, ni actores, ni dibujos guardados. Solo código… y yo, Aguada: una tacita con boina.",
+   "chars": 97,
+   "seg_aprox": 6.7
   },
   {
    "bloque": "B1",

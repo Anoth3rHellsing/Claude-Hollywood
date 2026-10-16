@@ -1,7 +1,7 @@
 import json
 L=[
 ("B0","0:00","Apertura","L01","¡Hola! Bienvenidos a Claude Hollywood ciento uno. Antes de empezar, un secreto: nada de lo que ven es un video."),
-("B0","0:00","Apertura","L02","No hay cámara, ni actores, ni dibujos guardados. Solo código… y una tacita con boina."),
+("B0","0:00","Apertura","L02","No hay cámara, ni actores, ni dibujos guardados. Solo código… y yo, Aguada: una tacita con boina."),
 ("B1","0:20","Todo es código","L03","Miren. Si congelo el mundo, aparece su esqueleto: una cámara en tres dimensiones, hecha con matemáticas."),
 ("B1","0:20","Todo es código","L04","Sesenta veces por segundo, Claude calcula dónde va cada columna, cada hoja y cada charco… y lo vuelve a pintar desde cero."),
 ("B2","0:50","La acuarela","L05","¿Y la acuarela? Empieza como una figura simple. Claude la deforma un poquito, una y otra vez."),

@@ -412,3 +412,12 @@ Prueba de 3:00 con todo lo nuevo: el rig, la magia de tinta y fondos con mucho d
 - **Teo se asoma por el borde del inserto** (pixel grande, cortado): mantiene al personaje en los planos de manos sin dibujar manos.
 - **Los textos de diálogo largos se salen de la caja:** tres líneas como máximo; recortar la frase.
 
+## Entre el Vapor y el Bit · fases 5 y 6 (el turno en avance rápido y la noche)
+- **Avance rápido con cámara fija:** todo es función de t (caos que crece y se limpia, manchas con hora de aparición y de limpieza, torres de platos, serpentina con largo creciente sobre una ruta 3D). Los personajes como **estelas** (tres copias semitransparentes a pocos milisegundos) leen «velocidad» sin animación nueva. Hay que apagarlas antes de que vuelvan los personajes sólidos o se ven duplicados.
+- **Apagar una cocina:** cada luz con su interruptor (`power(t)`) y su «clack»; al final, un velo oscuro *encima* de lo pintado y *debajo* de las luces (`LGT`), y lo que queda encendido (matamoscas UV, cartel de SALIDA, displays de los roners) cuenta la hora.
+- **Noche sobre un mapa de día:** el mismo parque con un `multiply` azul después de la lista de profundidad y las luces encima (farolas, luciérnagas, el brillo del invernadero). El personaje se vuelve a dibujar a medio alfa encima del velo para que se lea.
+- **Un sprite girado gira sobre el 45 % de su altura:** para tumbar a Teo en la cama hay que bajarle el pie (y ≈ altura del colchón − 0,45·alto del sprite) o queda flotando.
+- **Las luces aditivas y el zoom, otra vez:** el neón que entra por la ventana lavaba los primeros planos de cian. Se divide el radio y el alfa por el zoom de la cámara.
+- **La tela se hornea otra vez para cada gesto:** la caída en la cama es una sábana nueva (reposo sobre el colchón, una esfera que baja y un empujón hacia arriba de los bordes lejanos), así se ve que se infla y se asienta.
+- **La noche suena más baja a propósito** (−17 a −19 LUFS frente a −14/−16 del día), pero no menos: grillos, respiración, la nana. Por debajo de −20 se pierde.
+

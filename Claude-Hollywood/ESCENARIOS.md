@@ -43,6 +43,12 @@ Toda superficie es una **textura pintada una vez** puesta en un **rectángulo 3D
 6. **Muebles y personajes** a la lista con `put(z, …)`. Lo que está en el suelo (una sábana caída) se ordena como suelo.
 7. **Polvo y haces** al final.
 
+## Recursos de «Entre el Vapor y el Bit» que conviene copiar
+
+- **Insertos a pantalla completa** (`vapor-y-bit/src/46_recetas.js`): se dibujan en unidades de pantalla, sin cámara 3D, para el detalle que solo se lee de cerca (una sartén, un plato). El personaje pixel se asoma por un borde.
+- **Ganchos de un mapa** (`drawCocina(t, o)`): `power(t)` para cada luz, `fog`, `dark`, `flare`, `door`, `clock`, `floor` y callbacks por mueble (`onRange`, `onPass`). Un mismo mapa sirve para la mañana, el servicio, el avance rápido y la cocina a oscuras.
+- **De día a noche** (`drawParque(t, { night: true })`): cielo nocturno, un `multiply` azul después de la lista de profundidad y luces encima (farolas con polillas, luciérnagas, brillo bioluminiscente).
+
 ## Diálogos y voz
 
 ```js
@@ -57,7 +63,7 @@ dlgDraw(DLG, t, { anchor: d => yEnPantallaDelQueHabla });   // la caja sube arri
 | normal | 22 | ×1 | — | — |
 | tecnico | 17 | ×0,9 | pulso 25 % | — |
 | sueno | 11 | ×0,66 | triángulo | bajada |
-| agotado | 7 | ×0,58 | triángulo | pausas largas |
+| agotado | 7 | ×0,58 | triángulo | pausas largas (la vuelta a casa) |
 
 La voz base de cada personaje está en su ficha (`ELENCO[id].voz`).
 

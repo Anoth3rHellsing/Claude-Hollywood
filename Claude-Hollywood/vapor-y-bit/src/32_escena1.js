@@ -56,7 +56,7 @@ function sheetBake() {
 }
 const sheetBump = t => (x, y, z) => { const d = Math.hypot(x - TEO_BED.x, z - TEO_BED.z); if (d > 70) return 0; const k = Math.exp(-d * d / 1500); return k * (-2.2 * Math.sin(t * 1.4) - (t > 19.6 && t < 21.6 ? 10 * Math.abs(Math.sin((t - 19.6) * 7)) : 0)); };
 /* ---------- muebles en la lista de profundidad ---------- */
-function drawBed(t) {
+function drawBed(t, o = {}) {
   /* cabecera de listones (plano en x = -440) */
   vplane(PROPS.head, [BED.x0, BED.z1], [BED.x0, BED.z0], -122, 0); amb3([[BED.x0, -122, BED.z1], [BED.x0, -122, BED.z0], [BED.x0, 0, BED.z0], [BED.x0, 0, BED.z1]], .38);
   /* armazón y colchón */
@@ -66,7 +66,7 @@ function drawBed(t) {
   amb3([[BED.x0 + 4, BED.top, BED.z0 + 4], [BED.x1 - 4, BED.top, BED.z0 + 4], [BED.x1 - 4, -30, BED.z0 + 4], [BED.x0 + 4, -30, BED.z0 + 4]], .22);
   solOn({ id: 'matt', t: 'h', y: BED.top, x0: BED.x0 + 4, x1: BED.x1 - 4, z0: BED.z0 + 4, z1: BED.z1 - 4, ambA: .12, occ: [{ pts: [[BED.x0, -122, BED.z0], [BED.x0, -122, BED.z1], [BED.x0, 0, BED.z1], [BED.x0, 0, BED.z0]], a: .9 }] });
   /* almohadas en la cabecera */
-  bill(PROPS.pillow[0], BED.x0 + 46, BED.top, BED.z1 - 40); bill(PROPS.pillow[1], BED.x0 + 40, BED.top, BED.z0 + 60);
+  bill(PROPS.pillow[0], BED.x0 + 46, BED.top - (o.pb ? o.pb(0) : 0), BED.z1 - 40); bill(PROPS.pillow[1], BED.x0 + 40, BED.top - (o.pb ? o.pb(1) : 0), BED.z0 + 60);
 }
 function drawNightstand(t) {
   const N = NIGHT; box3({ x0: N.x0, x1: N.x1, y0: N.top, y1: 0, z0: N.z0, z1: N.z1 }, { front: PROPS.night, right: PROPS.woodB, top: PROPS.woodA });
@@ -75,7 +75,7 @@ function drawNightstand(t) {
   box3({ x0: N.x0 + 6, x1: N.x0 + 30, y0: N.top - 4, y1: N.top, z0: N.z0 + 26, z1: N.z0 + 60 }, { front: [118, 36, 40], top: [228, 216, 190], right: [236, 226, 206] });
   drawClock(t);
 }
-function clockText(t) { return t < 14.4 ? '07:14' : t < 58 ? '07:15' : '07:16'; }
+function clockText(t) { if (t > 400) return t < S6.ZERO - 26 ? '23:58' : t < S6.ZERO ? '23:59' : '00:00'; return t < 14.4 ? '07:14' : t < 58 ? '07:15' : '07:16'; }
 const alarmOn = t => t >= 14.4 && t < 47.9;
 function drawClock(t) {
   const x0 = -526, x1 = -478, z = 682, y0 = -80, y1 = -56;

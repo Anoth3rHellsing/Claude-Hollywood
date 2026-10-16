@@ -5,7 +5,7 @@ Un día entero de **Teo Cazorla**, cazo de cobre y jefe de partida en *Brasa y B
 - **Sin voces de IA:** diálogos con bleeps de 8 bits y cajas de texto pixel cuyo ritmo sigue al ánimo.
 - **Rótulos de hora** en cada escena.
 - Todo con el motor **Escenarios** (ver `../ESCENARIOS.md`).
-- Duración prevista: **≈ 8:30**.
+- Duración: **7:58** (prevista ≈ 8:30).
 
 ## Plan por escenas
 
@@ -17,7 +17,21 @@ Un día entero de **Teo Cazorla**, cazo de cobre y jefe de partida en *Brasa y B
 | 2:04–3:01 | 3. Parque e Invernadero: komorebi, grava con piedras y hojas que vuelan, bancos con rocío, estanque espejo con **Ramiro Lagos** (ánade) y sus patitos («Cuac.»), sorbo que quema; el invernadero de día con parches nuevos, musgo, condensación, arcoíris y riego; su reflejo panel a panel; sale por la reja. | **Fase 3 · hecha** |
 | 3:02–5:12 | 4. **Brasa y Bruma**, la cocina de dos estrellas, con **Rosa Mijares** (pan de masa madre, segunda de cocina, con su vals). Acero cepillado, azulejo biselado, cobre de Cobre Valdés, cuchillos Tsukiyo, robata con binchotan y yakitori, roners a 62,5 °C, comandero Tikket, campana que vibra. Receta 1 (inserto): sellado, vuelta, coñac, llamarada y arroser. Salto a la 1:00 PM: mesa siete, la Guía. Receta 2 (inserto): emplatado bajo las lámparas infrarrojas. «¡Servicio!», la espera y el plato que vuelve limpio. | **Fase 4 · hecha** |
 | 5:12–6:04 | 5. **Avance rápido del turno** con la cámara fija: el reloj y el rótulo vuelan de la 1:20 a las 11:00 PM; Teo y Rosa son estelas; la Tikket escupe una serpentina que cruza el pase y se enrolla en el suelo; llamaradas, puerta que no para, vapor que lo empaña todo, manchas y torres de platos. Limpieza: queda todo limpio y mojado. Rosa se despide («Mañana a las ocho y media... EN PUNTO»), las luces se apagan una a una con un «clack» y quedan el matamoscas azul y el cartel de SALIDA; Teo arrastra los zuecos hasta la puerta. | **Fase 5 · hecha** |
-| 6:50–8:30 | 6. Regreso nocturno: el parque de noche (farolas con polillas, invernadero con brillo verde, pasos pesados, bleeps graves con bostezos). El estudio a la luz de la luna y el neón del Hotel Medialuna. Se tira a la cama, polvo plateado, 23:59 → 00:00, último bleep. Por la ventana, dos estrellas. | pendiente |
+| 6:05–7:58 | 6. **La noche.** El parque a las 11:30 PM: farolas ámbar con halo y polillas, luciérnagas, árboles azul oscuro, el invernadero con brillo verde bioluminiscente que «respira» cuando Teo le da las buenas noches, los patos dormidos («...cuac.»). Pasos arrastrados, bleeps lentos y graves, bostezos, la nana de «Dos estrellas». El estudio a las 11:58 PM con la luna por la persiana y el neón del Hotel Medialuna que tartamudea; se deja caer en la cama: la sábana se infla y se asienta, las almohadas rebotan, polvo plateado en el rayo de luna. 23:59 → 00:00, último bleep grave. Por la persiana, dos estrellas. Tarjeta final. | **Fase 6 · hecha** |
+
+## Escena 6 por tiempos (hecha)
+
+| s | Plano | Qué pasa | Sonido |
+|---|---|---|---|
+| 365–374 | la reja de noche | rótulo «11:30 PM · Parque del Invernadero»; Teo entra arrastrando los zuecos | grillos, viento, nana «Dos estrellas» en caja de música |
+| 374–387 | seguimiento junto a una farola | polillas, luciérnagas; «...mis zuecos... pesan... como ollas de caldo...»; bostezo | búho, la nana una octava abajo |
+| 387–400 | el invernadero de noche | brillo verde que respira; «...buenas noches... viejo amigo.» y el vidrio responde | acorde y arpegio de caja de música |
+| 400–410 | el estanque | los patos duermen (zzz); «...shhh... buenas noches, Ramiro.» / «...cuac.» | agua, un cuac dormido |
+| 411–429 | el estudio | rótulo «11:58 PM»; la puerta se abre con la luz cálida del pasillo; luna por la persiana, neón cian/magenta; «...cama... cama... cama...» | crujido, pasos lentos, bostezo, colchón grave |
+| 429–436 | la cama | se balancea y cae como un árbol: la sábana se infla, las almohadas rebotan, polvo plateado en el rayo de luna | golpe, tela, muelles, destellos |
+| 436–446 | el despertador | 23:59 → **00:00**; último bleep grave | tic, respiración de sueño |
+| 446–460 | la habitación, la ventana | por la persiana, la ciudad dormida, el neón y **dos estrellas** que se encienden juntas | dos notas altas, acorde final |
+| 460–478 | tarjeta | «Entre el Vapor y el Bit · Crónica de dos Estrellas», FIN, el elenco | «Dos estrellas» completo |
 
 ## Escena 4 por tiempos (hecha)
 

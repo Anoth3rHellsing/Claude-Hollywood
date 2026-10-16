@@ -29,23 +29,23 @@ const mistAt = t => sm((t - 158.2) / 4) * (1 - sm((t - 175) / 5));
 let STEPS3 = [];
 function steps3Init() { STEPS3 = []; let last = null; for (let t = S3.A; t < S3.END; t += 1 / 60) { const B = teoParque(t); if (!B.run || B.hide) { last = null; continue; } const st = Math.floor(t / (STEP / B.k)); if (last !== null && st !== last) STEPS3.push([t, B.x, B.z + (st % 2 ? 8 : -8), 1]); last = st; } }
 /* ---------- la escena en t ---------- */
-function drawParque(t) {
+function drawParque(t, o = {}) {
   lightsBegin(); T0();
-  const GH = PK.GH, B = teoParque(t);
+  const GH = PK.GH, B = o.teo ? o.teo(t) : teoParque(t), N = !!o.night, DUCK = o.duck || duckAt;
   /* cielo, ciudad lejana y neblina húmeda */
-  ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.drawImage(PKX.sky.c, (-CAM.x * .008 % 200) - 100, -60, W + 200, H * .85); ctx.restore(); T0();
+  if (N) nightSky(t); else { ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.drawImage(PKX.sky.c, (-CAM.x * .008 % 200) - 100, -60, W + 200, H * .85); ctx.restore(); T0(); }
   bill(CAX.skyline, 0, 0, 9000, { a: .7 });
-  const hz = PJ(0, -300, 6000)[1], mist = ctx.createLinearGradient(0, hz - 260, 0, hz + 160); mist.addColorStop(0, 'rgba(236,240,236,0)'); mist.addColorStop(1, 'rgba(236,240,232,.9)'); ctx.fillStyle = mist; ctx.fillRect(-SW, hz - 260, SW * 2, 800);
+  const hz = PJ(0, -300, 6000)[1], mist = ctx.createLinearGradient(0, hz - 260, 0, hz + 160); mist.addColorStop(0, N ? 'rgba(70,80,120,0)' : 'rgba(236,240,236,0)'); mist.addColorStop(1, N ? 'rgba(80,90,130,.8)' : 'rgba(236,240,232,.9)'); ctx.fillStyle = mist; ctx.fillRect(-SW, hz - 260, SW * 2, 800);
   /* orilla lejana con árboles y sauces */
   for (let k = Math.floor((CAM.x - 6000) / 2000); k * 2000 < CAM.x + 6000; k++) hplane(PKX.far, k * 2000, (k + 1) * 2000, 1700, 2600, 6);
   for (let k = Math.floor((CAM.x - 6000) / 900); k * 900 < CAM.x + 6000; k++) bill(PKX.trees[((k % 4) + 4) % 4], k * 900 + 200 + hsh(k, 1) * 300, 0, 2500 + hsh(k, 2) * 300);
   for (let k = Math.floor((CAM.x - 4000) / 820); k * 820 < CAM.x + 4000; k++) { const x = k * 820 + 500 + hsh(k, 3) * 200; if (x > GH.x0 - 300 && x < GH.x1 + 300) continue; if (hsh(k, 4) < .45) bill(PKX.willows[((k % 3) + 3) % 3], x, 0, 1850 + hsh(k, 5) * 80, { rot: Math.sin(t * .5 + k) * .012, px: 0, py: 0 }); else bill(PKX.trees[((k % 4) + 4) % 4], x, 0, 1880 + hsh(k, 6) * 120, { k: .8 }); }
-  ctx.fillStyle = 'rgba(240,244,236,.22)'; ctx.fillRect(-SW, -600, SW * 2, 1200);   // humedad de la mañana sobre lo lejano
+  ctx.fillStyle = N ? 'rgba(40,50,90,.25)' : 'rgba(240,244,236,.22)'; ctx.fillRect(-SW, -600, SW * 2, 1200);   // humedad de la mañana sobre lo lejano
   for (let k = Math.floor((CAM.x - 6000) / 2000); k * 2000 < CAM.x + 6000; k++) hplane(PKX.far, k * 2000, (k + 1) * 2000, PK.ZW, 1700, 0);
   /* el estanque: espejo de sauces, árboles y rascacielos, roto por ondas */
-  waterPlane(t, { pts: POND, y: 6, sky: [[160, 196, 222], [214, 228, 226]], tint: [120, 150, 130], tintA: .3, zg0: 900, zg1: 1600, rings: duckRings(t),
+  waterPlane(t, { pts: POND, y: 6, sky: N ? [[14, 20, 48], [40, 50, 90]] : [[160, 196, 222], [214, 228, 226]], tint: [120, 150, 130], tintA: .3, zg0: 900, zg1: 1600, rings: o.rings ? o.rings(t) : duckRings(t), glitter: !N,
     refl: () => { billMirror(CAX.skyline, 0, 9000, .6, { y: 6 }); for (let k = Math.floor((CAM.x - 4000) / 820); k * 820 < CAM.x + 4000; k++) { const x = k * 820 + 500 + hsh(k, 3) * 200; if (x > 4500) continue; if (hsh(k, 4) < .45) billMirror(PKX.willows[((k % 3) + 3) % 3], x, 1850 + hsh(k, 5) * 80, .8, { y: 6 }); else billMirror(PKX.trees[((k % 4) + 4) % 4], x, 1880 + hsh(k, 6) * 120, .75, { y: 6, k: .8 }); }
-      for (let i = 0; i < 3; i++) { const D = duckAt(t, i); pxReflect('ramiro', D.f, D.x, 0, D.z, t, { a: .4, flip: D.flip, amp: 1 }); } } });
+      for (let i = 0; i < 3; i++) { const D = DUCK(t, i); pxReflect('ramiro', D.f, D.x, 0, D.z, t, { a: .4, flip: D.flip, amp: 1 }); } if (N) moonReflect(t); } });
   /* el invernadero: bóveda, pabellón central, muro de vidrio */
   if (CAM.x > GH.x0 - 3000) {
     ghRoof(t, GH.x0, GH.cx0, -GH.h, GH.z, 520); ghRoof(t, GH.cx1, GH.x1, -GH.h, GH.z, 520); ghRoof(t, GH.cx0, GH.cx1, -GH.ch, GH.z, 380);
@@ -62,27 +62,28 @@ function drawParque(t) {
         for (let i = 0; i < 160; i++) { const x = GH.x0 + hsh(i, 1) * (GH.x1 - GH.x0), p0 = ((t * (.15 + hsh(i, 2) * .25) + hsh(i, 3)) % 1), y = -70 - p0 * 280, p = PJ(x + Math.sin(t + i) * 8, y, GH.z + 4); ctx.fillStyle = `rgba(255,255,255,${.6 * m * Math.sin(p0 * PI)})`; ctx.fillRect(p[0], p[1], 1.4, 1.4); }
         for (let i = 0; i < 40; i++) { const x = GH.x0 + hsh(i, 9) * (GH.x1 - GH.x0), d = ((t - 159) * (20 + hsh(i, 4) * 40)) % 220, a = PJ(x, -300 + d, GH.z), b = PJ(x, -300 + d + 12, GH.z); ctx.strokeStyle = `rgba(200,224,232,${.7 * m})`; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.stroke(); } }
     } ctx.restore();
-    const sun = PJ(GH.x0 + 600, -520, GH.z); LGT(sun[0], sun[1], 900 * PS(GH.z), '255,244,210', .35);
+    if (!N) { const sun = PJ(GH.x0 + 600, -520, GH.z); LGT(sun[0], sun[1], 900 * PS(GH.z), '255,244,210', .35); }
   }
   /* suelos: orilla de césped, el camino de grava, césped delante */
   for (let k = Math.floor((CAM.x - 4000) / 1200); k * 1200 < CAM.x + 4000; k++) { const x0 = k * 1200, x1 = x0 + 1200;
     hplane(PKX.bank, x0, x1, PK.Z1, x0 >= GH.x0 - 1200 && x0 < GH.x1 ? GH.z : PK.ZW, 0);
     hplane(PKX.path, x0, x1, PK.Z0, PK.Z1, 0); hplane(PKX.grass, x0, x1, 120, PK.Z0, 0); }
   /* komorebi en el camino (bajo los árboles) y arcoíris de los vidrios sobre la grava (junto al invernadero) */
-  if (CAM.x < GH.x0 + 600 || CAM.x > GH.x1 - 300) dapple(t, { x0: -2000, x1: GH.x0 - 100, z0: 150, z1: PK.ZW, y: 0 }, { a: .55, cell: 64, dens: .5 }), dapple(t, { x0: GH.x1 + 100, x1: 14000, z0: 150, z1: PK.ZW, y: 0 }, { a: .55, cell: 64, dens: .5 });
-  if (CAM.x > GH.x0 - 1200 && CAM.x < GH.x1 + 1200) { ctx.save(); ctx.globalCompositeOperation = 'screen'; for (let i = 0; i < 26; i++) { const x = GH.x0 + 60 + i * 140 + Math.sin(i * 2.3) * 40, z = 580 + hsh(i, 2) * 180, k = .5 + .5 * Math.sin(t * 1.5 + i * 1.9); if (k < .3) continue; const a = PJ(x, -.5, z), b = PJ(x + 70, -.5, z + 8), gr = ctx.createLinearGradient(a[0], a[1], b[0], b[1]); for (const [s, c] of [[0, '255,60,60'], [.2, '255,170,40'], [.4, '255,250,80'], [.6, '80,230,120'], [.8, '80,140,255'], [1, '170,80,240']]) gr.addColorStop(s, `rgba(${c},${.45 * k})`); ctx.fillStyle = gr; const w = (b[0] - a[0]), hh = Math.max(1.5, 7 * PS(z) * .35); ctx.save(); ctx.translate(a[0], a[1]); ctx.rotate(-.12); ctx.fillRect(0, -hh, w, hh * 2); ctx.restore(); } ctx.restore(); }
+  if (!N && (CAM.x < GH.x0 + 600 || CAM.x > GH.x1 - 300)) dapple(t, { x0: -2000, x1: GH.x0 - 100, z0: 150, z1: PK.ZW, y: 0 }, { a: .55, cell: 64, dens: .5 }), dapple(t, { x0: GH.x1 + 100, x1: 14000, z0: 150, z1: PK.ZW, y: 0 }, { a: .55, cell: 64, dens: .5 });
+  if (!N && CAM.x > GH.x0 - 1200 && CAM.x < GH.x1 + 1200) { ctx.save(); ctx.globalCompositeOperation = 'screen'; for (let i = 0; i < 26; i++) { const x = GH.x0 + 60 + i * 140 + Math.sin(i * 2.3) * 40, z = 580 + hsh(i, 2) * 180, k = .5 + .5 * Math.sin(t * 1.5 + i * 1.9); if (k < .3) continue; const a = PJ(x, -.5, z), b = PJ(x + 70, -.5, z + 8), gr = ctx.createLinearGradient(a[0], a[1], b[0], b[1]); for (const [s, c] of [[0, '255,60,60'], [.2, '255,170,40'], [.4, '255,250,80'], [.6, '80,230,120'], [.8, '80,140,255'], [1, '170,80,240']]) gr.addColorStop(s, `rgba(${c},${.45 * k})`); ctx.fillStyle = gr; const w = (b[0] - a[0]), hh = Math.max(1.5, 7 * PS(z) * .35); ctx.save(); ctx.translate(a[0], a[1]); ctx.rotate(-.12); ctx.fillRect(0, -hh, w, hh * 2); ctx.restore(); } ctx.restore(); }
   /* lista de profundidad */
   for (let k = Math.floor((CAM.x - 3000) / 1800); k * 1800 < CAM.x + 3000; k++) { const x = k * 1800 + 700; if (x > GH.x0 - 300 && x < GH.x1 + 300) continue; put(700, () => bill(PKX.bench, x, 0, 700)); }
-  for (let k = Math.floor((CAM.x - 3000) / 1400); k * 1400 < CAM.x + 3000; k++) { const x = k * 1400 + 1100; put(720, () => bill(PKX.lamp, x, 0, 720)); }
-  for (let i = 0; i < 3; i++) { const D = duckAt(t, i); put(D.z, () => { const c = pxCell('ramiro', D.z, D.k), [fx, fy] = pxFoot(D.x, 0, D.z); pxBlit(elencoCanvas('ramiro', D.f), fx, fy + Math.round(D.bob) * c, c, { flip: D.flip, crop: 6 + 11 }); }); }
-  if (!B.hide) put(B.z - .5, () => { const lit = CAM.x < GH.x0 || B.x > GH.x1 ? dappleAt(B.x, B.z, t, { cell: 64, dens: .5 }) : .6; pxShadow('teo', B.x, B.z, B.y || 0); pxDraw('teo', B.f, B.x, B.y || 0, B.z, { flip: B.flip, lit: lit * .9 });
+  for (let k = Math.floor((CAM.x - 3000) / 1400); k * 1400 < CAM.x + 3000; k++) { const x = k * 1400 + 1100; put(720, () => { bill(PKX.lamp, x, 0, 720); if (N) lampNight(t, x, 720); }); }
+  for (let i = 0; i < 3; i++) { const D = DUCK(t, i); put(D.z, () => { const c = pxCell('ramiro', D.z, D.k), [fx, fy] = pxFoot(D.x, 0, D.z); pxBlit(elencoCanvas('ramiro', D.f), fx, fy + Math.round(D.bob) * c, c, { flip: D.flip, crop: 6 + 11 }); }); }
+  if (!B.hide) put(B.z - .5, () => { const lit = N ? 0 : CAM.x < GH.x0 || B.x > GH.x1 ? dappleAt(B.x, B.z, t, { cell: 64, dens: .5 }) : .6; pxShadow('teo', B.x, B.z, B.y || 0); pxDraw('teo', B.f, B.x, B.y || 0, B.z, { flip: B.flip, lit: lit * .9 });
     const [fx, fy] = pxFoot(B.x, B.y || 0, B.z), c = pxCell('teo', B.z); if (B.f.cup) steamPixT(fx + (B.f.sip ? 7 : 9) * c, fy - (B.f.sip ? 28 : 24) * c, c, t);
     if (t > 130.6 && t < 133.0) for (let k = 0; k < 3; k++) { const ph = (t * 2 + k / 3) % 1; ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1 - ph; ctx.fillStyle = 'rgb(255,120,60)'; ctx.fillRect(Math.round(fx + (k - 1) * 6 * c), Math.round(fy - (30 + ph * 10) * c), c * 2, c * 2); ctx.restore(); T0(); } });
-  put(PK.ZT - 20, () => kickBits(t, STEPS3, { n: 4, leafP: .4 }));
+  if (!N) put(PK.ZT - 20, () => kickBits(t, STEPS3, { n: 4, leafP: .4 }));
   for (let k = Math.floor((CAM.x - 1600) / 520); k * 520 < CAM.x + 1600; k++) { const x = k * 520 + 160; if (x > GH.x0 + 200 && x < GH.x1 - 200) continue; put(280, () => bill(PKX.fg[((k % 3) + 3) % 3], x, 0, 280)); }
   for (let k = Math.floor((CAM.x - 2400) / 1500); k * 1500 < CAM.x + 2400; k++) { const x = k * 1500 + 400; if (x > GH.x0 + 400 && x < GH.x1 - 400) continue; put(330, () => bill(PKX.canopy[((k % 2) + 2) % 2], x, -560, 330, { rot: Math.sin(t * .6 + k) * .015, px: 0, py: 0 })); }
   put(620, () => drawGate(t));
   flush();
+  if (N) { parkNightPost(t, B); lightsComp(0); return; }
   if (CAM.x < GH.x0 + 400 || CAM.x > GH.x1 - 200) godRays(t, [[CAM.x - 500, 900, 120, 1], [CAM.x + 200, 1000, 90, 2.3], [CAM.x + 700, 850, 140, 4.1], [CAM.x - 1100, 950, 100, 5.7]], { a: .09, dx: 300, y0: -900 });
   const sg = PJ(CAM.x - 900, -900, 3000); LGT(sg[0], sg[1], 1200 * PS(3000), '255,236,180', .4);
   lightsComp(0);

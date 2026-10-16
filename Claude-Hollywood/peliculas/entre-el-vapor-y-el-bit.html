@@ -2310,7 +2310,7 @@ function sheetBake() {
 }
 const sheetBump = t => (x, y, z) => { const d = Math.hypot(x - TEO_BED.x, z - TEO_BED.z); if (d > 70) return 0; const k = Math.exp(-d * d / 1500); return k * (-2.2 * Math.sin(t * 1.4) - (t > 19.6 && t < 21.6 ? 10 * Math.abs(Math.sin((t - 19.6) * 7)) : 0)); };
 /* ---------- muebles en la lista de profundidad ---------- */
-function drawBed(t) {
+function drawBed(t, o = {}) {
   /* cabecera de listones (plano en x = -440) */
   vplane(PROPS.head, [BED.x0, BED.z1], [BED.x0, BED.z0], -122, 0); amb3([[BED.x0, -122, BED.z1], [BED.x0, -122, BED.z0], [BED.x0, 0, BED.z0], [BED.x0, 0, BED.z1]], .38);
   /* armazón y colchón */
@@ -2320,7 +2320,7 @@ function drawBed(t) {
   amb3([[BED.x0 + 4, BED.top, BED.z0 + 4], [BED.x1 - 4, BED.top, BED.z0 + 4], [BED.x1 - 4, -30, BED.z0 + 4], [BED.x0 + 4, -30, BED.z0 + 4]], .22);
   solOn({ id: 'matt', t: 'h', y: BED.top, x0: BED.x0 + 4, x1: BED.x1 - 4, z0: BED.z0 + 4, z1: BED.z1 - 4, ambA: .12, occ: [{ pts: [[BED.x0, -122, BED.z0], [BED.x0, -122, BED.z1], [BED.x0, 0, BED.z1], [BED.x0, 0, BED.z0]], a: .9 }] });
   /* almohadas en la cabecera */
-  bill(PROPS.pillow[0], BED.x0 + 46, BED.top, BED.z1 - 40); bill(PROPS.pillow[1], BED.x0 + 40, BED.top, BED.z0 + 60);
+  bill(PROPS.pillow[0], BED.x0 + 46, BED.top - (o.pb ? o.pb(0) : 0), BED.z1 - 40); bill(PROPS.pillow[1], BED.x0 + 40, BED.top - (o.pb ? o.pb(1) : 0), BED.z0 + 60);
 }
 function drawNightstand(t) {
   const N = NIGHT; box3({ x0: N.x0, x1: N.x1, y0: N.top, y1: 0, z0: N.z0, z1: N.z1 }, { front: PROPS.night, right: PROPS.woodB, top: PROPS.woodA });
@@ -2329,7 +2329,7 @@ function drawNightstand(t) {
   box3({ x0: N.x0 + 6, x1: N.x0 + 30, y0: N.top - 4, y1: N.top, z0: N.z0 + 26, z1: N.z0 + 60 }, { front: [118, 36, 40], top: [228, 216, 190], right: [236, 226, 206] });
   drawClock(t);
 }
-function clockText(t) { return t < 14.4 ? '07:14' : t < 58 ? '07:15' : '07:16'; }
+function clockText(t) { if (t > 400) return t < S6.ZERO - 26 ? '23:58' : t < S6.ZERO ? '23:59' : '00:00'; return t < 14.4 ? '07:14' : t < 58 ? '07:15' : '07:16'; }
 const alarmOn = t => t >= 14.4 && t < 47.9;
 function drawClock(t) {
   const x0 = -526, x1 = -478, z = 682, y0 = -80, y1 = -56;
@@ -3039,23 +3039,23 @@ const mistAt = t => sm((t - 158.2) / 4) * (1 - sm((t - 175) / 5));
 let STEPS3 = [];
 function steps3Init() { STEPS3 = []; let last = null; for (let t = S3.A; t < S3.END; t += 1 / 60) { const B = teoParque(t); if (!B.run || B.hide) { last = null; continue; } const st = Math.floor(t / (STEP / B.k)); if (last !== null && st !== last) STEPS3.push([t, B.x, B.z + (st % 2 ? 8 : -8), 1]); last = st; } }
 /* ---------- la escena en t ---------- */
-function drawParque(t) {
+function drawParque(t, o = {}) {
   lightsBegin(); T0();
-  const GH = PK.GH, B = teoParque(t);
+  const GH = PK.GH, B = o.teo ? o.teo(t) : teoParque(t), N = !!o.night, DUCK = o.duck || duckAt;
   /* cielo, ciudad lejana y neblina húmeda */
-  ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.drawImage(PKX.sky.c, (-CAM.x * .008 % 200) - 100, -60, W + 200, H * .85); ctx.restore(); T0();
+  if (N) nightSky(t); else { ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.drawImage(PKX.sky.c, (-CAM.x * .008 % 200) - 100, -60, W + 200, H * .85); ctx.restore(); T0(); }
   bill(CAX.skyline, 0, 0, 9000, { a: .7 });
-  const hz = PJ(0, -300, 6000)[1], mist = ctx.createLinearGradient(0, hz - 260, 0, hz + 160); mist.addColorStop(0, 'rgba(236,240,236,0)'); mist.addColorStop(1, 'rgba(236,240,232,.9)'); ctx.fillStyle = mist; ctx.fillRect(-SW, hz - 260, SW * 2, 800);
+  const hz = PJ(0, -300, 6000)[1], mist = ctx.createLinearGradient(0, hz - 260, 0, hz + 160); mist.addColorStop(0, N ? 'rgba(70,80,120,0)' : 'rgba(236,240,236,0)'); mist.addColorStop(1, N ? 'rgba(80,90,130,.8)' : 'rgba(236,240,232,.9)'); ctx.fillStyle = mist; ctx.fillRect(-SW, hz - 260, SW * 2, 800);
   /* orilla lejana con árboles y sauces */
   for (let k = Math.floor((CAM.x - 6000) / 2000); k * 2000 < CAM.x + 6000; k++) hplane(PKX.far, k * 2000, (k + 1) * 2000, 1700, 2600, 6);
   for (let k = Math.floor((CAM.x - 6000) / 900); k * 900 < CAM.x + 6000; k++) bill(PKX.trees[((k % 4) + 4) % 4], k * 900 + 200 + hsh(k, 1) * 300, 0, 2500 + hsh(k, 2) * 300);
   for (let k = Math.floor((CAM.x - 4000) / 820); k * 820 < CAM.x + 4000; k++) { const x = k * 820 + 500 + hsh(k, 3) * 200; if (x > GH.x0 - 300 && x < GH.x1 + 300) continue; if (hsh(k, 4) < .45) bill(PKX.willows[((k % 3) + 3) % 3], x, 0, 1850 + hsh(k, 5) * 80, { rot: Math.sin(t * .5 + k) * .012, px: 0, py: 0 }); else bill(PKX.trees[((k % 4) + 4) % 4], x, 0, 1880 + hsh(k, 6) * 120, { k: .8 }); }
-  ctx.fillStyle = 'rgba(240,244,236,.22)'; ctx.fillRect(-SW, -600, SW * 2, 1200);   // humedad de la mañana sobre lo lejano
+  ctx.fillStyle = N ? 'rgba(40,50,90,.25)' : 'rgba(240,244,236,.22)'; ctx.fillRect(-SW, -600, SW * 2, 1200);   // humedad de la mañana sobre lo lejano
   for (let k = Math.floor((CAM.x - 6000) / 2000); k * 2000 < CAM.x + 6000; k++) hplane(PKX.far, k * 2000, (k + 1) * 2000, PK.ZW, 1700, 0);
   /* el estanque: espejo de sauces, árboles y rascacielos, roto por ondas */
-  waterPlane(t, { pts: POND, y: 6, sky: [[160, 196, 222], [214, 228, 226]], tint: [120, 150, 130], tintA: .3, zg0: 900, zg1: 1600, rings: duckRings(t),
+  waterPlane(t, { pts: POND, y: 6, sky: N ? [[14, 20, 48], [40, 50, 90]] : [[160, 196, 222], [214, 228, 226]], tint: [120, 150, 130], tintA: .3, zg0: 900, zg1: 1600, rings: o.rings ? o.rings(t) : duckRings(t), glitter: !N,
     refl: () => { billMirror(CAX.skyline, 0, 9000, .6, { y: 6 }); for (let k = Math.floor((CAM.x - 4000) / 820); k * 820 < CAM.x + 4000; k++) { const x = k * 820 + 500 + hsh(k, 3) * 200; if (x > 4500) continue; if (hsh(k, 4) < .45) billMirror(PKX.willows[((k % 3) + 3) % 3], x, 1850 + hsh(k, 5) * 80, .8, { y: 6 }); else billMirror(PKX.trees[((k % 4) + 4) % 4], x, 1880 + hsh(k, 6) * 120, .75, { y: 6, k: .8 }); }
-      for (let i = 0; i < 3; i++) { const D = duckAt(t, i); pxReflect('ramiro', D.f, D.x, 0, D.z, t, { a: .4, flip: D.flip, amp: 1 }); } } });
+      for (let i = 0; i < 3; i++) { const D = DUCK(t, i); pxReflect('ramiro', D.f, D.x, 0, D.z, t, { a: .4, flip: D.flip, amp: 1 }); } if (N) moonReflect(t); } });
   /* el invernadero: bóveda, pabellón central, muro de vidrio */
   if (CAM.x > GH.x0 - 3000) {
     ghRoof(t, GH.x0, GH.cx0, -GH.h, GH.z, 520); ghRoof(t, GH.cx1, GH.x1, -GH.h, GH.z, 520); ghRoof(t, GH.cx0, GH.cx1, -GH.ch, GH.z, 380);
@@ -3072,27 +3072,28 @@ function drawParque(t) {
         for (let i = 0; i < 160; i++) { const x = GH.x0 + hsh(i, 1) * (GH.x1 - GH.x0), p0 = ((t * (.15 + hsh(i, 2) * .25) + hsh(i, 3)) % 1), y = -70 - p0 * 280, p = PJ(x + Math.sin(t + i) * 8, y, GH.z + 4); ctx.fillStyle = `rgba(255,255,255,${.6 * m * Math.sin(p0 * PI)})`; ctx.fillRect(p[0], p[1], 1.4, 1.4); }
         for (let i = 0; i < 40; i++) { const x = GH.x0 + hsh(i, 9) * (GH.x1 - GH.x0), d = ((t - 159) * (20 + hsh(i, 4) * 40)) % 220, a = PJ(x, -300 + d, GH.z), b = PJ(x, -300 + d + 12, GH.z); ctx.strokeStyle = `rgba(200,224,232,${.7 * m})`; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.stroke(); } }
     } ctx.restore();
-    const sun = PJ(GH.x0 + 600, -520, GH.z); LGT(sun[0], sun[1], 900 * PS(GH.z), '255,244,210', .35);
+    if (!N) { const sun = PJ(GH.x0 + 600, -520, GH.z); LGT(sun[0], sun[1], 900 * PS(GH.z), '255,244,210', .35); }
   }
   /* suelos: orilla de césped, el camino de grava, césped delante */
   for (let k = Math.floor((CAM.x - 4000) / 1200); k * 1200 < CAM.x + 4000; k++) { const x0 = k * 1200, x1 = x0 + 1200;
     hplane(PKX.bank, x0, x1, PK.Z1, x0 >= GH.x0 - 1200 && x0 < GH.x1 ? GH.z : PK.ZW, 0);
     hplane(PKX.path, x0, x1, PK.Z0, PK.Z1, 0); hplane(PKX.grass, x0, x1, 120, PK.Z0, 0); }
   /* komorebi en el camino (bajo los árboles) y arcoíris de los vidrios sobre la grava (junto al invernadero) */
-  if (CAM.x < GH.x0 + 600 || CAM.x > GH.x1 - 300) dapple(t, { x0: -2000, x1: GH.x0 - 100, z0: 150, z1: PK.ZW, y: 0 }, { a: .55, cell: 64, dens: .5 }), dapple(t, { x0: GH.x1 + 100, x1: 14000, z0: 150, z1: PK.ZW, y: 0 }, { a: .55, cell: 64, dens: .5 });
-  if (CAM.x > GH.x0 - 1200 && CAM.x < GH.x1 + 1200) { ctx.save(); ctx.globalCompositeOperation = 'screen'; for (let i = 0; i < 26; i++) { const x = GH.x0 + 60 + i * 140 + Math.sin(i * 2.3) * 40, z = 580 + hsh(i, 2) * 180, k = .5 + .5 * Math.sin(t * 1.5 + i * 1.9); if (k < .3) continue; const a = PJ(x, -.5, z), b = PJ(x + 70, -.5, z + 8), gr = ctx.createLinearGradient(a[0], a[1], b[0], b[1]); for (const [s, c] of [[0, '255,60,60'], [.2, '255,170,40'], [.4, '255,250,80'], [.6, '80,230,120'], [.8, '80,140,255'], [1, '170,80,240']]) gr.addColorStop(s, `rgba(${c},${.45 * k})`); ctx.fillStyle = gr; const w = (b[0] - a[0]), hh = Math.max(1.5, 7 * PS(z) * .35); ctx.save(); ctx.translate(a[0], a[1]); ctx.rotate(-.12); ctx.fillRect(0, -hh, w, hh * 2); ctx.restore(); } ctx.restore(); }
+  if (!N && (CAM.x < GH.x0 + 600 || CAM.x > GH.x1 - 300)) dapple(t, { x0: -2000, x1: GH.x0 - 100, z0: 150, z1: PK.ZW, y: 0 }, { a: .55, cell: 64, dens: .5 }), dapple(t, { x0: GH.x1 + 100, x1: 14000, z0: 150, z1: PK.ZW, y: 0 }, { a: .55, cell: 64, dens: .5 });
+  if (!N && CAM.x > GH.x0 - 1200 && CAM.x < GH.x1 + 1200) { ctx.save(); ctx.globalCompositeOperation = 'screen'; for (let i = 0; i < 26; i++) { const x = GH.x0 + 60 + i * 140 + Math.sin(i * 2.3) * 40, z = 580 + hsh(i, 2) * 180, k = .5 + .5 * Math.sin(t * 1.5 + i * 1.9); if (k < .3) continue; const a = PJ(x, -.5, z), b = PJ(x + 70, -.5, z + 8), gr = ctx.createLinearGradient(a[0], a[1], b[0], b[1]); for (const [s, c] of [[0, '255,60,60'], [.2, '255,170,40'], [.4, '255,250,80'], [.6, '80,230,120'], [.8, '80,140,255'], [1, '170,80,240']]) gr.addColorStop(s, `rgba(${c},${.45 * k})`); ctx.fillStyle = gr; const w = (b[0] - a[0]), hh = Math.max(1.5, 7 * PS(z) * .35); ctx.save(); ctx.translate(a[0], a[1]); ctx.rotate(-.12); ctx.fillRect(0, -hh, w, hh * 2); ctx.restore(); } ctx.restore(); }
   /* lista de profundidad */
   for (let k = Math.floor((CAM.x - 3000) / 1800); k * 1800 < CAM.x + 3000; k++) { const x = k * 1800 + 700; if (x > GH.x0 - 300 && x < GH.x1 + 300) continue; put(700, () => bill(PKX.bench, x, 0, 700)); }
-  for (let k = Math.floor((CAM.x - 3000) / 1400); k * 1400 < CAM.x + 3000; k++) { const x = k * 1400 + 1100; put(720, () => bill(PKX.lamp, x, 0, 720)); }
-  for (let i = 0; i < 3; i++) { const D = duckAt(t, i); put(D.z, () => { const c = pxCell('ramiro', D.z, D.k), [fx, fy] = pxFoot(D.x, 0, D.z); pxBlit(elencoCanvas('ramiro', D.f), fx, fy + Math.round(D.bob) * c, c, { flip: D.flip, crop: 6 + 11 }); }); }
-  if (!B.hide) put(B.z - .5, () => { const lit = CAM.x < GH.x0 || B.x > GH.x1 ? dappleAt(B.x, B.z, t, { cell: 64, dens: .5 }) : .6; pxShadow('teo', B.x, B.z, B.y || 0); pxDraw('teo', B.f, B.x, B.y || 0, B.z, { flip: B.flip, lit: lit * .9 });
+  for (let k = Math.floor((CAM.x - 3000) / 1400); k * 1400 < CAM.x + 3000; k++) { const x = k * 1400 + 1100; put(720, () => { bill(PKX.lamp, x, 0, 720); if (N) lampNight(t, x, 720); }); }
+  for (let i = 0; i < 3; i++) { const D = DUCK(t, i); put(D.z, () => { const c = pxCell('ramiro', D.z, D.k), [fx, fy] = pxFoot(D.x, 0, D.z); pxBlit(elencoCanvas('ramiro', D.f), fx, fy + Math.round(D.bob) * c, c, { flip: D.flip, crop: 6 + 11 }); }); }
+  if (!B.hide) put(B.z - .5, () => { const lit = N ? 0 : CAM.x < GH.x0 || B.x > GH.x1 ? dappleAt(B.x, B.z, t, { cell: 64, dens: .5 }) : .6; pxShadow('teo', B.x, B.z, B.y || 0); pxDraw('teo', B.f, B.x, B.y || 0, B.z, { flip: B.flip, lit: lit * .9 });
     const [fx, fy] = pxFoot(B.x, B.y || 0, B.z), c = pxCell('teo', B.z); if (B.f.cup) steamPixT(fx + (B.f.sip ? 7 : 9) * c, fy - (B.f.sip ? 28 : 24) * c, c, t);
     if (t > 130.6 && t < 133.0) for (let k = 0; k < 3; k++) { const ph = (t * 2 + k / 3) % 1; ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1 - ph; ctx.fillStyle = 'rgb(255,120,60)'; ctx.fillRect(Math.round(fx + (k - 1) * 6 * c), Math.round(fy - (30 + ph * 10) * c), c * 2, c * 2); ctx.restore(); T0(); } });
-  put(PK.ZT - 20, () => kickBits(t, STEPS3, { n: 4, leafP: .4 }));
+  if (!N) put(PK.ZT - 20, () => kickBits(t, STEPS3, { n: 4, leafP: .4 }));
   for (let k = Math.floor((CAM.x - 1600) / 520); k * 520 < CAM.x + 1600; k++) { const x = k * 520 + 160; if (x > GH.x0 + 200 && x < GH.x1 - 200) continue; put(280, () => bill(PKX.fg[((k % 3) + 3) % 3], x, 0, 280)); }
   for (let k = Math.floor((CAM.x - 2400) / 1500); k * 1500 < CAM.x + 2400; k++) { const x = k * 1500 + 400; if (x > GH.x0 + 400 && x < GH.x1 - 400) continue; put(330, () => bill(PKX.canopy[((k % 2) + 2) % 2], x, -560, 330, { rot: Math.sin(t * .6 + k) * .015, px: 0, py: 0 })); }
   put(620, () => drawGate(t));
   flush();
+  if (N) { parkNightPost(t, B); lightsComp(0); return; }
   if (CAM.x < GH.x0 + 400 || CAM.x > GH.x1 - 200) godRays(t, [[CAM.x - 500, 900, 120, 1], [CAM.x + 200, 1000, 90, 2.3], [CAM.x + 700, 850, 140, 4.1], [CAM.x - 1100, 950, 100, 5.7]], { a: .09, dx: 300, y0: -900 });
   const sg = PJ(CAM.x - 900, -900, 3000); LGT(sg[0], sg[1], 1200 * PS(3000), '255,236,180', .4);
   lightsComp(0);
@@ -3831,6 +3832,183 @@ const DLG5 = [
 ];
 
 /* =====================================================================
+   ESCENA 6 · REGRESO NOCTURNO Y COLAPSO (23:30 → 00:00) — 365 a 478 s
+   el parque de noche: farolas ámbar con halo de niebla y polillas, árboles azul oscuro, el invernadero a oscuras
+   con luz de luna y un brillo verde bioluminiscente que «respira», los patos dormidos · Teo arrastra los zuecos,
+   bleeps lentos y graves, bostezos · el estudio con la luna por la persiana y el neón del Hotel Medialuna que
+   parpadea (cian/magenta) · se deja caer en la cama: la sábana se hunde, las almohadas rebotan, polvo plateado en
+   el rayo de luna · 23:59 → 00:00 · último bleep grave · por la ventana, dos estrellas · fin.
+   ===================================================================== */
+const S6 = { A: 365.0, PEND: 410.0, ROOM: 411.0, FLOP: 431.4, ZERO: 441.0, STARS: 452.0, BLACK: 460.0, CARD: 460.6, END: 478.0 };
+/* ---------- cielo y luz de la noche en el parque ---------- */
+function nightSky(t) {
+  ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0);
+  const g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, 'rgb(6,9,26)'); g.addColorStop(.55, 'rgb(20,26,58)'); g.addColorStop(1, 'rgb(46,50,86)'); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  const ox = (-CAM.x * .004 % W + W) % W;
+  for (let i = 0; i < 220; i++) { const x = (hsh(i, 1) * W * 1.2 + ox) % (W * 1.2) - W * .1, y = hsh(i, 2) * H * .55, tw = .5 + .5 * Math.sin(t * (1 + hsh(i, 3) * 3) + i), a = (.25 + .6 * hsh(i, 4)) * (.6 + .4 * tw); ctx.fillStyle = `rgba(230,236,255,${a})`; const s = hsh(i, 5) < .08 ? 2 : 1; ctx.fillRect(Math.round(x), Math.round(y), s * (H / 720), s * (H / 720)); }
+  const mx = W * .78 - (CAM.x * .002 % 80), my = H * .16, mr = H * .055, mg = ctx.createRadialGradient(mx, my, mr * .6, mx, my, mr * 5); mg.addColorStop(0, 'rgba(200,214,255,.35)'); mg.addColorStop(1, 'rgba(200,214,255,0)'); ctx.fillStyle = mg; ctx.fillRect(mx - mr * 5, my - mr * 5, mr * 10, mr * 10);
+  ctx.fillStyle = 'rgb(236,238,226)'; ctx.beginPath(); ctx.arc(mx, my, mr, 0, TAU); ctx.fill(); ctx.fillStyle = 'rgba(160,166,170,.35)'; for (const [dx, dy, r] of [[-.3, -.2, .22], [.25, .1, .16], [-.05, .35, .12], [.35, -.35, .09]]) { ctx.beginPath(); ctx.arc(mx + dx * mr, my + dy * mr, r * mr, 0, TAU); ctx.fill(); }
+  ctx.restore(); T0();
+}
+function moonReflect(t) { ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); const mx = W * .78 - (CAM.x * .002 % 80); ctx.globalCompositeOperation = 'screen'; for (let k = 0; k < 14; k++) { const y = H * (.62 + k * .02), w = W * (.04 + .012 * Math.sin(t * 1.3 + k)) * (1 - k * .03); ctx.fillStyle = `rgba(220,230,255,${.28 - k * .016})`; ctx.fillRect(mx - w / 2 + Math.sin(t * 2 + k * 1.7) * W * .006, y, w, H * .006); } ctx.restore(); T0(); }
+function lampNight(t, x, z) {   /* farola: halo ámbar en la niebla y polillas que giran */
+  const c = PJ(x, -341, z), s = PS(z); LGT(c[0], c[1], 300 * s, '255,160,70', .75); LGT(c[0], c[1] + 340 * s, 260 * s, '255,150,70', .4); LGF(c[0], c[1], 40 * s, '255,214,150', .85);
+  LAMPS_N.push([x, z]);
+}
+let LAMPS_N = [];
+function mothsAt(t, x, z) { const c = PJ(x, -341, z), s = PS(z); for (let i = 0; i < 7; i++) { const w = 2.2 + hsh(i, x) * 2.8, r = (18 + hsh(i, 1) * 30) * s, a = t * w + i * 2.1, px = c[0] + Math.cos(a) * r, py = c[1] + Math.sin(a * 1.31) * r * .7 - 6 * s, fl = Math.sin(t * 40 + i * 3) > 0; ctx.fillStyle = `rgba(255,236,200,${fl ? .95 : .6})`; ctx.fillRect(px, py, Math.max(1.2, 1.6 * s), Math.max(1.2, (fl ? 1.6 : .8) * s)); } }
+function parkNightPost(t, B) {
+  /* noche azul sobre todo lo pintado; después solo lo que brilla */
+  ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalCompositeOperation = 'multiply'; ctx.fillStyle = 'rgb(84,96,156)'; ctx.fillRect(0, 0, W, H); ctx.globalCompositeOperation = 'source-over'; ctx.fillStyle = 'rgba(8,12,34,.18)'; ctx.fillRect(0, 0, W, H); ctx.restore(); T0();
+  /* Teo se lee siempre: un poco de él por encima de la noche (y más cerca de una farola) */
+  if (B && !B.hide) { let near = 0; for (const [x] of LAMPS_N) near = Math.max(near, 1 - Math.abs(x - B.x) / 500); pxDraw('teo', B.f, B.x, B.y || 0, B.z, { flip: B.flip, a: .42 + .4 * clamp(near) }); }
+  /* el invernadero: brillo verde bioluminiscente que respira (más fuerte cuando Teo le habla) */
+  const GH = PK.GH; if (CAM.x > GH.x0 - 3000 && CAM.x < GH.x1 + 3000) { const br = .55 + .25 * Math.sin(t * .9) + .5 * sm(seg(t, 393.4, 394.6)) * (1 - sm(seg(t, 397.5, 399.5)));
+    for (let i = 0; i < 22; i++) { const x = GH.x0 + 120 + hsh(i, 1) * (GH.x1 - GH.x0 - 240), y = -60 - hsh(i, 2) * 380, p = PJ(x, y, GH.z + 30), r = (90 + hsh(i, 3) * 160) * PS(GH.z), k = br * (.5 + .5 * Math.sin(t * (.6 + hsh(i, 4)) + i)); LGT(p[0], p[1], r, i % 4 ? '80,255,160' : '120,255,220', .7 * k); }
+    ctx.save(); ctx.globalCompositeOperation = 'lighter'; for (let i = 0; i < 70; i++) { const ph = (t * (.05 + hsh(i, 5) * .08) + hsh(i, 6)) % 1, x = GH.x0 + hsh(i, 7) * (GH.x1 - GH.x0) + Math.sin(t * .7 + i) * 30, y = -40 - ph * 520, p = PJ(x, y, GH.z + 10), a = Math.sin(ph * PI) * (.4 + .4 * Math.sin(t * 3 + i)) * br; ctx.fillStyle = `rgba(150,255,190,${a})`; ctx.fillRect(p[0], p[1], 2 * PS(GH.z), 2 * PS(GH.z)); } ctx.restore();
+    /* la luna en la bóveda */
+    for (let k = 0; k < 4; k++) { const p = PJ(GH.x0 + 500 + k * 900 + Math.sin(t * .1 + k) * 40, -GH.h - 120, GH.z + 300); LGT(p[0], p[1], 260 * PS(GH.z), '170,190,255', .22); } }
+  /* luciérnagas sobre el césped */
+  ctx.save(); ctx.globalCompositeOperation = 'lighter'; for (let i = 0; i < 26; i++) { const x = CAM.x + (hsh(i, 1) - .5) * 2400 + Math.sin(t * .4 + i) * 60, z = 300 + hsh(i, 2) * 500, y = -20 - hsh(i, 3) * 90 - Math.sin(t * .8 + i * 2) * 20, p = PJ(x, y, z), a = Math.max(0, Math.sin(t * (1.2 + hsh(i, 4)) + i * 2.3)); if (a < .1) continue; ctx.fillStyle = `rgba(210,255,120,${a * .9})`; ctx.fillRect(p[0], p[1], Math.max(1.5, 2 * PS(z)), Math.max(1.5, 2 * PS(z))); LGF(p[0], p[1], 14 * PS(z), '200,255,120', .3 * a); } ctx.restore();
+  for (const [x, z] of LAMPS_N) mothsAt(t, x, z); LAMPS_N = [];
+  /* zzz de los patos dormidos */
+  if (Math.abs(CAM.x - 3500) < 1500) for (let i = 0; i < 3; i++) { const D = duck6(t, i), [fx, fy] = pxFoot(D.x, 0, D.z), c = pxCell('ramiro', D.z, D.k); for (let k = 0; k < 2; k++) { const ph = (t * .35 + k * .5 + i * .3) % 1; ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = Math.sin(ph * PI) * .8; pxText(ctx, 'z', fx + (6 + ph * 8) * c, fy - (16 + ph * 14) * c, Math.max(1, Math.round(c * (i ? .5 : .8))), '#dfe8ff'); ctx.restore(); T0(); } }
+}
+/* ---------- Teo vuelve a casa (de derecha a izquierda), arrastrando los zuecos ---------- */
+const TEO6 = [[365.5, 10300, 'walk'], [374.0, 9350, 'walk'], [374.01, 8700, 'walk'], [380.2, 8150, 'stop'], [382.4, 8150, 'walk'], [387.0, 7700, 'walk'], [387.01, 7000, 'walk'], [393.2, 6300, 'stop'], [400.0, 6300, 'walk'], [400.01, 3960, 'walk'], [404.6, 3600, 'stop'], [410.5, 3600, 'stop']];
+function teo6park(t) {
+  if (t < TEO6[0][0]) return { hide: true };
+  let i = 0; while (i < TEO6.length - 2 && t >= TEO6[i + 1][0]) i++;
+  const [ta, xa, m] = TEO6[i], [tb, xb] = TEO6[i + 1], x = lerp(xa, xb, clamp((t - ta) / (tb - ta))), base = { clogs: true, tired: true };
+  if (m === 'stop') { const f = { ...base }; if (t > 380.4 && t < 381.8) { f.tired = false; f.mouthO = true; f.blink = true; } if (t > 393.4 && t < 397.6) { f.tired = false; f.happy = true; } if (t > 405 && t < 409) f.flat = true; return { x, y: 0, z: PK.ZT, f, flip: true }; }
+  const st = Math.floor(t / .42); return { x, y: Math.abs(Math.sin(t * PI / .42)) * 1.5, z: PK.ZT, f: { ...base, legL: st % 2 ? 0 : 1, legR: st % 2 ? 1 : 0 }, flip: true, walk: true };
+}
+function duck6(t, i) { const off = [[0, 0], [-46, 22], [-86, 34]][i]; return { x: 3460 + off[0] + Math.sin(t * .3 + i) * 3, z: 860 + off[1], f: { blink: true, chick: i > 0 }, k: i ? .55 : 1, flip: false, bob: Math.sin(t * .9 + i * 1.3) * .5 }; }
+function camNight(t) {
+  const B = teo6park(Math.min(t, 410));
+  if (t < 374) return camKeys(t, [[365, { x: 9700, y: -200, zoom: .95, ty: 80 }], [374, { x: 9450, y: -200, zoom: 1.0, ty: 80 }]]);
+  if (t < 387) return { x: B.x - 120, y: -170, zoom: 1.1, ty: 60 };
+  if (t < 400) return camKeys(t, [[387, { x: 6700, y: -300, zoom: .56, ty: 200 }], [400, { x: 6550, y: -300, zoom: .6, ty: 200 }]]);
+  return camKeys(t, [[400, { x: 3640, y: -200, zoom: 1.1, ty: -100 }], [410, { x: 3600, y: -200, zoom: 1.2, ty: -100 }]]);
+}
+function scene6park(t) { SOL.on = 0; camSet(camNight(t)); ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.fillStyle = '#0c1028'; ctx.fillRect(0, 0, W, H); ctx.restore(); T0();
+  drawParque(t, { night: true, teo: teo6park, duck: duck6, rings: t2 => [[Math.floor(t2 / 3) * 3, 3500, 900, .2]] }); postFx(t, { tone: [200, 210, 255], vig: .7 }); }
+/* ---------- el estudio de noche ---------- */
+function estudioOutsideNight(neon) {   /* azoteas de noche, ventanas encendidas, la luna y el letrero del Hotel Medialuna */
+  const T = tex(700, 360, 1.2), g = T.g, r = mulberry32(55);
+  const sk = g.createLinearGradient(0, 0, 0, 360); sk.addColorStop(0, 'rgb(8,12,32)'); sk.addColorStop(.7, 'rgb(28,32,70)'); sk.addColorStop(1, 'rgb(60,50,90)'); g.fillStyle = sk; g.fillRect(0, 0, 700, 360);
+  for (let i = 0; i < 140; i++) { g.fillStyle = `rgba(230,236,255,${.3 + r() * .6})`; g.fillRect(r() * 700, r() * 200, 1, 1); }
+  for (const [x, y] of [[300, 60], [350, 44]]) { const sg = g.createRadialGradient(x, y, 0, x, y, 10); sg.addColorStop(0, 'rgba(255,255,240,1)'); sg.addColorStop(1, 'rgba(255,255,240,0)'); g.fillStyle = sg; g.fillRect(x - 10, y - 10, 20, 20); g.fillStyle = '#fff'; g.fillRect(x - 4, y - .5, 8, 1); g.fillRect(x - .5, y - 4, 1, 8); }   // las dos estrellas
+  const mg = g.createRadialGradient(560, 80, 6, 560, 80, 70); mg.addColorStop(0, 'rgba(220,230,255,.5)'); mg.addColorStop(1, 'rgba(220,230,255,0)'); g.fillStyle = mg; g.fillRect(490, 10, 140, 140); g.fillStyle = 'rgb(236,238,226)'; g.beginPath(); g.arc(560, 80, 18, 0, TAU); g.fill();
+  let x = -10; while (x < 700) { const w = 50 + r() * 90, h = 70 + r() * 110; g.fillStyle = 'rgb(30,30,52)'; g.fillRect(x, 360 - h, w, h); for (let k = 0; k < 10; k++) if (r() < .45) { g.fillStyle = `rgba(255,${200 + r() * 40 | 0},120,${.5 + r() * .4})`; g.fillRect(x + 6 + (k % 4) * w / 4.5, 360 - h + 10 + Math.floor(k / 4) * 22, 7, 10); } x += w + 4; }
+  x = -20; while (x < 700) { const w = 80 + r() * 120, h = 40 + r() * 70; g.fillStyle = 'rgb(16,16,30)'; g.fillRect(x, 360 - h, w, h); x += w + 10; }
+  /* el letrero de neón sobre un edificio */
+  g.fillStyle = 'rgb(20,20,34)'; g.fillRect(170, 150, 270, 90); g.font = '46px "Pacifico", cursive'; g.textAlign = 'center';
+  if (neon) { g.shadowColor = 'rgba(80,255,255,1)'; g.shadowBlur = 18; g.fillStyle = 'rgb(170,255,255)'; g.fillText('Medialuna', 318, 212); g.shadowColor = 'rgba(255,80,220,1)'; g.fillStyle = 'rgb(255,170,240)'; g.lineWidth = 5; g.strokeStyle = 'rgb(255,120,230)'; g.beginPath(); g.arc(200, 190, 22, PI * .3, PI * 1.7); g.stroke(); g.shadowBlur = 0; }
+  else { g.fillStyle = 'rgba(120,130,150,.5)'; g.fillText('Medialuna', 318, 212); g.strokeStyle = 'rgba(130,110,130,.5)'; g.lineWidth = 5; g.beginPath(); g.arc(200, 190, 22, PI * .3, PI * 1.7); g.stroke(); }
+  g.font = '700 13px "Josefin Sans", sans-serif'; g.fillStyle = neon ? 'rgb(255,200,240)' : 'rgba(150,140,160,.6)'; g.fillText('H O T E L', 318, 168);
+  return T; }
+/* el neón parpadea como los neones viejos: largo encendido, tartamudeos */
+const neonOn = t => { const c = (t * .37) % 1, k = Math.floor(t * 18); return c < .82 ? true : (hsh(k, 3) > .55); };
+let SHEET2 = null;
+function sheet2Bake() {
+  const F = S6.FLOP, mat = { t: 'box', x0: BED.x0 + 4, x1: BED.x1 - 4, y0: BED.top, y1: 0, z0: BED.z0 + 4, z1: BED.z1 - 4 }, ctr = [-322, BED.top - 20, 668];
+  SHEET2 = clothBake({ nx: 19, ny: 13, t0: F - .6, t1: F + 6, settle: 3, iter: 7, drag: .9, friction: .6, bend: .22, g: 1.05,
+    at: (u, v) => [lerp(BED.x0 + 30, BED.x1 + 14, u), BED.top - 3, lerp(BED.z0 - 8, BED.z1 - 30, v)],
+    colliders: t => { const o = [mat, { t: 'box', x0: -1e4, x1: BED.x0 + 2, y0: -125, y1: 0, z0: 0, z1: 1e4 }]; if (t > F - .12) o.push({ t: 'sph', c: [ctr[0], lerp(BED.top - 70, ctr[1], clamp((t - F + .12) / .12)), ctr[2]], r: 26 }); return o; },
+    kick: (t, i, j, x, y, z) => { if (t < F || t >= F + 1 / 240) return null; const d = Math.hypot(x - ctr[0], z - ctr[2]), k = sm(clamp((d - 30) / 90)); return [(x - ctr[0]) / (d || 1) * 60 * k, -330 * k, (z - ctr[2]) / (d || 1) * 60 * k]; } });
+}
+function door6(t) { return t < 411.6 ? 0 : 1.3 * eio(seg(t, 411.6, 412.8)) + .05 * Math.sin((t - 411.6) * 4) * Math.exp(-(t - 412.8) * 2) * (t > 412.8 ? 1 : 0); }
+function teo6room(t) {
+  const base = { clogs: true, tired: true }, wk = (a, b, P0, P1, k = .3) => { const u = seg(t, a, b), st = Math.floor(t / .48); return { x: lerp(P0[0], P1[0], u), y: 0, z: lerp(P0[1], P1[1], u), f: { ...base, legL: st % 2 ? 0 : 1, legR: st % 2 ? 1 : 0 }, flip: P1[0] < P0[0] }; };
+  if (t < 412.4) return { hide: true };
+  if (t < 415.0) return wk(412.4, 415.0, [566, 900], [560, 700]);
+  if (t < 419.4) return wk(415.0, 419.4, [560, 700], [300, 640]);
+  if (t < 422.6) { const f = { ...base }; if (t > 419.6 && t < 421.2) { f.tired = false; f.mouthO = true; f.blink = true; } return { x: 300, y: 0, z: 640, f, flip: true }; }
+  if (t < 428.4) return wk(422.6, 428.4, [300, 640], [-150, 628]);
+  if (t < 430.6) { const sway = Math.sin((t - 428.4) * 2.4) * .08 * seg(t, 428.4, 429.4); return { x: -150, y: 0, z: 628, f: { ...base, tired: t < 429.6, sleep: t >= 429.6 }, flip: true, rot: sway }; }
+  if (t < S6.FLOP) { const u = eio(seg(t, 430.6, S6.FLOP)); return { x: lerp(-150, -300, u), y: lerp(0, 22, u) + hop(u, 40), z: lerp(628, 668, u), f: { ...base, sleep: true, tired: false }, flip: true, rot: -1.5 * u * u }; }
+  const a = t - S6.FLOP, bounce = 8 * Math.exp(-a * 5) * Math.abs(Math.sin(a * 14));
+  return { x: -300, y: 22 + bounce, z: 668, f: { clogs: true, sleep: true }, flip: true, rot: -1.5, sleep: true };
+}
+const pillowB = t => i => { const a = t - S6.FLOP - (i ? .06 : 0); return a > 0 && a < 1.6 ? 14 * Math.exp(-a * 3.2) * Math.abs(Math.sin(a * 9)) : 0; };
+function camRoom(t) {
+  if (t < 420) return camKeys(t, [[411, { x: 30, y: -160, zoom: .83, ty: 34 }], [420, { x: 80, y: -160, zoom: .9, ty: 34 }]]);
+  if (t < 428.6) { const B = teo6room(t); return { x: B.x - 60, y: -120, zoom: 1.55, ty: 70 }; }
+  if (t < 436) return camKeys(t, [[428.6, { x: -250, y: -128, zoom: 1.4, ty: 70 }], [436, { x: -290, y: -128, zoom: 1.55, ty: 74 }]]);
+  if (t < 446) return camKeys(t, [[436, { x: -502, y: -70, zoom: 4.1, ty: 10 }], [446, { x: -502, y: -70, zoom: 4.5, ty: 10 }]]);
+  return camKeys(t, [[446, { x: -300, y: -128, zoom: 1.5, ty: 74 }], [452, { x: -120, y: -160, zoom: .95, ty: 40 }]]);
+}
+function drawEstudioNight(t) {
+  const B = teo6room(t), on = neonOn(t), save = ESX.out; ESX.out = on ? ESX.outN1 : ESX.outN0;
+  ESX.occWall = monOcc(t, 0);
+  SOL.dyn = clothOcc(SHEET2, t, .5).concat(B.hide ? [] : [pxOcc('teo', B.x, B.y || 0, B.z, { w: 18, h: 22 })]);
+  ESX.occFloor = [{ pts: [[BED.x0, BED.top, BED.z1], [BED.x1, BED.top, BED.z1], [BED.x1, BED.top, BED.z0], [BED.x0, BED.top, BED.z0]], a: .9 }, { pts: [[BED.x0, BED.top, BED.z0], [BED.x1, BED.top, BED.z0], [BED.x1, 0, BED.z0], [BED.x0, 0, BED.z0]], a: .9 }];
+  estudioShell(t); ESX.out = save;
+  drawWallDecor(t);
+  put(740, drawShelf); put(725, () => drawDesk(t)); put(705, () => drawMonstera(t, 0)); put(700, () => drawBed(t, { pb: pillowB(t) })); put(690, () => drawNightstand(t));
+  put(626, () => bill(PROPS.clothes, -185, 0, 626));
+  put(699, () => clothDraw(SHEET2, t, { c: [236, 234, 228] }));
+  if (!B.hide) put(B.sleep ? 698.5 : B.z - .5, () => drawTeo(t, B));
+  const room = { x0: -560, x1: 700, y0: -290, y1: -5, z0: 300, z1: 755 };
+  let motes = dustAmbient(t, room, 220, 3).concat(dustBurst(t, S6.FLOP + .02, { x0: BED.x0 + 20, x1: BED.x1 - 10, y0: BED.top - 30, y1: BED.top - 5, z0: BED.z0, z1: BED.z1 - 10 }, 520, 13, { vx: 240, vy: 260, vz: 170, wx: 30, life: 18, spread: .3 }));
+  dustPut(motes, { bands: [[0, 560], [560, 650], [650, 2000]], dim: .1, bright: 1 });
+  flush();
+  solShafts(ES.ZB, SOL.shaft * (1 + 1.5 * Math.exp(-Math.max(0, t - S6.FLOP) * .3) * (t > S6.FLOP ? 1 : 0)));
+  /* el neón se cuela por la ventana: cian y magenta que tartamudean */
+  if (on) { const c = PJ(-540, -160, 490), zk = Math.max(1, CAM.zoom), s = PS(490) / zk, mg = (Math.floor(t * .5) % 2) ? '255,90,220' : '90,255,255'; LGT(c[0], c[1], 300 * s, mg, .24 / zk); const f = PJ(-420, 0, 520); LGT(f[0], f[1], 240 * s, mg, .14 / zk); }
+  /* zzz que suben de Teo dormido */
+  if (B.sleep && t > S6.FLOP + 1.2) { const [fx, fy] = pxFoot(B.x + 10, B.y + 30, B.z), c = pxCell('teo', B.z); for (let k = 0; k < 3; k++) { const ph = ((t - S6.FLOP) * .3 + k / 3) % 1; ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = Math.sin(ph * PI) * .9; pxText(ctx, 'z', fx + (4 + ph * 10 + k * 3) * c, fy - (6 + ph * 22) * c, Math.max(1, Math.round(c * (.6 + k * .2))), '#e6ecff'); ctx.restore(); T0(); } }
+}
+function scene6room(t) {
+  estudioSol(true); SOL.on = 1; SOL.ambA = .25; camSet(camRoom(t));
+  ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.fillStyle = '#05060f'; ctx.fillRect(0, 0, W, H); ctx.restore(); T0();
+  lightsBegin(); T0(); drawEstudioNight(t);
+  ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalCompositeOperation = 'multiply'; ctx.fillStyle = 'rgb(96,104,170)'; ctx.fillRect(0, 0, W, H); ctx.restore(); T0();
+  lightsComp(0);
+  postFx(t, { tone: [206, 214, 255], vig: .72 });
+}
+/* ---------- por la ventana, dos estrellas ---------- */
+function windowStars(t) {
+  const u = t - S6.STARS; T0();
+  ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0);
+  const g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, 'rgb(4,6,20)'); g.addColorStop(.7, 'rgb(18,22,54)'); g.addColorStop(1, 'rgb(40,36,74)'); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  for (let i = 0; i < 260; i++) { const x = hsh(i, 1) * W, y = hsh(i, 2) * H * .7, a = (.2 + .5 * hsh(i, 3)) * (.6 + .4 * Math.sin(t * (1 + hsh(i, 4) * 2) + i)); ctx.fillStyle = `rgba(230,236,255,${a})`; ctx.fillRect(Math.round(x), Math.round(y), H / 720, H / 720); }
+  /* la ciudad dormida y el neón */
+  const r = mulberry32(77); let x = -20; while (x < W) { const w = (60 + r() * 110) * H / 720, h = (80 + r() * 140) * H / 720; ctx.fillStyle = 'rgb(14,14,30)'; ctx.fillRect(x, H - h, w, h); for (let k = 0; k < 8; k++) if (r() < .3) { ctx.fillStyle = 'rgba(255,214,140,.6)'; ctx.fillRect(x + 8 + (k % 4) * w / 4.4, H - h + 14 + Math.floor(k / 4) * 26 * H / 720, 6 * H / 720, 9 * H / 720); } x += w + 6; }
+  if (neonOn(t)) { ctx.font = `${Math.round(H * .07)}px "Pacifico", cursive`; ctx.textAlign = 'center'; ctx.shadowBlur = H * .03; ctx.shadowColor = 'rgba(80,255,255,1)'; ctx.fillStyle = 'rgb(180,255,255)'; ctx.fillText('Medialuna', W * .7, H * .86); ctx.shadowBlur = 0; }
+  /* las dos estrellas: brillan juntas, como dos estrellas de guía */
+  const st = [[W * .42, H * .26, 0], [W * .55, H * .2, .8]];
+  for (const [sx, sy, d] of st) { const k = sm(clamp((u - 1.2 - d) / 1.2)), tw = 1 + .25 * Math.sin(t * 5 + d * 4), R = H * .05 * k * tw;
+    if (k <= 0) continue; const gl = ctx.createRadialGradient(sx, sy, 0, sx, sy, R * 3); gl.addColorStop(0, `rgba(255,250,220,${.8 * k})`); gl.addColorStop(.3, `rgba(255,220,140,${.25 * k})`); gl.addColorStop(1, 'rgba(255,220,140,0)'); ctx.fillStyle = gl; ctx.fillRect(sx - R * 3, sy - R * 3, R * 6, R * 6);
+    ctx.fillStyle = `rgba(255,255,245,${k})`; ctx.beginPath(); for (let i = 0; i < 8; i++) { const a = i / 8 * TAU - PI / 2, rr = i % 2 ? R * .18 : R; i ? ctx.lineTo(sx + Math.cos(a) * rr, sy + Math.sin(a) * rr) : ctx.moveTo(sx + Math.cos(a) * rr, sy + Math.sin(a) * rr); } ctx.closePath(); ctx.fill(); }
+  /* las lamas de la persiana, en primer plano, que se abren un poco */
+  const open = .72 + .2 * sm(clamp(u / 4)), n = 9, P = H / n;
+  for (let k = 0; k <= n; k++) { const th = P * (1 - open), y = k * P - th / 2; ctx.fillStyle = 'rgb(20,20,30)'; ctx.fillRect(0, y, W, th); ctx.fillStyle = 'rgba(170,190,255,.35)'; ctx.fillRect(0, y + th - 2, W, 2); }
+  ctx.restore(); T0();
+  postFx(t, { tone: [220, 226, 255], vig: .8 });
+}
+function endCard(t) {
+  const u = t - S6.CARD; ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.fillStyle = '#07070c'; ctx.fillRect(0, 0, W, H);
+  const a1 = sm(clamp((u - .3) / 1.5)), a2 = sm(clamp((u - 1.8) / 1.5)), a3 = sm(clamp((u - 4) / 1.5)), a4 = sm(clamp((u - 6) / 1.5)), out = 1 - sm(clamp((t - (S6.END - 2.2)) / 2));
+  ctx.textAlign = 'center'; ctx.globalAlpha = a1 * out; ctx.fillStyle = '#f3ead6'; ctx.font = `700 ${Math.round(H * .085)}px "Playfair Display", serif`; ctx.fillText('Entre el Vapor y el Bit', W / 2, H * .38);
+  ctx.globalAlpha = a2 * out; ctx.fillStyle = '#ffd84a'; ctx.font = `600 ${Math.round(H * .06)}px "Caveat", cursive`; ctx.fillText('Crónica de dos Estrellas', W / 2, H * .48);
+  for (const [dx, d] of [[-.05, 0], [.05, .3]]) { const k = sm(clamp((u - 2.6 - d) / .8)) * out, sx = W * (.5 + dx), sy = H * .57, R = H * .022 * k; ctx.globalAlpha = 1; ctx.fillStyle = `rgba(255,216,74,${k})`; ctx.beginPath(); for (let i = 0; i < 10; i++) { const a = i / 10 * TAU - PI / 2, rr = i % 2 ? R * .42 : R; i ? ctx.lineTo(sx + Math.cos(a) * rr, sy + Math.sin(a) * rr) : ctx.moveTo(sx + Math.cos(a) * rr, sy + Math.sin(a) * rr); } ctx.closePath(); ctx.fill(); }
+  const p = Math.max(2, Math.round(H / 240)); ctx.globalAlpha = a3 * out; const fin = 'FIN'; pxText(ctx, fin, W / 2 - fin.length * 3 * p * 2, H * .64, p * 2, '#fff');
+  ctx.globalAlpha = a4 * out * .8; const cr = ['Teo Cazorla · Rosa Mijares · Valeria Ocampo · Ramiro Lagos', 'Dibujo, voces y música hechos solo con código'];
+  cr.forEach((s, i) => pxText(ctx, s, W / 2 - s.length * 3 * p, H * (.76 + i * .05), p, i ? '#9aa0b8' : '#dfe4f4'));
+  ctx.restore(); T0();
+}
+const DLG6 = [
+  { t: 376.4, who: 'teo', mood: 'agotado', txt: '...mis zuecos... pesan... como ollas de caldo...', face: { tired: true }, hold: .6 },
+  { t: 393.6, who: 'teo', mood: 'agotado', txt: '...buenas noches... viejo amigo.', face: { happy: true }, hold: .8 },
+  { t: 405.2, who: 'teo', mood: 'agotado', txt: '...shhh... buenas noches, Ramiro.', face: { flat: true }, hold: .4 },
+  { t: 408.4, who: 'ramiro', mood: 'sueno', txt: '...cuac.', face: { blink: true }, hold: .8 },
+  { t: 423.0, who: 'teo', mood: 'agotado', txt: '...cama... cama... cama...', face: { tired: true }, hold: .4 },
+];
+const LABELS6 = [{ t0: 365.6, t1: 370.6, big: '11:30 PM', small: 'PARQUE DEL INVERNADERO', col: '#8ab4ff' }, { t0: 411.6, t1: 416.4, big: '11:58 PM', small: 'EL ESTUDIO DE TEO', col: '#8ab4ff' }];
+
+/* =====================================================================
    ENTRE EL VAPOR Y EL BIT · SONIDO DE LA ESCENA 1 (nada de lo-fi: cada escena tendrá su propio color)
    · «Dos estrellas»: el motivo de Teo en caja de música (FM de campana), con un colchón suave, al amanecer
    · «Prisa»: chiptune a 150 BPM (pulso 25 % de melodía, arpegio de pulso 12 %, triángulo de bajo, ruido de batería)
@@ -3904,7 +4082,7 @@ function filmEvents() {
   for (let k = 0; k < 6; k++) E.push([40.5 + k * .16, at => clogClack(at, .5 - k * .07)]);
   E.push([46.0, at => whoosh(at, .5, 1, 800, 3000)]); E.push([47.5, at => tone(300, at, .2, .04, 'square', 900)]); E.push([47.85, at => clogClack(at, 1)]);
   E.push([49.6, at => whoosh(at, .5, 1, 800, 3000)]);
-  return E.concat(scene2Events(), scene3Events(), scene4Events(), scene5Events());
+  return E.concat(scene2Events(), scene3Events(), scene4Events(), scene5Events(), scene6Events());
 }
 /* ---------- escena 2 ---------- */
 function bellDing(at, v = 1) { for (const [f, d, a] of [[2637, 1.4, .05], [3951, .9, .025], [5274, .5, .012]]) tone(f, at, d, a * v, 'sine', f * .998); }
@@ -4092,6 +4270,40 @@ function scene5Events() {
   E.push([360.4, at => yawn(at, 230)]);
   return E;
 }
+/* ---------- escena 6: la noche ---------- */
+function cricket(at, v = 1) { const f = 4300 + Math.random() * 500; for (let k = 0; k < 3; k++) tone(f, at + k * .045, .03, .006 * v, 'sine', null, AU.bA); }
+function owl(at) { tone(392, at, .5, .02, 'sine', 370, AU.bA, .08); tone(392, at + .7, .9, .018, 'sine', 360, AU.bA, .1); }
+function breath(at, v = 1) { noiseHit(at, 1.6, { type: 'lowpass', f: 380, vol: .05 * v, atk: .9, brown: true }); noiseHit(at + 1.7, 1.2, { type: 'lowpass', f: 260, vol: .035 * v, atk: .3, brown: true }); }
+function lowBleep(at) { const ac = AU.ac, o = ac.createOscillator(), g = ac.createGain(); oscW(o, 'triangle'); o.frequency.setValueAtTime(196, at); o.frequency.exponentialRampToValueAtTime(98, at + 1.1); g.gain.setValueAtTime(0, at); g.gain.linearRampToValueAtTime(.07, at + .02); g.gain.setTargetAtTime(0, at + .5, .3); o.connect(g); g.connect(AU.bV); o.start(at); o.stop(at + 2); }
+function scene6Events() {
+  const E = [], q = 60 / 58;
+  /* nana: «Dos estrellas» en caja de música, lenta, con colchones de re mayor */
+  const lull = (off, v, oct = 0) => { for (const [b, n] of MOTIF) E.push([off + b * q, at => mbox(n + oct, at, v)]); };
+  lull(366.5, .66); E.push([366.5, at => pad([50, 57, 62, 66], at, 9 * q, .8)]);
+  lull(377.5, .58, -12); E.push([377.5, at => pad([43, 50, 59, 62], at, 9 * q, .7)]);
+  E.push([387.4, at => pad([45, 52, 57, 64], at, 12, .9)]); for (let k = 0; k < 14; k++) E.push([393.6 + k * .24, at => mbox([74, 78, 81, 85, 86, 90][k % 6] + 12, at, .22)]);   // el invernadero responde
+  lull(400.6, .55); E.push([400.6, at => pad([50, 57, 62, 66], at, 9, .7)]);
+  /* el estudio: la nana se detiene; solo la habitación, el neón y la respiración */
+  E.push([412.4, at => pad([38, 45, 50, 57], at, 17, .9)]); lull(433.6, .55, -12); E.push([433.6, at => pad([43, 50, 59, 62], at, 9 * q, .9)]); E.push([S6.ZERO + .05, at => mbox(74, at, .5)]);
+  E.push([411.6, at => creak(at, .9)]); E.push([412.0, at => creak(at, .5)]);
+  for (let t = 412.6; t < 428.4; t += .48) if (!(t > 419.4 && t < 422.6)) { E.push([t, at => clogClack(at, .28)]); E.push([t + .04, at => noiseHit(at, .3, { type: 'bandpass', f: 500, q: 1, vol: .025 })]); }
+  E.push([419.6, at => yawn(at, 220)]); E.push([380.4, at => yawn(at, 240)]);
+  E.push([430.6, at => creak(at, .7)]); E.push([S6.FLOP, at => { thump(at, .9, 80); cloth(at, 1.4, 1.2); creak(at + .05, 1.2); }]); E.push([S6.FLOP + .1, at => { thump(at, .25, 140); thump(at + .22, .15, 150); }]);
+  for (let k = 0; k < 10; k++) E.push([S6.FLOP + .4 + k * .18, at => mbox([86, 90, 93, 98][k % 4], at, .14)]);   // polvo de plata
+  for (let t = S6.FLOP + 2.4; t < S6.STARS + 4; t += 4.2) E.push([t, at => breath(at, 1.7)]);
+  for (let t = 436.4; t < 446; t += 1) E.push([t, at => tick(at, .5)]); E.push([S6.ZERO, at => { latch(at); tone(1046, at + .02, .08, .01, 'square'); }]);
+  E.push([S6.ZERO + 1.5, at => lowBleep(at)]);
+  /* las dos estrellas y el final */
+  E.push([S6.STARS + .2, at => pad([50, 57, 62, 66, 69], at, 7.5, 1)]); E.push([S6.STARS + 1.3, at => mbox(86, at, .5)]); E.push([S6.STARS + 2.1, at => mbox(90, at, .5)]);
+  { const off = S6.CARD + .6, q2 = 60 / 72; for (const [b, n] of MOTIF) E.push([off + b * q2, at => mbox(n, at, .9)]); E.push([off, at => pad([50, 57, 62, 66], at, 9 * q2, 1)]); E.push([off + 9 * q2, at => { for (const n of [74, 78, 81, 86]) mbox(n, at, .45); pad([50, 57, 62, 66, 69], at, 6, 1); }]); }
+  /* ambiente de la noche */
+  for (let t = 365.4; t < 410; t += .35 + hsh(t, 2) * .7) E.push([t, at => cricket(at, 1)]);
+  E.push([383.0, at => owl(at)]);
+  for (let t = 401; t < 410; t += 2.4) E.push([t, at => plop(at, .15)]);
+  E.push([409.0, at => quack(at, .25, 240)]);
+  for (let t = 365.6; t < 410; t += .55) { const B = teo6park(t); if (B.walk) { E.push([t, at => crunch(at, .45)]); E.push([t + .06, at => noiseHit(at, .25, { type: 'bandpass', f: 1400, q: 1, vol: .02 })]); } }
+  return E;
+}
 /* ---------- lechos ---------- */
 function filmAudioInit() {
   auBed('room', AU.brown, 'lowpass', 180, .5); auBed('city', AU.brown, 'bandpass', 420, .7); auBed('hiss', AU.white, 'highpass', 7000, .5); auBed('hall', AU.brown, 'lowpass', 300, .6);
@@ -4103,9 +4315,11 @@ function filmBeds(t, n) {
   bedSet('city', s1 ? .028 * (1 - slowK(t) * .7) : 0, n);
   bedSet('hall', s1 && t > 40 ? .03 : 0, n);
   bedSet('traffic', s2a ? .07 : s2b ? .015 : 0, n); bedSet('wind', s2a ? .012 : 0, n);
-  const s3 = t >= S3.A - .5 && t < S4.A, s4 = t >= S4.A - .5, ins = s4 ? ins4(t) : null;
-  const s5 = t >= S5.A, hoodOn = t < LIGHTS5.hood; bedSet('hood', s4 && hoodOn ? (ins ? .05 : .09) : 0, n); if (s5) bedSet('sizzle', .02 * chaos(t), n); bedSet('zap', s5 ? .006 + .02 * dark5(t) : 0, n); if (!s5) bedSet('sizzle', s4 ? (ins === 'A' ? .03 : .006) : 0, n); if (s4) { bedSet('hall', ins === 'B' ? .01 : .02, n); bedSet('traffic', 0, n); } bedSet('murmur', s2b && t < S3.A - .5 ? .016 : 0, n); bedSet('cafe', s2b && t < S3.A - .5 ? .04 : 0, n);
+  const s3 = t >= S3.A - .5 && t < S4.A, s4 = t >= S4.A - .5 && t < S6.A - .5, ins = s4 ? ins4(t) : null;
+  const s6p = t >= S6.A - .5 && t < S6.PEND + .5, s6r = t >= S6.PEND + .5 && t < S6.CARD;
+  const s5 = t >= S5.A, hoodOn = t < LIGHTS5.hood; bedSet('hood', s4 && hoodOn ? (ins ? .05 : .09) : 0, n); if (s5) bedSet('sizzle', .02 * chaos(t), n); bedSet('zap', s5 && t < S5.END + .5 ? .006 + .02 * dark5(t) : s6r ? .004 * (neonOn(t) ? 1 : 0) : 0, n); if (!s5) bedSet('sizzle', s4 ? (ins === 'A' ? .03 : .006) : 0, n); if (s4) { bedSet('hall', ins === 'B' ? .01 : .02, n); bedSet('traffic', 0, n); } bedSet('murmur', s2b && t < S3.A - .5 ? .016 : 0, n); bedSet('cafe', s2b && t < S3.A - .5 ? .04 : 0, n);
   bedSet('leaves', s3 ? .012 + .006 * Math.sin(t * .4) : 0, n); bedSet('water', s3 && t < 152 ? .03 : 0, n); if (s3) bedSet('traffic', .01, n);
+  if (t >= S6.A - .5) { bedSet('wind', s6p ? .008 : 0, n); bedSet('leaves', s6p ? .006 : 0, n); bedSet('water', t > 399 && t < 410.5 ? .02 : 0, n); bedSet('room', s6r ? .06 : 0, n); bedSet('city', s6r ? .012 : s6p ? .008 : 0, n); bedSet('hall', s6r && t < 430 ? .015 : 0, n); }
   if (AU.bedL.murmur) AU.bedL.murmur.fl.frequency.setTargetAtTime(560 + 140 * Math.sin(t * .7), n, .3);
   const k = slowK(t); AU.sfx.gain.setTargetAtTime(1 - .4 * k, n, .1);
 }
@@ -4144,12 +4358,12 @@ const DLG1 = [
   { t: 38.3, who: 'teo', mood: 'prisa', txt: '¡Allá voooy!', face: { happy: true }, hold: .5 },
   { t: 48.2, who: 'teo', mood: 'normal', txt: 'Perdón, Kronotek. Buenos días.', face: { happy: true }, hold: .7 },
 ];
-const DLG = DLG1.concat(DLG2, DLG3, DLG4, DLG5);
-const LABELS = [{ t0: 14.5, t1: 19.3, big: '07:15 AM', small: 'EL ESTUDIO DE TEO' }, { t0: 62.0, t1: 66.6, big: '07:35 AM', small: 'CALLE ALMAGRE' }, { t0: 124.2, t1: 128.8, big: '07:50 AM', small: 'PARQUE DEL INVERNADERO' }].concat(LABELS4);
+const DLG = DLG1.concat(DLG2, DLG3, DLG4, DLG5, DLG6);
+const LABELS = [{ t0: 14.5, t1: 19.3, big: '07:15 AM', small: 'EL ESTUDIO DE TEO' }, { t0: 62.0, t1: 66.6, big: '07:35 AM', small: 'CALLE ALMAGRE' }, { t0: 124.2, t1: 128.8, big: '07:50 AM', small: 'PARQUE DEL INVERNADERO' }].concat(LABELS4, LABELS6);
 const S1END = 60.4;
 /* quién habla y dónde está (para subir la caja si está abajo) */
 function speakerY(t) { const d = DLG.find(q => t >= q.t - .12 && t < q.end + .15); if (!d) return 0; let B;
-  if (t >= S5.A) { B = d.who === 'rosa' ? rosa5(t) : teo5(t); if (!B) return 0; } else if (t >= S4.A) { if (ins4(t)) return H * .9; B = d.who === 'rosa' ? rosa4(t) : teo4(t); } else if (d.who === 'valeria') B = valeriaAt(t); else if (d.who === 'ramiro') { const D = duckAt(t, 0); B = { x: D.x, y: 0, z: D.z }; } else B = t < S2.A ? teoAt(t) : t < S2.B ? teoCalle(t) : t < S3.A ? teoCafe(t) : teoParque(t);
+  if (t >= S6.ROOM) B = teo6room(t); else if (t >= S6.A) { if (d.who === 'ramiro') { const D = duck6(t, 0); B = { x: D.x, y: 0, z: D.z }; } else B = teo6park(t); } else if (t >= S5.A) { B = d.who === 'rosa' ? rosa5(t) : teo5(t); if (!B) return 0; } else if (t >= S4.A) { if (ins4(t)) return H * .9; B = d.who === 'rosa' ? rosa4(t) : teo4(t); } else if (d.who === 'valeria') B = valeriaAt(t); else if (d.who === 'ramiro') { const D = duckAt(t, 0); B = { x: D.x, y: 0, z: D.z }; } else B = t < S2.A ? teoAt(t) : t < S2.B ? teoCalle(t) : t < S3.A ? teoCafe(t) : teoParque(t);
   if (!B || B.hide) return 0; return pxFoot(B.x, (B.y || 0) + 40, B.z)[1]; }
 function scene1(t) {
   estudioSol(false); SOL.on = 1; camSet(camEstudio(t));
@@ -4162,12 +4376,12 @@ function scene2b(t) { SOL.on = 0; camSet(camCafe(t)); ctx.save(); ctx.setTransfo
 function scene3(t) { SOL.on = 0; camSet(camParque(t)); ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.fillStyle = '#cfe0d8'; ctx.fillRect(0, 0, W, H); ctx.restore(); T0(); drawParque(t); postFx(t, { tone: [246, 252, 236], vig: .55 }); }
 function black() { ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H); ctx.restore(); T0(); }
 const FILM = {
-  DUR: 367.2, CHAPTERS: [[0, 'El estudio'], [14.4, 'La alarma'], [25, 'El salto'], [46, 'Vuelve'], [61.5, 'La calle'], [86.6, 'Molienda'], [109, 'El cortado'], [123.6, 'El parque'], [146.6, 'El invernadero'], [182, 'Brasa y Bruma'], [216, 'Sellado y llamarada'], [244, 'Mesa siete'], [256.4, 'El emplatado'], [283, '¡Servicio!'], [312, 'El turno'], [349.5, 'Buenas noches']],
+  DUR: 478.6, CHAPTERS: [[0, 'El estudio'], [14.4, 'La alarma'], [25, 'El salto'], [46, 'Vuelve'], [61.5, 'La calle'], [86.6, 'Molienda'], [109, 'El cortado'], [123.6, 'El parque'], [146.6, 'El invernadero'], [182, 'Brasa y Bruma'], [216, 'Sellado y llamarada'], [244, 'Mesa siete'], [256.4, 'El emplatado'], [283, '¡Servicio!'], [312, 'El turno'], [349.5, 'Buenas noches'], [365, 'La noche'], [411, 'El estudio'], [429, 'Medianoche'], [452, 'Dos estrellas'], [460.6, 'Fin']],
   fonts: ['700 20px "Playfair Display"', '20px "Bebas Neue"', '700 20px "Josefin Sans"', '20px "Pacifico"', '20px "Space Mono"', '600 20px "Caveat"'],
   load: [['Pintando el ladrillo, el yeso y el parqué…', () => estudioPaint()], ['Llenando la estantería de post-its…', () => utileriaPaint()], ['Tendiendo las sábanas de lino…', () => sheetBake()],
-    ['Pintando la calle Almagre…', () => callePaint()], ['Encendiendo las bombillas de Molienda…', () => cafePaint()], ['Regando el parque…', () => { parquePaint(); steps3Init(); }], ['Puliendo el acero de Brasa y Bruma…', () => cocinaPaint()], ['Sellando la carne y templando el oro…', () => recetasPaint()],
+    ['Pintando la calle Almagre…', () => callePaint()], ['Encendiendo las bombillas de Molienda…', () => cafePaint()], ['Regando el parque…', () => { parquePaint(); steps3Init(); }], ['Puliendo el acero de Brasa y Bruma…', () => cocinaPaint()], ['Sellando la carne y templando el oro…', () => recetasPaint()], ['Encendiendo la luna y el neón del Hotel Medialuna…', () => { ESX.outN1 = estudioOutsideNight(true); ESX.outN0 = estudioOutsideNight(false); sheet2Bake(); }],
     ['Afinando los bleeps…', () => { FILM.bleeps = dlgPrep(DLG).concat(...LABELS.map(labelBleeps)); }]],
-  door: doorAt, events: () => filmEvents(), audioInit: () => filmAudioInit(), beds: (t, n) => filmBeds(t, n), fade: t => 1 - sm((t - 364.6) / 2.4),
+  door: t => t < S6.ROOM - 1 ? doorAt(t) : door6(t), events: () => filmEvents(), audioInit: () => filmAudioInit(), beds: (t, n) => filmBeds(t, n), fade: t => 1 - sm((t - 475.6) / 2.8),
   draw(t) {
     if (t < S1END) scene1(t);
     else if (t < S2.A) pxWipe(() => scene1(t), () => scene2a(t), (t - S1END) / (S2.A - S1END), { dir: 'right' });
@@ -4178,8 +4392,14 @@ const FILM = {
     else if (t < S4.A) pxWipe(() => scene3(t), () => scene4(t), (t - S3.END) / (S4.A - S3.END), { dir: 'right' });
     else if (t < S4.END) scene4(t);
     else if (t < S5.END) scene5(t);
-    else if (t < S5.END + 1) pxWipe(() => scene5(t), black, t - S5.END, { dir: 'center' });
-    else black();
+    else if (t < S6.A) pxWipe(() => scene5(t), () => scene6park(t), (t - S5.END) / (S6.A - S5.END), { dir: 'center' });
+    else if (t < S6.PEND) scene6park(t);
+    else if (t < S6.ROOM) pxWipe(() => scene6park(t), () => scene6room(t), (t - S6.PEND) / (S6.ROOM - S6.PEND), { dir: 'left' });
+    else if (t < S6.STARS) scene6room(t);
+    else if (t < S6.STARS + 1) pxWipe(() => scene6room(t), () => windowStars(t), t - S6.STARS, { dir: 'center' });
+    else if (t < S6.BLACK) { windowStars(t); fadeTo('#000', sm((t - (S6.BLACK - 2.6)) / 2.6)); }
+    else if (t < S6.CARD) black();
+    else endCard(t);
     fadeTo('#000', 1 - sm(t / 2.6));
     dlgDraw(DLG, t, { anchor: () => speakerY(t) }); for (const L of LABELS) labelDraw(L, t);
   },

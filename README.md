@@ -7,8 +7,9 @@
 Corto de ~3 min donde un personaje 8 bits (la tacita de Nico) explica, en español y con voz de ElevenLabs, cómo funciona la skill `sumi-e-canvas-film`. Este archivo basta para seguir en Claude Code sin el chat original.
 
 ## Estado (16 oct 2026)
+- **ENTREGADO** → `claude-hollywood-101.html` (3:26, abrir en Chrome/Edge con sonido). Código en `Claude-Hollywood/hollywood101/`.
 - **Modo asistido.** Plan discutido y preguntas respondidas. **Guion aprobado** (`guion.json`, L14 cambiada a «Las hojas, el viento…» porque el corto es de día). Siguiente: voz → construcción → revisión.
-- **No se ha gastado ningún carácter de ElevenLabs.**
+- **Voz:** las 18 líneas en `voz/` (≈1.625 créditos de 10.000). Trampa: lanzar muchas en paralelo desde la nube provocó 429 y un bloqueo temporal del plan gratuito; generar **una a una**.
 
 ## Archivos de esta carpeta
 | Archivo | Qué es |

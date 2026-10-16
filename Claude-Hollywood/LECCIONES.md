@@ -353,3 +353,11 @@ Prueba de 3:00 con todo lo nuevo: el rig, la magia de tinta y fondos con mucho d
 - **Cortes:** la cara del corte sigue el ángulo del tajo (más larga cuanto más oblicuo). Tocón y trozo que cae se recortan por ese plano; el trozo primero resbala por el corte y luego cae. De cada corte salen dos rodajas que giran y quedan en el suelo.
 - **Variedad en lo repetido:** cuatro clases de esquirla (astilla, trozo de cuatro lados, aguja y curva de los arcos de abanico).
 - **Capas en el choque:** la presión de la esfera las empuja hacia fuera (viento por mago, no global) y el punto negro las aspira.
+
+## Claude Hollywood 101 (Aguada, día de otoño)
+- **ElevenLabs desde la nube: una llamada a la vez.** 17 en paralelo dieron 429 y luego «Free Tier disabled» (temporal). Secuencial, esperando cada una, funcionó. Las etiquetas `[excited]` cuentan como caracteres.
+- **La voz real es más lenta que el cálculo:** ~10 car/s con eleven_v4 (no 14,5). Medir cada MP3 y sacar de ahí los tiempos; partir los subtítulos en las pausas (silencedetect).
+- **De día el vidrio casi no se ve:** un hueco en el muro solo se lee si faltan los hierros y hay polvo y esquirlas; despejar las plantas delante.
+- **Lo que está detrás de las palmeras no existe para el espectador:** las pantallas de B3 pasaron del muro a cristales colgados del techo.
+- **Personaje pixel art en mundo 3D:** escala `PS(z)` redondeada a píxeles enteros, `imageSmoothingEnabled = false`, sombra y reflejo también en la cuadrícula.
+- **Saltar en la línea de tiempo con audio programado:** todos los sonidos van a buses que se reemplazan al saltar o pausar; los eventos se programan con 0,2 s de anticipación.

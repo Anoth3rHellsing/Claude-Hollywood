@@ -5,7 +5,7 @@
  "estilo": "acuarela",
  "duracion": "3",
  "universo": "Claude Clawd-verse (renombrar: no se usa la mascota)",
- "estado": "borrador",
+ "estado": "entregado",
  "idioma": "Español",
  "textos": "subtitulos",
  "sonido": "completo",
@@ -35,5 +35,15 @@
   "duracion": "3 min",
   "voz": "Fruna",
   "ejemplos": "Fotogramas reales"
+ },
+ "claude": {
+  "nota": "Corto de 3:26 entregado: claude-hollywood-101.html (raíz y Claude-Hollywood/peliculas/). Código en Claude-Hollywood/hollywood101/. Voz: 18 líneas con Fruna (eleven_v4), ≈1.625 créditos.",
+  "supuestos": [
+   "La tacita se llama Aguada y se presenta en L02.",
+   "L14 sin lluvia: el corto es de día.",
+   "Las pantallas de B3 cuelgan del techo (las del muro quedaban detrás de las palmeras).",
+   "El \"poste oxidado\" es un farol viejo que cae contra el muro.",
+   "Duración 3:26 en vez de 3:00: la voz real dura 2:32."
+  ]
  }
 }

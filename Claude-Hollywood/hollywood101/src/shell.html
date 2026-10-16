@@ -1,0 +1,31 @@
+<title>Claude Hollywood 101</title>
+<meta name="description" content="Aguada, una tacita con boina, explica cómo se hace una película con código. Una producción de Nico hecha con Claude.">
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Caveat:wght@500;700&display=swap">
+<style>
+:root { color-scheme: dark; --bg: #1b1714; --fg: #f3ead6; --ink: #2a211c; --paper: #f4ecd9; --dim: #a69a86; --accent: #c8701a; }
+html, body { height: 100%; background: var(--bg); color: var(--fg); margin: 0; overflow: hidden; }
+body { display: grid; place-items: center; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); box-sizing: border-box; font-family: "Cormorant Garamond", Georgia, serif; background: var(--bg); }
+.stage { position: relative; width: min(100%, calc(100vh * 16 / 9)); aspect-ratio: 16 / 9; max-width: 100%; container-type: inline-size; }
+canvas { display: block; width: 100%; height: 100%; cursor: pointer; background: var(--paper); }
+#play { position: absolute; left: 50%; top: 58%; transform: translate(-50%, -50%); font: 600 24px "Cormorant Garamond", Georgia, serif; color: var(--ink); background: rgba(244,236,217,.9); border: 1.5px solid rgba(42,33,28,.55); border-radius: 2px; padding: 14px 28px; cursor: pointer; letter-spacing: .04em; max-width: 86%; box-shadow: 0 6px 24px rgba(40,24,10,.25); }
+#play:hover:not(:disabled), #play:focus-visible { background: var(--accent); color: #fff8ec; outline: none; }
+#play:disabled { cursor: progress; opacity: .9; }
+.prog { position: absolute; left: 0; right: 0; bottom: 0; height: 5px; background: rgba(42,33,28,.16); cursor: pointer; transition: opacity .4s; }
+#bar { height: 100%; width: 0; background: rgba(200,112,26,.85); }
+#chap span { position: absolute; top: -3px; width: 2px; height: 11px; background: rgba(42,33,28,.45); }
+.hint { position: absolute; right: 12px; top: 8px; font-size: 15px; color: var(--ink); opacity: .55; transition: opacity .4s; }
+.stage.playing .hint, .stage.playing .prog { opacity: 0; }
+.stage.playing:hover .prog { opacity: 1; }
+/* subtítulos: tinta oscura con halo de papel (de día) o papel con halo de tinta (planos oscuros) */
+#sub { position: absolute; left: 6%; right: 6%; bottom: 7.5%; text-align: center; pointer-events: none; font: italic 500 clamp(15px, 3.1cqw, 40px)/1.22 "Cormorant Garamond", Georgia, serif; color: #241b16; text-shadow: 0 0 .25em rgba(250,244,230,.95), 0 0 .6em rgba(250,244,230,.85), 0 0 1.2em rgba(250,244,230,.6); transition: opacity .25s, filter .25s; opacity: 0; filter: blur(3px); }
+#sub.on { opacity: 1; filter: blur(0); }
+#sub.dark { color: #f6eedc; text-shadow: 0 0 .25em rgba(20,14,10,.95), 0 0 .7em rgba(20,14,10,.8); }
+@media (max-width: 640px) { #play { font-size: 18px; padding: 10px 18px; } .hint { display: none; } }
+</style>
+<!--BODY-->
+<div class="stage" id="stage"><canvas id="cv" aria-label="Claude Hollywood 101 — corto animado con Aguada"></canvas><div id="sub" aria-live="polite"></div><button id="play" type="button">Preparando…</button><div class="prog"><div id="bar"></div><div id="chap"></div></div><div class="hint">espacio: pausa · ← →: 5 s · S: subtítulos</div></div>
+<script>
+/*__JS__*/
+</script>

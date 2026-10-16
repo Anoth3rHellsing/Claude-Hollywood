@@ -4,25 +4,24 @@
  "voice_id": "2CGcaXd1E04jesxY7nfq",
  "hechas": [
   "L01",
+  "L02",
   "L03",
   "L04",
+  "L05",
   "L06",
   "L07",
+  "L08",
   "L09",
   "L10",
   "L11",
   "L12",
+  "L13",
   "L14",
   "L15",
   "L16",
+  "L17",
   "L18"
  ],
- "faltan": {
-  "L02": "No hay cámara, ni actores, ni dibujos guardados. Solo código… y yo, Aguada: una tacita con boina.",
-  "L05": "¿Y la acuarela? Empieza como una figura simple. Claude la deforma un poquito, una y otra vez.",
-  "L08": "Y no es la primera vez. En estos cristales guardo algunas películas que ya hicimos.",
-  "L13": "[laughs softly] Pero fíjense: cada vidrio cae por su cuenta. La física también es código.",
-  "L17": "Elige un modo: control, auto o asistido. Y Claude se pone a pintar."
- },
- "nota": "L18 falló: ElevenLabs desactivó el plan gratuito por 'actividad inusual' tras 17 llamadas en paralelo desde la nube. L02/L05/L08/L13/L17 dieron 429 y no se cobraron. Prueba posterior de L18 (una sola llamada) funcionó: el bloqueo era temporal."
+ "faltan": {},
+ "nota": "Las 18 líneas listas. Una ráfaga de llamadas en paralelo desde la nube provocó 429 y un bloqueo temporal del plan gratuito; después, una a una, funcionó. Créditos usados ≈ 1.665."
 }

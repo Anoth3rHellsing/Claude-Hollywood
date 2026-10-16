@@ -1,0 +1,24 @@
+<title>El Juramento Roto · Tráiler v2</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&display=swap">
+<style>
+:root { --bg: #0f0d12; --fg: #efe6d2; --dim: #9c9080; --accent: #b01826; }
+html, body { height: 100%; background: var(--bg); color: var(--fg); margin: 0; }
+body { display: grid; place-items: center; padding-left: max(0px, env(safe-area-inset-left, 0px)); padding-right: max(0px, env(safe-area-inset-right, 0px)); font-family: "Cormorant Garamond", Georgia, serif; }
+.stage { position: relative; width: min(100vw, calc(100vh * 16 / 9)); aspect-ratio: 16 / 9; max-width: 100%; overflow: hidden; background: #0b0a0d; }
+.stage iframe.film { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; display: block; pointer-events: none; visibility: hidden; will-change: transform; }
+canvas { position: absolute; inset: 0; display: block; width: 100%; height: 100%; cursor: pointer; }
+body.playing canvas { cursor: none; }
+#play { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); font: 600 26px "Cormorant Garamond", Georgia, serif; color: var(--fg); background: rgba(15,13,18,.72); border: 1px solid rgba(239,230,210,.5); border-radius: 2px; padding: 14px 28px; cursor: pointer; letter-spacing: .04em; }
+#play:hover, #play:focus-visible { background: var(--accent); outline: none; }
+#load { position: absolute; left: 0; right: 0; top: 50%; transform: translateY(-50%); text-align: center; font-style: italic; font-size: clamp(16px, 2vw, 24px); color: var(--dim); padding: 0 16px; }
+.prog { position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: rgba(239,230,210,.12); }
+#bar { height: 100%; width: 0; background: rgba(239,230,210,.55); }
+.hint { position: absolute; right: 12px; top: 8px; font-size: 15px; color: var(--dim); }
+body.playing .hint { opacity: 0; transition: opacity 1s; }
+</style>
+<div class="stage"><canvas id="cv" aria-label="El Juramento Roto — tráiler animado"></canvas><div id="load">Mezclando la tinta de los tres episodios…</div><button id="play" type="button" hidden>▶ Ver el tráiler (con sonido)</button><div class="prog"><div id="bar"></div></div><div class="hint">espacio: pausa · R: reiniciar</div></div>
+<script>
+/*__JS__*/
+</script>

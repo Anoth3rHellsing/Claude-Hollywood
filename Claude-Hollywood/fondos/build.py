@@ -1,0 +1,12 @@
+import os, glob
+# uso: python build.py → dist/atlas.html (+ _test_atlas.html con doctype para las pruebas)
+here = os.path.dirname(os.path.abspath(__file__))
+src = os.path.join(here, 'src')
+js = '\n'.join(open(f, encoding='utf-8').read() for f in sorted(glob.glob(os.path.join(src, '*.js'))))
+shell = open(os.path.join(src, 'shell.html'), encoding='utf-8').read()
+out = shell.replace('/*__JS__*/', js)
+os.makedirs(os.path.join(here, 'dist'), exist_ok=True)
+open(os.path.join(here, 'dist', '_all.js'), 'w', encoding='utf-8').write(js)
+open(os.path.join(here, 'dist', 'atlas.html'), 'w', encoding='utf-8').write(out)
+open(os.path.join(here, 'dist', '_test_atlas.html'), 'w', encoding='utf-8').write('<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"></head><body>' + out + '</body></html>')
+print('ok', len(out))

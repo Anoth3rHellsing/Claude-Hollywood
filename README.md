@@ -21,6 +21,7 @@ Corto de ~3 min donde un personaje 8 bits (la tacita de Nico) explica, en españ
 | `sprite_original.png` | El dibujo de Nico (585×450, celdas de 15 px). |
 | `sprite_1x.png` | El mismo sprite a 1 px por celda (22×22). |
 | `sprite_grid.txt` | El sprite como cuadrícula de letras + paleta, para dibujarlo en canvas sin cargar la imagen. |
+| `Claude-Hollywood/` | Colección del motor, películas anteriores (`peliculas/`), escenas, lecciones y la skill (`sumi-e-canvas-film`). |
 
 ## Decisiones tomadas
 1. **Protagonista:** la tacita de agua de Nico, con manilla y boina de artista (diseño propio de Nico). No se usa la mascota de Claude Code; tampoco su nombre. Nombre de la tacita: **por decidir** (en el guion habla de sí misma como «una tacita con boina»).
@@ -102,8 +103,8 @@ Capturarlos con las herramientas de siempre (`shot.py`) de las películas en `D:
 5. Entregar: HTML en esta carpeta y en `D:\Claude-Hollywood\`. Poner el tiquete en «entregado».
 
 ## Si sigues en Claude Code
-- **La skill** está en `D:\Claude-Hollywood\skill\SKILL.md`. Cópiala a la carpeta de skills de Claude Code (`~/.claude/skills/sumi-e-canvas-film/SKILL.md`) o pídele que la lea al empezar.
+- **La skill** está en `Claude-Hollywood/skill/SKILL.md` (o `D:\Claude-Hollywood\skill\SKILL.md` en local). Cópiala a la carpeta de skills de Claude Code (`~/.claude/skills/sumi-e-canvas-film/SKILL.md`) o pídele que la lea al empezar.
 - **El tiquete vivo** es un artifact de claude.ai con base de datos. Puede que Claude Code no pueda leerlo; por eso está copiado en `tiquete.json`.
 - **ElevenLabs:** el conector de claude.ai no aparece solo en Claude Code. Hay que añadir el servidor MCP de ElevenLabs a Claude Code o darle una API key. Revisar su documentación; aquí no se ha probado.
-- **Claude Code en la nube** no ve `C:\` ni `D:\`, solo repositorios de GitHub. Para usar los créditos en la nube, sube esta carpeta y `D:\Claude-Hollywood` a un repo privado. En local (Claude Code en tu PC), sirven tal cual.
-- Prompt de arranque sugerido: *«Lee `README.md`, `tiquete.json` y `guion.json` en esta carpeta, y `D:\Claude-Hollywood\skill\SKILL.md`. Seguimos Claude Hollywood 101 en modo asistido desde "Pasos siguientes".»*
+- **Claude Code en la nube** no ve `C:\` ni `D:\`, solo repositorios de GitHub. Ya tienes todo disponible en este repositorio (incluyendo la carpeta `Claude-Hollywood/`).
+- Prompt de arranque sugerido: *«Lee `README.md`, `tiquete.json` y `guion.json` en esta carpeta, y `Claude-Hollywood/skill/SKILL.md`. Seguimos Claude Hollywood 101 en modo asistido desde "Pasos siguientes".»*

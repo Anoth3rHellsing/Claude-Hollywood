@@ -1,0 +1,34 @@
+<title>Atlas de ciudades</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=Josefin+Sans:wght@600;700&display=swap">
+<style>
+:root { color-scheme: dark; --bg: #17130f; --fg: #f2e9d6; --dim: #b4a58c; --acc: #b2392e; --chip: rgba(30,24,20,.72); }
+html, body { height: 100%; margin: 0; background: var(--bg); color: var(--fg); overflow: hidden; }
+body { font-family: "Cormorant Garamond", Georgia, serif; display: grid; place-items: center; background: var(--bg); padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); box-sizing: border-box; }
+.stage { position: relative; width: min(100%, calc(100vh * 16 / 9)); aspect-ratio: 16 / 9; max-width: 100%; }
+#cv { display: block; width: 100%; height: 100%; }
+body.cmp #cv { cursor: ew-resize; }
+.ui { position: absolute; left: 0; right: 0; bottom: 0; padding: 10px 14px 12px; background: linear-gradient(transparent, rgba(16,12,10,.78)); display: flex; flex-direction: column; gap: 8px; opacity: 0; transition: opacity .4s; }
+body.ui .ui, .ui:hover, .ui:focus-within { opacity: 1; }
+.row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+button { font: 600 15px "Cormorant Garamond", Georgia, serif; color: var(--fg); background: var(--chip); border: 1px solid rgba(242,233,214,.25); border-radius: 999px; padding: 5px 12px; cursor: pointer; }
+button.on { background: var(--fg); color: #241c16; border-color: var(--fg); }
+button:focus-visible { outline: 2px solid var(--acc); outline-offset: 2px; }
+#play { width: 40px; padding: 5px 0; }
+.sep { width: 1px; height: 20px; background: rgba(242,233,214,.25); margin: 0 4px; }
+#tl { height: 6px; background: rgba(242,233,214,.18); border-radius: 3px; cursor: pointer; }
+#bar { height: 100%; width: 0; background: var(--fg); border-radius: 3px; }
+@media (max-width: 640px) { button { font-size: 13px; padding: 4px 9px; } }
+</style>
+<div class="stage"><canvas id="cv" aria-label="Atlas de ciudades: fondos en acuarela y papel recortado"></canvas>
+  <div class="ui">
+    <div id="tl" role="slider" aria-label="Línea de tiempo"><div id="bar"></div></div>
+    <div class="row"><button id="play" aria-label="Reproducir o pausar">▶</button><span class="sep"></span>
+      <button data-mode="gira">Gira</button><button data-mode="wc">Acuarela</button><button data-mode="pp">Papel recortado</button><button data-mode="comparar">Comparar</button><span class="sep"></span>
+      <span id="cities" class="row"></span></div>
+  </div>
+</div>
+<script>
+/*__JS__*/
+</script>

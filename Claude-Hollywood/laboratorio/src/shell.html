@@ -1,0 +1,66 @@
+<title>Laboratorio del Motor</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Karla:wght@400;500;600&family=IBM+Plex+Mono:wght@400&display=swap">
+<style>
+/* Mesa de trabajo de un taller de tinta: lienzo grande a la izquierda, controles como fichas a la derecha */
+:root {
+  --paper: #efe6d2; --paper-2: #e6dac0; --ink: #1d181b; --ink-2: #5b4f50; --crimson: #b01826; --line: #cdbd9c;
+  --display: "Cormorant Garamond", Georgia, "Times New Roman", serif;
+  --body: "Karla", "Segoe UI", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --paper: #17141a; --paper-2: #221d24; --ink: #ede3cf; --ink-2: #b3a68f; --crimson: #e2525c; --line: #3a3138; color-scheme: dark } }
+:root[data-theme="dark"] { --paper: #17141a; --paper-2: #221d24; --ink: #ede3cf; --ink-2: #b3a68f; --crimson: #e2525c; --line: #3a3138; color-scheme: dark }
+html, body { background: var(--paper); color: var(--ink); }
+body { font-family: var(--body); font-size: 15px; line-height: 1.5; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 14px 28px; }
+header { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 10px 24px; max-width: 1500px; margin: 0 auto 12px; }
+.brand h1 { font-family: var(--display); font-weight: 600; font-size: clamp(28px, 4vw, 40px); line-height: 1; margin: 0; letter-spacing: .01em; text-wrap: balance; }
+.brand h1 i { color: var(--crimson); font-weight: 500; }
+.brand p { margin: 4px 0 0; color: var(--ink-2); font-size: 13px; letter-spacing: .08em; text-transform: uppercase; }
+.tabs { display: flex; flex-wrap: wrap; gap: 4px; }
+.tabs button { font: 500 15px var(--body); color: var(--ink-2); background: none; border: 0; border-bottom: 2px solid transparent; padding: 6px 10px; cursor: pointer; }
+.tabs button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--crimson); }
+.tabs button:hover { color: var(--ink); }
+main { display: grid; grid-template-columns: minmax(0, 1fr) 330px; gap: 20px; max-width: 1500px; margin: 0 auto; align-items: start; }
+@media (max-width: 1000px) { main { grid-template-columns: minmax(0, 1fr); } }
+.stage { position: relative; min-width: 0; }
+canvas { display: block; width: 100%; aspect-ratio: 16 / 9; max-width: 100%; border-radius: 3px; box-shadow: 0 1px 0 var(--line), 0 10px 30px -18px rgba(0,0,0,.45); cursor: crosshair; }
+.hud { position: absolute; right: 10px; bottom: 8px; font: 12px var(--mono); color: #3e3236; background: rgba(239,230,210,.82); padding: 2px 8px; border-radius: 2px; font-variant-numeric: tabular-nums; }
+.panel { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.note { margin: 0; font-family: var(--display); font-size: 18px; line-height: 1.4; color: var(--ink); border-left: 2px solid var(--crimson); padding-left: 12px; }
+.ctl { display: flex; flex-direction: column; gap: 6px; }
+.lab { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; color: var(--ink-2); display: flex; justify-content: space-between; gap: 8px; }
+.lab output { font: 12px var(--mono); text-transform: none; letter-spacing: 0; color: var(--ink); font-variant-numeric: tabular-nums; }
+.seg { display: flex; flex-wrap: wrap; gap: 4px; }
+.seg button { font: 14px var(--body); color: var(--ink); background: var(--paper-2); border: 1px solid var(--line); border-radius: 2px; padding: 5px 10px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.act { align-self: flex-start; font: 600 15px var(--body); color: var(--paper); background: var(--crimson); border: 0; border-radius: 2px; padding: 8px 14px; cursor: pointer; }
+.seg button:disabled { opacity: .45; cursor: default; }
+.tog { display: flex; align-items: center; gap: 10px; font-size: 15px; cursor: pointer; }
+.tog input { width: 18px; height: 18px; accent-color: var(--crimson); }
+input[type=range] { width: 100%; accent-color: var(--crimson); }
+input[type=range]:disabled { opacity: .4; }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--crimson); outline-offset: 2px; }
+@media (max-width: 600px) { .hud { font-size: 10px; right: 4px; bottom: 4px; padding: 1px 5px; } }
+footer { max-width: 1500px; margin: 18px auto 0; color: var(--ink-2); font-size: 13px; }
+</style>
+<header>
+  <div class="brand"><h1>Laboratorio <i>del motor</i></h1><p>Claude-Hollywood · pruebas de la fase 1</p></div>
+  <nav class="tabs" aria-label="Pruebas">
+    <button type="button" data-tab="rostro">Rostro</button>
+    <button type="button" data-tab="manos">Manos</button>
+    <button type="button" data-tab="cuerpo">Cuerpo</button>
+    <button type="button" data-tab="fisica">Física</button>
+    <button type="button" data-tab="efectos">Efectos</button>
+    <button type="button" data-tab="estilos">Estilos</button>
+  </nav>
+</header>
+<main>
+  <div class="stage"><canvas id="cv" aria-label="Lienzo de pruebas"></canvas><div class="hud" id="hud">midiendo…</div></div>
+  <aside class="panel" id="panel" aria-label="Controles"></aside>
+</main>
+<footer>Canvas 2D sin librerías, igual que las películas. Abajo a la derecha: fotogramas por segundo reales y lo que tarda en dibujarse cada uno.</footer>
+<script>
+/*__JS__*/
+</script>

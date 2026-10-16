@@ -1,0 +1,23 @@
+<title>El Invernadero de Cristal y Ceniza</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&display=swap">
+<style>
+:root { color-scheme: dark; --bg: #0d0c10; --fg: #efe6d2; --dim: #9c9080; --accent: #c4602a; }
+html, body { height: 100%; background: var(--bg); color: var(--fg); margin: 0; overflow: hidden; }
+body { display: grid; place-items: center; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); box-sizing: border-box; font-family: "Cormorant Garamond", Georgia, serif; background: var(--bg); }
+.stage { position: relative; width: min(100%, calc(100vh * 16 / 9)); aspect-ratio: 16 / 9; max-width: 100%; }
+canvas { display: block; width: 100%; height: 100%; cursor: pointer; background: var(--bg); }
+#play { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); font: 600 24px "Cormorant Garamond", Georgia, serif; color: var(--fg); background: rgba(13,12,16,.78); border: 1px solid rgba(239,230,210,.5); border-radius: 2px; padding: 14px 28px; cursor: pointer; letter-spacing: .04em; max-width: 86%; }
+#play:hover:not(:disabled), #play:focus-visible { background: var(--accent); outline: none; }
+#play:disabled { cursor: progress; opacity: .85; }
+.prog { position: absolute; left: 0; right: 0; bottom: 0; height: 5px; background: rgba(239,230,210,.12); cursor: pointer; }
+#bar { height: 100%; width: 0; background: rgba(239,230,210,.6); }
+#chap span { position: absolute; top: -3px; width: 2px; height: 11px; background: rgba(239,230,210,.45); }
+.hint { position: absolute; right: 12px; top: 8px; font-size: 15px; color: var(--dim); opacity: .8; }
+@media (max-width: 640px) { #play { font-size: 18px; padding: 10px 18px; } .hint { display: none; } }
+</style>
+<div class="stage"><canvas id="cv" aria-label="El Invernadero de Cristal y Ceniza — película animada"></canvas><button id="play" type="button">Preparando…</button><div class="prog"><div id="bar"></div><div id="chap"></div></div><div class="hint">espacio: pausa · ← →: 5 s · R: reiniciar</div></div>
+<script>
+/*__JS__*/
+</script>

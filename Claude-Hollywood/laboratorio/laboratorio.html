@@ -1,0 +1,1465 @@
+<title>Laboratorio del Motor</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Karla:wght@400;500;600&family=IBM+Plex+Mono:wght@400&display=swap">
+<style>
+/* Mesa de trabajo de un taller de tinta: lienzo grande a la izquierda, controles como fichas a la derecha */
+:root {
+  --paper: #efe6d2; --paper-2: #e6dac0; --ink: #1d181b; --ink-2: #5b4f50; --crimson: #b01826; --line: #cdbd9c;
+  --display: "Cormorant Garamond", Georgia, "Times New Roman", serif;
+  --body: "Karla", "Segoe UI", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --paper: #17141a; --paper-2: #221d24; --ink: #ede3cf; --ink-2: #b3a68f; --crimson: #e2525c; --line: #3a3138; color-scheme: dark } }
+:root[data-theme="dark"] { --paper: #17141a; --paper-2: #221d24; --ink: #ede3cf; --ink-2: #b3a68f; --crimson: #e2525c; --line: #3a3138; color-scheme: dark }
+html, body { background: var(--paper); color: var(--ink); }
+body { font-family: var(--body); font-size: 15px; line-height: 1.5; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 14px 28px; }
+header { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 10px 24px; max-width: 1500px; margin: 0 auto 12px; }
+.brand h1 { font-family: var(--display); font-weight: 600; font-size: clamp(28px, 4vw, 40px); line-height: 1; margin: 0; letter-spacing: .01em; text-wrap: balance; }
+.brand h1 i { color: var(--crimson); font-weight: 500; }
+.brand p { margin: 4px 0 0; color: var(--ink-2); font-size: 13px; letter-spacing: .08em; text-transform: uppercase; }
+.tabs { display: flex; flex-wrap: wrap; gap: 4px; }
+.tabs button { font: 500 15px var(--body); color: var(--ink-2); background: none; border: 0; border-bottom: 2px solid transparent; padding: 6px 10px; cursor: pointer; }
+.tabs button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--crimson); }
+.tabs button:hover { color: var(--ink); }
+main { display: grid; grid-template-columns: minmax(0, 1fr) 330px; gap: 20px; max-width: 1500px; margin: 0 auto; align-items: start; }
+@media (max-width: 1000px) { main { grid-template-columns: minmax(0, 1fr); } }
+.stage { position: relative; min-width: 0; }
+canvas { display: block; width: 100%; aspect-ratio: 16 / 9; max-width: 100%; border-radius: 3px; box-shadow: 0 1px 0 var(--line), 0 10px 30px -18px rgba(0,0,0,.45); cursor: crosshair; }
+.hud { position: absolute; right: 10px; bottom: 8px; font: 12px var(--mono); color: #3e3236; background: rgba(239,230,210,.82); padding: 2px 8px; border-radius: 2px; font-variant-numeric: tabular-nums; }
+.panel { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.note { margin: 0; font-family: var(--display); font-size: 18px; line-height: 1.4; color: var(--ink); border-left: 2px solid var(--crimson); padding-left: 12px; }
+.ctl { display: flex; flex-direction: column; gap: 6px; }
+.lab { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; color: var(--ink-2); display: flex; justify-content: space-between; gap: 8px; }
+.lab output { font: 12px var(--mono); text-transform: none; letter-spacing: 0; color: var(--ink); font-variant-numeric: tabular-nums; }
+.seg { display: flex; flex-wrap: wrap; gap: 4px; }
+.seg button { font: 14px var(--body); color: var(--ink); background: var(--paper-2); border: 1px solid var(--line); border-radius: 2px; padding: 5px 10px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.act { align-self: flex-start; font: 600 15px var(--body); color: var(--paper); background: var(--crimson); border: 0; border-radius: 2px; padding: 8px 14px; cursor: pointer; }
+.seg button:disabled { opacity: .45; cursor: default; }
+.tog { display: flex; align-items: center; gap: 10px; font-size: 15px; cursor: pointer; }
+.tog input { width: 18px; height: 18px; accent-color: var(--crimson); }
+input[type=range] { width: 100%; accent-color: var(--crimson); }
+input[type=range]:disabled { opacity: .4; }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--crimson); outline-offset: 2px; }
+@media (max-width: 600px) { .hud { font-size: 10px; right: 4px; bottom: 4px; padding: 1px 5px; } }
+footer { max-width: 1500px; margin: 18px auto 0; color: var(--ink-2); font-size: 13px; }
+</style>
+<header>
+  <div class="brand"><h1>Laboratorio <i>del motor</i></h1><p>Claude-Hollywood · pruebas de la fase 1</p></div>
+  <nav class="tabs" aria-label="Pruebas">
+    <button type="button" data-tab="rostro">Rostro</button>
+    <button type="button" data-tab="manos">Manos</button>
+    <button type="button" data-tab="cuerpo">Cuerpo</button>
+    <button type="button" data-tab="fisica">Física</button>
+    <button type="button" data-tab="efectos">Efectos</button>
+    <button type="button" data-tab="estilos">Estilos</button>
+  </nav>
+</header>
+<main>
+  <div class="stage"><canvas id="cv" aria-label="Lienzo de pruebas"></canvas><div class="hud" id="hud">midiendo…</div></div>
+  <aside class="panel" id="panel" aria-label="Controles"></aside>
+</main>
+<footer>Canvas 2D sin librerías, igual que las películas. Abajo a la derecha: fotogramas por segundo reales y lo que tarda en dibujarse cada uno.</footer>
+<script>
+'use strict';
+/* =====================================================================
+   LABORATORIO · base: utilidades, ruido, papel, lienzo, geometría
+   Unidades: alto de escena = 1000u, origen en el centro (como el motor).
+   ===================================================================== */
+const TAU = Math.PI * 2, PI = Math.PI;
+const clamp = (x, a = 0, b = 1) => x < a ? a : x > b ? b : x;
+const lerp = (a, b, t) => a + (b - a) * t;
+const sm = t => { t = clamp(t); return t * t * (3 - 2 * t); };
+const eio = t => { t = clamp(t); return t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; };
+function mulberry32(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+let R = mulberry32(1);
+const rnd = (a = 1, b) => b === undefined ? R() * a : a + R() * (b - a);
+
+const NZ = (() => {
+  const p = new Uint8Array(512), r = mulberry32(1337), perm = [...Array(256).keys()];
+  for (let i = 255; i > 0; i--) { const j = (r() * (i + 1)) | 0; [perm[i], perm[j]] = [perm[j], perm[i]]; }
+  for (let i = 0; i < 512; i++) p[i] = perm[i & 255];
+  const g = (h, x, y) => { switch (h & 7) { case 0: return x + y; case 1: return -x + y; case 2: return x - y; case 3: return -x - y; case 4: return x; case 5: return -x; case 6: return y; default: return -y; } };
+  const f = t => t * t * t * (t * (t * 6 - 15) + 10);
+  function n2(x, y) {
+    let X = Math.floor(x), Y = Math.floor(y); x -= X; y -= Y; X &= 255; Y &= 255;
+    const u = f(x), v = f(y), a = p[X] + Y, b = p[X + 1] + Y;
+    return lerp(lerp(g(p[a], x, y), g(p[b], x - 1, y), u), lerp(g(p[a + 1], x, y - 1), g(p[b + 1], x - 1, y - 1), u), v) * 0.75;
+  }
+  function fbm(x, y, o = 4) { let s = 0, a = .5, fr = 1; for (let i = 0; i < o; i++) { s += a * n2(x * fr, y * fr); fr *= 2.03; a *= .5; } return s; }
+  return { n2, fbm };
+})();
+const N2 = NZ.n2, FBM = NZ.fbm;
+function mk(w, h) { const c = document.createElement('canvas'); c.width = Math.max(1, Math.ceil(w)); c.height = Math.max(1, Math.ceil(h)); return c; }
+
+/* ---------- lienzo ---------- */
+const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+let W = 0, H = 0, U = 1, SW = 1, PAPER = null, FX = null, fx = null;
+let GRAIN = null, WASHTEX = null, HATCH = null, HATCH2 = null;
+let SHX = 0, SHY = 0;                               // temblor de cámara (px)
+function T0(g = ctx) { g.setTransform(U, 0, 0, U, W / 2 + SHX, H / 2 + SHY); }
+function resize() {
+  const r = cv.getBoundingClientRect(), dpr = Math.min(2, window.devicePixelRatio || 1);
+  const w = Math.max(320, Math.round(r.width * dpr)), h = Math.max(180, Math.round(r.height * dpr));
+  if (w === W && h === H) return;
+  W = cv.width = w; H = cv.height = h; U = H / 1000; SW = W / U;
+  PAPER = makePaper(W, H); FX = mk(W, H); fx = FX.getContext('2d');
+}
+function makePaper(w, h) {
+  const c = mk(w, h), x = c.getContext('2d');
+  const g = x.createRadialGradient(w * .5, h * .42, 0, w * .5, h * .5, Math.hypot(w, h) * .62);
+  g.addColorStop(0, '#f1e8d4'); g.addColorStop(.6, '#e9ddc3'); g.addColorStop(1, '#d6c4a0');
+  x.fillStyle = g; x.fillRect(0, 0, w, h);
+  const lw = Math.ceil(w / 10), lh = Math.ceil(h / 10), lc = mk(lw, lh), lg = lc.getContext('2d'), im = lg.createImageData(lw, lh);
+  for (let j = 0; j < lh; j++) for (let i = 0; i < lw; i++) {
+    const v = FBM(i * .035 + 3, j * .035 + 9, 5), k = (j * lw + i) * 4, s = clamp(v * 1.6 + .3);
+    im.data[k] = 150; im.data[k + 1] = 118; im.data[k + 2] = 70; im.data[k + 3] = s * 52;
+  }
+  lg.putImageData(im, 0, 0);
+  x.globalCompositeOperation = 'multiply'; x.imageSmoothingQuality = 'high'; x.drawImage(lc, 0, 0, w, h);
+  x.globalCompositeOperation = 'source-over';
+  const rr = mulberry32(5), nf = (w * h) / 1400;
+  x.lineWidth = Math.max(.6, h / 1400);
+  for (let i = 0; i < nf; i++) { const px = rr() * w, py = rr() * h, a = rr() * TAU, l = 3 + rr() * 9; x.strokeStyle = `rgba(120,96,60,${.05 + rr() * .07})`; x.beginPath(); x.moveTo(px, py); x.lineTo(px + Math.cos(a) * l, py + Math.sin(a) * l); x.stroke(); }
+  return c;
+}
+function makeGrain() {
+  const c = mk(256, 256), x = c.getContext('2d'), id = x.createImageData(256, 256), d = id.data, r = mulberry32(9);
+  for (let j = 0; j < 256; j++) for (let i = 0; i < 256; i++) {
+    const k = (j * 256 + i) * 4, n = N2(i * .35, j * .35) * .5 + .5, q = r();
+    d[k] = d[k + 1] = d[k + 2] = 40; d[k + 3] = (q > .62 ? (q - .62) * 2.6 * 255 : 0) * .5 + n * n * 60;
+  }
+  x.putImageData(id, 0, 0); return c;
+}
+/* textura de acuarela para las figuras: manchas que se pegan al personaje */
+function makeWashTex() {
+  const s = 512, c = mk(s, s), x = c.getContext('2d'), r = mulberry32(21);
+  x.fillStyle = '#fff'; x.fillRect(0, 0, s, s);
+  for (let i = 0; i < 70; i++) {
+    const px = r() * s, py = r() * s, rad = 30 + r() * 120, g = x.createRadialGradient(px, py, 0, px, py, rad), a = .05 + r() * .09;
+    g.addColorStop(0, `rgba(120,96,90,${a})`); g.addColorStop(.7, `rgba(120,96,90,${a * .6})`); g.addColorStop(1, 'rgba(120,96,90,0)');
+    x.fillStyle = g; x.fillRect(px - rad, py - rad, rad * 2, rad * 2);
+  }
+  const id = x.getImageData(0, 0, s, s), d = id.data;
+  for (let j = 0; j < s; j++) for (let i = 0; i < s; i++) { const k = (j * s + i) * 4, n = FBM(i * .012, j * .012, 4) * 40 + N2(i * .3, j * .3) * 10; d[k] -= n; d[k + 1] -= n; d[k + 2] -= n * .8; }
+  x.putImageData(id, 0, 0);
+  const m = mk(s * 2, s * 2), mg = m.getContext('2d');            // espejo ×4: textura sin costuras
+  for (const [sx, sy] of [[1, 1], [-1, 1], [1, -1], [-1, -1]]) { mg.save(); mg.translate(sx < 0 ? s * 2 : 0, sy < 0 ? s * 2 : 0); mg.scale(sx, sy); mg.drawImage(c, 0, 0); mg.restore(); }
+  return m;
+}
+function makeHatch(gap, ang, w, col) {
+  const s = 64, c = mk(s, s), x = c.getContext('2d');
+  x.strokeStyle = col; x.lineWidth = w; x.lineCap = 'round';
+  x.translate(s / 2, s / 2); x.rotate(ang);
+  for (let k = -s; k <= s; k += gap) { x.beginPath(); x.moveTo(-s, k + Math.sin(k) * .4); x.lineTo(s, k - Math.sin(k) * .4); x.stroke(); }
+  return c;
+}
+
+/* ---------- geometría 2D ---------- */
+const add = (a, b, k = 1) => [a[0] + b[0] * k, a[1] + b[1] * k];
+const sub = (a, b) => [a[0] - b[0], a[1] - b[1]];
+const len = v => Math.hypot(v[0], v[1]);
+const nrm2 = v => { const l = Math.hypot(v[0], v[1]) || 1; return [v[0] / l, v[1] / l]; };
+const perp = v => [-v[1], v[0]];
+function area(pts) { let s = 0; for (let i = 0; i < pts.length; i++) { const a = pts[i], b = pts[(i + 1) % pts.length]; s += a[0] * b[1] - b[0] * a[1]; } return s; }
+function orient(pts) { return area(pts) < 0 ? pts.slice().reverse() : pts; }
+function hull(pts) {
+  const p = pts.map(q => [q[0], q[1]]).sort((a, b) => a[0] - b[0] || a[1] - b[1]); if (p.length < 3) return p;
+  const cr = (o, a, b) => (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
+  const lo = [], up = [];
+  for (const q of p) { while (lo.length >= 2 && cr(lo[lo.length - 2], lo[lo.length - 1], q) <= 0) lo.pop(); lo.push(q); }
+  for (let i = p.length - 1; i >= 0; i--) { const q = p[i]; while (up.length >= 2 && cr(up[up.length - 2], up[up.length - 1], q) <= 0) up.pop(); up.push(q); }
+  up.pop(); lo.pop(); return lo.concat(up);
+}
+function densify(P, mx) {
+  const o = [];
+  for (let i = 0; i < P.length; i++) {
+    const a = P[i], b = P[(i + 1) % P.length], l = Math.hypot(b[0] - a[0], b[1] - a[1]), n = Math.max(1, Math.ceil(l / mx));
+    for (let k = 0; k < n; k++) { const t = k / n; o.push(k ? [lerp(a[0], b[0], t), lerp(a[1], b[1], t)] : [a[0], a[1], a[2]]); }
+  }
+  return o;
+}
+function capsulePts(a, b, ra, rb, n = 5) { // cápsula cónica como polígono
+  const d = nrm2(sub(b, a)), ang = Math.atan2(d[1], d[0]), o = [];
+  for (let i = 0; i <= n; i++) { const t = ang + PI / 2 + i / n * PI; o.push([a[0] + Math.cos(t) * ra, a[1] + Math.sin(t) * ra]); }
+  for (let i = 0; i <= n; i++) { const t = ang - PI / 2 + i / n * PI; o.push([b[0] + Math.cos(t) * rb, b[1] + Math.sin(t) * rb]); }
+  return o;
+}
+function taperPts(chain, w0, w1) { // mechón: curva con grosor que se afila
+  const L = [], Rr = [], n = chain.length;
+  for (let i = 0; i < n; i++) {
+    const a = chain[Math.max(0, i - 1)], b = chain[Math.min(n - 1, i + 1)], d = nrm2(sub(b, a)), w = lerp(w0, w1, i / (n - 1));
+    L.push([chain[i][0] - d[1] * w, chain[i][1] + d[0] * w]); Rr.push([chain[i][0] + d[1] * w, chain[i][1] - d[0] * w]);
+  }
+  return L.concat(Rr.reverse());
+}
+
+/* camino a partir de polígonos: unión por regla nonzero (todos con la misma orientación).
+   jit: desplazamiento por posición (no por índice) → los vértices compartidos se mueven igual y no se abren huecos */
+function pathOf(polys, smooth = true, jit = null, dens = 0) {
+  const P = new Path2D();
+  for (let q of polys) {
+    if (!q || q.length < 3) continue;
+    if (jit) { if (dens) q = densify(q, dens); q = q.map(p => { const d = jit(p[0], p[1]); return [p[0] + d[0], p[1] + d[1], p[2]]; }); }
+    q = orient(q);
+    const n = q.length;
+    if (!smooth || n <= 4) { P.moveTo(q[0][0], q[0][1]); for (let i = 1; i < n; i++) P.lineTo(q[i][0], q[i][1]); P.closePath(); continue; }
+    const md = (a, b) => [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2], s0 = md(q[n - 1], q[0]);
+    P.moveTo(s0[0], s0[1]);
+    for (let i = 0; i < n; i++) { const p = q[i], m = md(p, q[(i + 1) % n]); if (p[2] === true) { P.lineTo(p[0], p[1]); P.lineTo(m[0], m[1]); } else P.quadraticCurveTo(p[0], p[1], m[0], m[1]); }
+    P.closePath();
+  }
+  return P;
+}
+function linePath(pts) { const P = new Path2D(); P.moveTo(pts[0][0], pts[0][1]); for (let i = 1; i < pts.length; i++) P.lineTo(pts[i][0], pts[i][1]); return P; }
+
+/* ---------- 3D mínimo: giro (yaw, eje y) y cabeceo (pitch, eje x) ---------- */
+function rot3(p, yaw, pitch) {
+  const cy = Math.cos(yaw), sy = Math.sin(yaw), x1 = p[0] * cy + p[2] * sy, z1 = -p[0] * sy + p[2] * cy;
+  const cp = Math.cos(pitch), sp = Math.sin(pitch);
+  return [x1, p[1] * cp - z1 * sp, p[1] * sp + z1 * cp];
+}
+const n3 = v => { const l = Math.hypot(v[0], v[1], v[2]) || 1; return [v[0] / l, v[1] / l, v[2] / l]; };
+/* contorno exacto de un elipsoide girado (proyección ortográfica): elipse con matriz P·Pᵀ */
+function ellSil(c, r, yaw, pitch, n = 40) {
+  const a = rot3([r[0], 0, 0], yaw, pitch), b = rot3([0, r[1], 0], yaw, pitch), d = rot3([0, 0, r[2]], yaw, pitch), C = rot3(c, yaw, pitch);
+  const m11 = a[0] * a[0] + b[0] * b[0] + d[0] * d[0], m12 = a[0] * a[1] + b[0] * b[1] + d[0] * d[1], m22 = a[1] * a[1] + b[1] * b[1] + d[1] * d[1];
+  const dt = Math.sqrt(Math.max(1e-12, m11 * m22 - m12 * m12)), t = Math.sqrt(m11 + m22 + 2 * dt);
+  const s11 = (m11 + dt) / t, s12 = m12 / t, s22 = (m22 + dt) / t, o = [];
+  for (let i = 0; i < n; i++) { const th = i / n * TAU, co = Math.cos(th), si = Math.sin(th); o.push([C[0] + s11 * co + s12 * si, C[1] + s12 * co + s22 * si]); }
+  return o;
+}
+
+/* ---------- IK de dos huesos (ley del coseno) ---------- */
+function ik2(S, T, l1, l2, bend) {
+  const dx = T[0] - S[0], dy = T[1] - S[1], d0 = Math.hypot(dx, dy) || 1e-6;
+  const d = clamp(d0, Math.abs(l1 - l2) + 1e-3, l1 + l2 - 1e-3), a = Math.atan2(dy, dx);
+  const A = Math.acos(clamp((l1 * l1 + d * d - l2 * l2) / (2 * l1 * d), -1, 1)), ang = a + bend * A;
+  const E = [S[0] + Math.cos(ang) * l1, S[1] + Math.sin(ang) * l1], Wr = [S[0] + dx / d0 * d, S[1] + dy / d0 * d];
+  return { E, W: Wr, reach: d0 / (l1 + l2) };
+}
+
+/* ---------- resortes: cadenas Verlet (pelo, capa) ---------- */
+const SPR = new Map();
+function chainStep(key, root, rest, n, seg, o, ticks) {
+  let st = SPR.get(key);
+  if (!st || st.p.length !== n + 1) {
+    const p = [root.slice()]; for (let i = 1; i <= n; i++) p.push(add(p[i - 1], rest(i), seg));
+    st = { p, q: p.map(v => v.slice()) }; SPR.set(key, st);
+  }
+  const P = st.p, Q = st.q, damp = o.damp ?? .9, g = o.grav ?? 0, stiff = o.stiff ?? .2;
+  for (let t = 0; t < ticks; t++) {
+    P[0] = root.slice(); Q[0] = root.slice();
+    for (let i = 1; i <= n; i++) {
+      const vx = (P[i][0] - Q[i][0]) * damp, vy = (P[i][1] - Q[i][1]) * damp;
+      Q[i][0] = P[i][0]; Q[i][1] = P[i][1]; P[i][0] += vx + (o.wind || 0); P[i][1] += vy + g;
+    }
+    for (let i = 1; i <= n; i++) {
+      const k = stiff * (1 - .55 * (i - 1) / n), tg = add(P[i - 1], rest(i), seg);
+      P[i][0] = lerp(P[i][0], tg[0], k); P[i][1] = lerp(P[i][1], tg[1], k);
+      const d = sub(P[i], P[i - 1]), l = len(d) || 1;
+      P[i] = add(P[i - 1], d, seg / l);
+    }
+  }
+  if (!ticks) P[0] = root.slice();
+  return P;
+}
+
+/* ---------- tela: rejilla Verlet colgada de una fila de anclas (pelo-manta y capa) ----------
+   anchors: puntos en pantalla de la fila superior (fijos); lens: largo de cada columna en unidades.
+   o: {stiff, grav, damp, fl (abre hacia fuera), bias (empuje lateral), hs (ancho de filas / ancho arriba), spread} */
+function clothStep(key, anchors, R, lens, o, ticks) {
+  const C = anchors.length;
+  const cx = anchors.reduce((a, p) => a + p[0], 0) / C;
+  let hw = o.hwMin || 1; for (const p of anchors) hw = Math.max(hw, Math.abs(p[0] - cx));
+  const dir = c => nrm2([(o.fl || 0) * (anchors[c][0] - cx) / hw + (o.bias || 0), o.dy ?? 1]);
+  let st = SPR.get(key);
+  if (!st || st.C !== C || st.R !== R) {
+    const P = []; for (let r = 0; r <= R; r++) P.push(anchors.map((a, c) => add(a, dir(c), lens[c] * r / R)));
+    st = { P, Q: P.map(row => row.map(v => v.slice())), C, R }; SPR.set(key, st);
+  }
+  const P = st.P, Q = st.Q, damp = o.damp ?? .9, g = o.grav ?? 0, stiff = o.stiff ?? .2, hs = o.hs ?? 1;
+  const restH = []; for (let c = 0; c < C - 1; c++) restH.push(len(sub(anchors[c + 1], anchors[c])) * hs);
+  for (let t = 0; t < ticks; t++) {
+    for (let c = 0; c < C; c++) { P[0][c] = anchors[c].slice(); Q[0][c] = anchors[c].slice(); }
+    for (let r = 1; r <= R; r++) for (let c = 0; c < C; c++) {
+      const p = P[r][c], q = Q[r][c], vx = (p[0] - q[0]) * damp, vy = (p[1] - q[1]) * damp;
+      q[0] = p[0]; q[1] = p[1]; p[0] += vx; p[1] += vy + g;
+    }
+    for (let it = 0; it < 2; it++) {
+      for (let r = 1; r <= R; r++) {
+        const k = stiff * (1 - .5 * (r - 1) / R), grow = 1 + (o.spread || 0) * r / R;
+        for (let c = 0; c < C; c++) {
+          const seg = lens[c] / R, tg = add(P[r - 1][c], dir(c), seg), p = P[r][c];
+          p[0] = lerp(p[0], tg[0], k); p[1] = lerp(p[1], tg[1], k);
+          const d = sub(p, P[r - 1][c]), l = len(d) || 1; P[r][c] = add(P[r - 1][c], d, seg / l);
+          if (o.floor !== undefined && P[r][c][1] > o.floor) { P[r][c][1] = o.floor; Q[r][c][0] = lerp(Q[r][c][0], P[r][c][0], .3); }
+        }
+        for (let c = 0; c < C - 1; c++) {
+          const a = P[r][c], b = P[r][c + 1], d = sub(b, a), l = len(d) || 1, e = (l - restH[c] * grow) / l * .5 * (o.hk ?? .6);
+          a[0] += d[0] * e; a[1] += d[1] * e; b[0] -= d[0] * e; b[1] -= d[1] * e;
+        }
+      }
+    }
+  }
+  if (!ticks) for (let c = 0; c < C; c++) P[0][c] = anchors[c].slice();
+  return P;
+}
+/* contorno de la tela con su «corte»: recto, en puntas o en flecos alternos */
+function clothPoly(P, cut, tip) {
+  const R = P.length - 1, C = P[0].length, o = [];
+  for (let r = 0; r <= R; r++) o.push(P[r][0]);
+  for (let c = 0; c < C; c++) {
+    if (c > 0) o.push(P[R][c]);
+    if (c < C - 1 && tip > 0 && cut !== 'recto') {
+      const a = P[R][c], b = P[R][c + 1], d = nrm2(add(sub(a, P[R - 1][c]), sub(b, P[R - 1][c + 1])));
+      const tl = tip * (cut === 'flecos' ? (c % 2 ? 1 : .55) : (.75 + .25 * Math.sin(c * 2.7)));
+      const tp_ = add([(a[0] + b[0]) / 2, (a[1] + b[1]) / 2], d, tl); tp_.push(true); o.push(tp_);
+    }
+  }
+  for (let r = R - 1; r >= 0; r--) o.push(P[r][C - 1]);
+  for (let c = C - 2; c >= 1; c--) o.push(P[0][c]);
+  return o;
+}
+
+/* =====================================================================
+   RIG DE CABEZA 2.5D
+   Volúmenes en 3D (unidades de cabeza: cráneo ≈ radio 1, y hacia abajo, z hacia el espectador):
+   cráneo elipsoide + mandíbula (envolvente) + «quilla» (perfil: frente, nariz, labios, mentón) + orejas.
+   Se proyectan y se unen: la silueta sale sola en frente, ¾ y perfil. Nada de cabeza-círculo.
+   ===================================================================== */
+const SK = { c: [0, -0.1, -0.1], r: [0.8, 1, 0.95] };
+const HP = [0, 0.62, -0.22];                      // pivote (base del cráneo, sobre el cuello)
+const JAW = [[0.62, 0.12, 0.38], [0.56, 0.52, 0.02], [0.33, 0.8, 0.48], [0.16, 0.97, 0.64], [0.6, -0.12, 0.15], [0.48, 0.46, -0.38], [0.3, 0.62, -0.3]];
+const JAWALL = JAW.concat(JAW.map(p => [-p[0], p[1], p[2]]), [[0, 1.0, 0.68]]);
+const KEEL = [[0, -0.8, 0.62], [0, -0.52, 0.83], [0, -0.25, 0.9], [0, -0.12, 0.85], [0, 0.02, 0.92], [0, 0.24, 1.08], [0, 0.31, 1.08], [0, 0.36, 0.98], [0, 0.4, 0.93], [0, 0.47, 0.97], [0, 0.54, 0.94], [0, 0.585, 0.95], [0, 0.66, 0.91], [0, 0.74, 0.86], [0, 0.85, 0.91], [0, 0.95, 0.84], [0, 1.0, 0.64], [0, 0.96, 0.4], [0, 0.5, 0.25], [0, -0.6, 0.2]];
+const NOSE = [[0.07, 0.0, 0.87], [-0.07, 0.0, 0.87], [0, 0.27, 1.09], [0.13, 0.33, 0.92], [-0.13, 0.33, 0.92], [0, 0.385, 0.96], [0.05, 0.12, 0.96], [-0.05, 0.12, 0.96]];
+const earPts = sg => { const o = []; for (let i = 0; i < 12; i++) { const a = i / 12 * TAU; o.push([sg * (0.79 + 0.09 * (0.5 - 0.5 * Math.cos(a))), 0.05 + 0.23 * Math.sin(a), -0.12 + 0.12 * Math.cos(a)]); } return o; };
+const EARS = [earPts(-1), earPts(1)];
+/* superficie de la cara para colocar rasgos: perfil sin nariz menos curvatura lateral */
+const FZY = [[-0.6, 0.8], [-0.3, 0.87], [-0.05, 0.83], [0.2, 0.86], [0.45, 0.91], [0.58, 0.93], [0.8, 0.86], [1.0, 0.75]];
+function faceZ(x, y) { let z = FZY[0][1]; for (let i = 0; i < FZY.length - 1; i++) { const a = FZY[i], b = FZY[i + 1]; if (y >= a[0] && y <= b[0]) z = lerp(a[1], b[1], (y - a[0]) / (b[0] - a[0])); } if (y > 1) z = .75; return z - 1.05 * x * x; }
+
+const HOUSES = { G: { c: '204,42,46', g: '240,182,72' }, R: { c: '60,104,210', g: '206,156,98' }, S: { c: '40,160,92', g: '214,224,224' } };
+const CAST = {
+  anami: { name: 'Anami', sex: 'm', hair: 'corto', house: 'G' },
+  joy: { name: 'Joy', sex: 'f', hair: 'salvaje', house: 'G' },
+  draco: { name: 'Draconida', sex: 'f', hair: 'raya', house: 'S', tilt: .2, hoops: true, hairCol: '226,200,140' },   // raya al lado, un lado tras la oreja, aros, cabeza ladeada
+  damien: { name: 'Damien', sex: 'm', hair: 'peinado', house: 'R' },
+};
+/* pelo: casquete (malla sobre un elipsoide algo mayor, cortada en la línea del pelo) + mechones con resorte */
+/* pelo = casquete (malla) + «mantas»: telas colgadas de la línea del pelo, cortadas para cada peinado.
+   capa: back = detrás de cuerpo y cabeza · mid = delante del busto, detrás de la cara · front = encima de todo · auto = según hacia dónde mire */
+const BACKU = [1.35, 1.75, 2.15, 2.55, 2.95, -2.95, -2.55, -2.15, -1.75, -1.35];
+const HAIR = {
+  /* chicos: volumen de casco, pocos gajos grandes (principio de forma tipo avatar, diseño propio) */
+  corto: { k: 1.24, vol: 4, front: 1.05, side: 1.68, back: 2.0, zig: .06, zf: 9, sheets: [
+    { us: [-.95, -.5, -.05, .4, .85], da: -.1, len: .3, shape: c => 1 + .25 * c, R: 2, cut: 'punta', tip: .3, stiff: .6, grav: .003, fl: .25, bf: .35, layer: 'front' },
+    { bar: { c: [0, -0.95, -0.4], hw: .7, n: 6 }, len: .26, R: 2, cut: 'punta', tip: .38, stiff: .75, grav: .002, fl: 1.6, dy: -.7, layer: 'back' },
+    { us: [1.2, 1.45, 1.7], da: -.15, len: .42, R: 2, cut: 'punta', tip: .22, stiff: .6, grav: .003, fl: .3, layer: 'auto' },
+    { us: [-1.2, -1.45, -1.7], da: -.15, len: .42, R: 2, cut: 'punta', tip: .22, stiff: .6, grav: .003, fl: .3, layer: 'auto' },
+    { bar: { c: [0, 0.15, -0.72], hw: .66, n: 5 }, len: .28, R: 2, cut: 'punta', tip: .2, stiff: .6, grav: .003, fl: .5, layer: 'back' }] },
+  salvaje: { k: 1.17, front: 1.0, side: 1.8, back: 2.1, zig: .05, zf: 7, sheets: [
+    { bar: { c: [0, -0.38, -0.5], hw: .88, n: 9 }, len: 1.8, shape: c => 1 - .15 * c * c, R: 6, cut: 'punta', tip: .34, stiff: .12, grav: .014, fl: .85, hs: 1, spread: .7, layer: 'back' },
+    { us: [.72, .95, 1.18], da: -.06, len: 1.4, shape: c => 1 + .12 * c, R: 5, cut: 'punta', tip: .32, stiff: .13, grav: .012, fl: .8, hs: .9, spread: .9, layer: 'auto' },
+    { us: [-.72, -.95, -1.18], da: -.06, len: 1.4, shape: c => 1 + .12 * c, R: 5, cut: 'punta', tip: .32, stiff: .13, grav: .012, fl: .8, hs: .9, spread: .9, layer: 'auto' }] },
+  lacio: { k: 1.06, front: 1.06, side: 1.85, back: 2.2, zig: 0, zf: 1, sheets: [
+    { bar: { c: [0, -0.2, -0.55], hw: .82, n: 8 }, len: 2.15, R: 6, cut: 'recto', tip: 0, stiff: .3, grav: .012, fl: .25, hs: .7, layer: 'back' },
+    { us: [.62, .88, 1.14], da: -.05, len: 1.95, R: 6, cut: 'recto', tip: 0, stiff: .3, grav: .012, fl: .1, hs: .85, layer: 'auto' },
+    { us: [-.62, -.88, -1.14], da: -.05, len: 1.95, R: 6, cut: 'recto', tip: 0, stiff: .3, grav: .012, fl: .1, hs: .85, layer: 'auto' }] },
+  /* Draconida: raya al lado; el lado +u va recogido tras la oreja (la deja ver), el otro cae por delante del hombro */
+  raya: { k: 1.06, front: 1.02, side: 1.85, sideTuck: 1.38, back: 2.2, zig: 0, zf: 1, sheets: [
+    { bar: { c: [0, -0.25, -0.55], hw: .84, n: 8 }, len: 2.3, R: 6, cut: 'recto', tip: 0, stiff: .3, grav: .012, fl: .22, hs: .72, layer: 'back' },
+    { us: [-.72, -.98, -1.25], da: -.04, len: 2.05, shape: c => 1 - .06 * c, R: 6, cut: 'recto', tip: 0, stiff: .28, grav: .012, fl: .3, hs: .9, bf: -.55, layer: 'auto' },
+    { us: [-.12, -.42, -.72], da: -.02, len: .3, shape: c => .75 + .25 * (c + 1) / 2, R: 2, cut: 'recto', tip: 0, stiff: .7, grav: .003, fl: .2, bias: -.7, layer: 'front' }] },
+  peinado: { k: 1.12, vol: 4, front: .92, side: 1.6, back: 1.95, zig: .09, zf: 5, sheets: [
+    { us: [-.75, -.38, 0, .38, .75], da: .02, len: .9, shape: c => 1 - .3 * c * c, R: 3, cut: 'punta', tip: .14, stiff: .8, grav: .002, fl: .25, bf: -1.2, dy: -1.5, layer: 'front' },
+    { bar: { c: [0, 0.12, -0.72], hw: .6, n: 5 }, len: .2, R: 2, cut: 'punta', tip: .2, stiff: .65, grav: .003, fl: .5, bf: -.4, layer: 'back' },
+    { us: [1.25, 1.55], da: -.12, len: .26, R: 2, cut: 'punta', tip: .16, stiff: .6, grav: .003, fl: .2, layer: 'auto' },
+    { us: [-1.25, -1.55], da: -.12, len: .26, R: 2, cut: 'punta', tip: .16, stiff: .6, grav: .003, fl: .2, layer: 'auto' }] },
+};
+function hairline(hs, u) {
+  const au = Math.abs(u);
+  const side = hs.sideTuck && u > 0 ? hs.sideTuck : hs.side;
+  const base = au < PI / 2 ? lerp(hs.front, side, sm(au / (PI / 2))) : lerp(side, hs.back, sm((au - PI / 2) / (PI / 2)));
+  return base + hs.zig * Math.sin(u * hs.zf) * (au < PI / 2 ? 1 : .5);
+}
+/* expresiones: cejas (dentro/fuera, + = baja), apertura de ojos, sonrisa, boca abierta, cabeceo e inclinación */
+const EXPR = {
+  neutral: { bi: 0, bo: 0, op: .8, sm: 0, mo: 0, pi: 0, ro: 0 },
+  decidida: { bi: .95, bo: -.15, op: .6, sm: -.15, mo: 0, pi: -.07, ro: 0 },
+  dolor: { bi: -.95, bo: .35, op: .35, sm: -.5, mo: .3, pi: -.1, ro: .09 },
+  miedo: { bi: -.8, bo: -.7, op: 1.1, sm: -.3, mo: .6, pi: .06, ro: -.03 },
+  ternura: { bi: -.3, bo: .15, op: .4, sm: .6, mo: 0, pi: -.08, ro: .13 },
+};
+const EXN = { neutral: 'Neutral', decidida: 'Decidida', dolor: 'Dolor', miedo: 'Miedo', ternura: 'Ternura' };
+
+/* o: {x,y (pivote en pantalla), s (u por unidad de cabeza), yaw, pitch, roll, bYaw, who, ex, key, ticks, feats} */
+function headRig(o) {
+  const cw = CAST[o.who], hs = HAIR[cw.hair], fem = cw.sex === 'f', ex = o.ex;
+  const yaw = o.yaw, pitch = o.pitch + (ex.pi || 0), roll = o.roll + (ex.ro || 0) + (cw.tilt || 0), s = o.s;   // tilt: gesto propio del personaje
+  const cr = Math.cos(roll), sr = Math.sin(roll);
+  const scr = q => { const x = q[0] * s, y = q[1] * s; return [o.x + x * cr - y * sr, o.y + x * sr + y * cr]; };
+  const jx = fem ? .9 : 1;
+  const Hd = p => { const q = rot3([p[0] - HP[0], p[1] - HP[1], p[2] - HP[2]], yaw, pitch); const v = scr(q); v.push(q[2]); return v; };
+  const Nr = n => { const q = rot3(n, yaw, pitch); return [q[0] * cr - q[1] * sr, q[0] * sr + q[1] * cr, q[2]]; };
+  const Bs = p => { const q = rot3([p[0] - HP[0], p[1] - HP[1], p[2] - HP[2]], o.bYaw, 0); return [o.x + q[0] * s, o.y + q[1] * s, q[2]]; };
+  const rel = c => [c[0] - HP[0], c[1] - HP[1], c[2] - HP[2]];
+  /* --- volúmenes --- */
+  const skull = ellSil(rel(SK.c), SK.r, yaw, pitch, 44).map(scr);
+  const jaw = hull(JAWALL.map(p => Hd([p[0] * jx, p[1], p[2]])));
+  const keel = KEEL.map(p => Hd(fem && p[1] > .2 && p[1] < .4 ? [p[0], p[1], p[2] - .04] : p));
+  const ears = EARS.map(e => e.map(Hd));
+  const nose = hull(NOSE.map(Hd));
+  const headU = [skull, jaw, keel, ...ears];
+  /* cuello y busto (giran menos que la cabeza) */
+  const nTop = ellSil(rel([0, 0.45, -0.22]), [0.3, 0.01, 0.3], o.bYaw, 0, 20).map(q => [o.x + q[0] * s, o.y + q[1] * s]);
+  const nBot = ellSil(rel([0, 1.8, -0.12]), [0.4, 0.01, 0.36], o.bYaw, 0, 20).map(q => [o.x + q[0] * s, o.y + q[1] * s]);
+  const neck = hull(nTop.concat(nBot));
+  const BU = [[-0.4, 1.08, 0.04], [-1.0, 1.3, -0.12], [-1.55, 1.58, -0.2], [-1.82, 2.08, -0.2], [-1.95, 3.8, -0.2], [1.95, 3.8, -0.2], [1.82, 2.08, -0.2], [1.55, 1.58, -0.2], [1.0, 1.3, -0.12], [0.4, 1.08, 0.04], [0, 1.72, 0.42]].map(Bs);
+  const trim = [[[-0.4, 1.08, 0.04], [0, 1.72, 0.42], [0.4, 1.08, 0.04]].map(Bs)];
+  /* uniforme: camisa, cuello y corbata a rayas dentro de la V */
+  const shirt = [[[-0.36, 1.12, 0.06], [0.36, 1.12, 0.06], [0, 1.72, 0.42]].map(Bs)];
+  const collar = [[[-0.42, 1.05, 0.05], [-0.02, 1.3, 0.44], [-0.3, 1.46, 0.3]].map(Bs), [[0.42, 1.05, 0.05], [0.02, 1.3, 0.44], [0.3, 1.46, 0.3]].map(Bs)];
+  const tie = [[[-0.07, 1.27, 0.45], [0.07, 1.27, 0.45], [0.06, 1.37, 0.45], [0.11, 1.74, 0.43], [0, 1.84, 0.43], [-0.11, 1.74, 0.43], [-0.06, 1.37, 0.45]].map(Bs)];
+  const tieStripes = [0, 1, 2, 3].map(i => { const y = 1.42 + i * .09; return [[-0.1, y + .05, 0.45], [0.1, y - .03, 0.45]].map(Bs); });
+  /* --- casquete de pelo: malla culled por normales --- */
+  const NU = 28, NV = 7, G = [];
+  for (let i = 0; i <= NU; i++) {
+    const u = -PI + i / NU * TAU, hl = hairline(hs, u), col = [];
+    for (let j = 0; j <= NV; j++) {
+      const a = j / NV * hl, d = [Math.sin(a) * Math.sin(u), -Math.cos(a), Math.sin(a) * Math.cos(u)], kk = lerp(hs.k, 1.012, Math.pow(j / NV, hs.vol || 2.2));
+      const p = [SK.c[0] + SK.r[0] * d[0] * kk, SK.c[1] + SK.r[1] * d[1] * kk, SK.c[2] + SK.r[2] * d[2] * kk];
+      col.push({ v: Hd(p), nz: Nr(n3([d[0] / SK.r[0], d[1] / SK.r[1], d[2] / SK.r[2]]))[2] });
+    }
+    G.push(col);
+  }
+  const cap = [];
+  for (let i = 0; i < NU; i++) for (let j = 0; j < NV; j++) {
+    const a = G[i][j], b = G[i + 1][j], c = G[i + 1][j + 1], d = G[i][j + 1];
+    if ((a.nz + b.nz + c.nz + d.nz) / 4 > -0.12) cap.push([a.v, b.v, c.v, d.v]);
+  }
+  /* --- mantas de pelo (tela con resorte) --- */
+  const back = [], mid = [], front = [], face2 = Nr([0, 0, 1]);
+  hs.sheets.forEach((sh, idx) => {
+    const C = sh.bar ? sh.bar.n : sh.us.length, anchors = [], lens = []; let nzs = 0;
+    if (sh.bar) {   // manta trasera: barra fija en pantalla detrás de la cabeza (nunca se pliega al girar)
+      const ce = Hd(sh.bar.c), bw = sh.bar.hw * lerp(.4, 1, Math.abs(Math.cos(yaw)));
+      for (let c = 0; c < C; c++) { const cn = c / (C - 1) * 2 - 1; anchors.push([ce[0] + cr * cn * bw * s, ce[1] + sr * cn * bw * s]); lens.push(sh.len * s * (sh.shape ? sh.shape(cn) : 1)); }
+      nzs = -C;
+    } else sh.us.forEach((u, c) => {
+      const a = sh.a ?? (hairline(hs, u) + (sh.da || 0)), d = [Math.sin(a) * Math.sin(u), -Math.cos(a), Math.sin(a) * Math.cos(u)];
+      const p = [SK.c[0] + SK.r[0] * d[0] * 1.03, SK.c[1] + SK.r[1] * d[1] * 1.03, SK.c[2] + SK.r[2] * d[2] * 1.03];
+      const v = Hd(p); anchors.push([v[0], v[1]]); nzs += Nr(n3([d[0] / SK.r[0], d[1] / SK.r[1], d[2] / SK.r[2]]))[2];
+      const cn = C > 1 ? c / (C - 1) * 2 - 1 : 0; lens.push(sh.len * s * (sh.shape ? sh.shape(cn) : 1));
+    });
+    const P = clothStep(o.key + ':m' + idx, anchors, sh.R, lens, { stiff: sh.stiff, grav: sh.grav * s, damp: .9, fl: sh.fl, hs: sh.hs ?? 1, spread: sh.spread || 0, dy: sh.dy ?? 1, bias: (sh.bias || 0) + (sh.bf || 0) * face2[0], hwMin: s * (sh.bar ? sh.bar.hw : .35) }, o.ticks);
+    const poly = clothPoly(P, sh.cut, sh.tip * s), nz = nzs / C;
+    (sh.layer === 'back' ? back : sh.layer === 'front' ? front : nz > .85 ? front : mid).push(poly);
+  });
+  /* --- rasgos (proyectados en la superficie de la cara) --- */
+  const F = { eyes: [], brows: [], mouth: [], sockets: [], earLine: null };
+  const fp = (x, y) => Hd([x, y, faceZ(x, y)]);
+  const vis = x => sm((Nr(n3([2.1 * x, 0, 1]))[2] - 0.08) / 0.3);
+  for (const sg of [-1, 1]) {
+    const ex0 = sg * 0.3, ey = -0.04, op = ex.op, av = vis(ex0);
+    const up = [], lo = [];
+    for (let k = 0; k <= 6; k++) { const t = k / 3 - 1, x = ex0 + t * 0.13 * sg; up.push(fp(x, ey - (op * 0.075 - 0.018) * (1 - t * t) - (t * sg > 0 ? .01 : 0))); lo.push(fp(x, ey + op * 0.036 * (1 - t * t) + .006)); }
+    const iris = op > .25 ? { c: fp(ex0 + (o.gaze || 0) * .05, ey - .004), r: 0.043 * s * Math.max(.35, Nr(n3([2.1 * ex0, 0, 1]))[2]) } : null;
+    F.eyes.push({ up, lo, iris, a: av, op });
+    const bi = ex.bi, bo = ex.bo;
+    const br = [fp(sg * 0.13, -0.19 + bi * 0.065), fp(sg * 0.29, -0.235 + (bi + bo) * 0.022), fp(sg * 0.45, -0.19 + bo * 0.05)];
+    F.brows.push({ pts: br, a: av });
+    const so = [fp(sg * 0.11, -0.17 + bi * 0.06), fp(sg * 0.29, -0.215 + (bi + bo) * 0.02), fp(sg * 0.47, -0.17 + bo * 0.045), fp(sg * 0.46, -0.01), fp(sg * 0.3, 0.06), fp(sg * 0.14, 0.01)];
+    F.sockets.push({ pts: so, a: av });
+  }
+  for (const sg of [-1, 1]) {
+    const up = [], lo = [];
+    for (let k = 0; k <= 4; k++) { const x = sg * k / 4 * 0.19, f = (x / 0.19) ** 2; up.push(fp(x, 0.575 - ex.sm * 0.045 * f)); lo.push(fp(x, 0.575 - ex.sm * 0.045 * f + ex.mo * 0.065 * (1 - f))); }
+    F.mouth.push({ up, lo, a: vis(sg * 0.12), open: ex.mo });
+  }
+  const nearEar = Nr([-1, 0, 0])[2] > 0 ? 0 : 1, eA = sm((Math.abs(Nr([nearEar ? 1 : -1, 0, 0])[2]) - .25) / .4);
+  if (eA > .01) { const e = EARS[nearEar].map(Hd), m = e.length; F.earLine = { pts: [e[1], e[3], e[5], e[7], e[8]], a: eA }; }
+  /* aros: anillos en un plano casi lateral, colgando del lóbulo (de frente se ven de canto, de perfil redondos) */
+  const hoops = [];
+  if (cw.hoops) for (const sg of [-1, 1]) {
+    const c = [sg * 0.84, 0.47, -0.1], pts = [];
+    for (let i = 0; i <= 24; i++) { const th = i / 24 * TAU; pts.push(Hd([c[0] + sg * Math.sin(th) * .17 * .45, c[1] + Math.cos(th) * .17, c[2] + Math.sin(th) * .17 * .9])); }
+    hoops.push({ pts, tucked: sg > 0 && !!hs.sideTuck, a: clamp(Nr([sg, 0, 0])[2] + .9) });
+  }
+  return { skull, jaw, keel, ears, nose, headU, neck, bust: [BU], trim, shirt, collar, tie, tieStripes, hoops, cap, back, mid, front, F, s, pivot: [o.x, o.y], face2, house: cw.house, who: o.who,
+    vol: { skull, jaw, keel, nose } };
+}
+
+/* =====================================================================
+   RIG DE MANO: palma + 5 dedos de 3 falanges, vista lateral (pulgar hacia el espectador).
+   Unidades de mano: muñeca en (0,0), dedos hacia +x, palma hacia +y. Largo muñeca→punta ≈ 1.
+   Ángulos positivos doblan hacia la palma.
+   ===================================================================== */
+const FING = [ // base, largos de falanges, grosor, abanico
+  { b: [0.40, 0.11], L: [0.16, 0.10, 0.08], w: .062, sp: .5 },   // meñique
+  { b: [0.44, 0.045], L: [0.22, 0.135, 0.095], w: .07, sp: .2 }, // anular
+  { b: [0.46, -0.025], L: [0.245, 0.15, 0.1], w: .074, sp: -.08 }, // medio
+  { b: [0.44, -0.09], L: [0.215, 0.13, 0.095], w: .07, sp: -.36 }, // índice
+];
+const THUMB = { b: [0.1, 0.03], L: [0.2, 0.15, 0.115], w: .085, a0: .15 };
+/* curl: [pulgar, índice, medio, anular, meñique]; claw: garra (base recta, puntas dobladas) */
+const HPOSE = {
+  abierta: { c: [-.1, -.05, -.05, -.05, -.05], sp: 1, claw: 0, th: -.6 },
+  relajada: { c: [.2, .22, .3, .36, .44], sp: .35, claw: .1, th: -.2 },
+  puño: { c: [.6, 1, 1, 1, 1], sp: 0, claw: 0, th: .05 },
+  señalar: { c: [.6, -.05, 1, 1, 1], sp: .1, claw: 0, th: .1 },
+  varita: { c: [.22, .16, .8, .88, .93], sp: 0, claw: .1, th: -.08 },
+  garra: { c: [.5, .55, .6, .66, .72], sp: .8, claw: 1, th: -.4 },
+  alcanzar: { c: [.05, .08, .14, .2, .27], sp: .75, claw: 0, th: -.45 },
+};
+const HPN = { abierta: 'Abierta', relajada: 'Relajada', puño: 'Puño', señalar: 'Señalar', varita: 'Varita', garra: 'Garra', alcanzar: 'Alcanzar' };
+function mixHP(a, b, t) { return { c: a.c.map((v, i) => lerp(v, b.c[i], t)), sp: lerp(a.sp, b.sp, t), claw: lerp(a.claw, b.claw, t), th: lerp(a.th, b.th, t) }; }
+
+/* o: {x,y, s, ang, flip, pose, wand} → piezas ordenadas de atrás adelante */
+function handRig(o) {
+  const ca = Math.cos(o.ang), sa = Math.sin(o.ang), fy = o.flip ? -1 : 1, s = o.s, ps = o.pose;
+  const T = p => { const x = p[0] * s, y = p[1] * s * fy; return [o.x + x * ca - y * sa, o.y + x * sa + y * ca]; };
+  const finger = (f, curl, spread, claw) => {
+    const j = [curl * (1.45 - claw * .95), curl * (1.5 + claw * .55), curl * (1.0 + claw * .5)];
+    let th = f.sp * spread * .9 + curl * .1, p = f.b; const polys = [], pts = [p];
+    for (let k = 0; k < 3; k++) { th += j[k]; const q = [p[0] + Math.cos(th) * f.L[k], p[1] + Math.sin(th) * f.L[k]]; polys.push(capsulePts(T(p), T(q), f.w * s * (1 - k * .1), f.w * s * (.9 - k * .12), 4)); pts.push(q); p = q; }
+    return { polys, tip: T(p), pts: pts.map(T) };
+  };
+  const fingers = FING.map((f, i) => finger(f, ps.c[4 - i], ps.sp, ps.claw));
+  const tc = ps.c[0], tj = [tc * .15, tc * .45, tc * .6];
+  let th = THUMB.a0 + ps.th, p = THUMB.b; const tpolys = [];
+  for (let k = 0; k < 3; k++) { th += tj[k]; const q = [p[0] + Math.cos(th) * THUMB.L[k], p[1] + Math.sin(th) * THUMB.L[k]]; tpolys.push(capsulePts(T(p), T(q), THUMB.w * s * (1.15 - k * .15), THUMB.w * s * (.95 - k * .12), 4)); p = q; }
+  const thumb = { polys: tpolys, tip: T(p) };
+  const palm = [[-.02, -.12], [.14, -.15], [.32, -.13], [.47, -.1], [.5, -.02], [.47, .07], [.42, .15], [.22, .175], [.06, .15], [-.02, .12]].map(T);
+  const wrist = capsulePts(T([-.16, 0]), T([0, 0]), .13 * s, .12 * s, 4);   // muñón corto: el resto lo tapa la manga
+  const pieces = [
+    ...(o.noWrist ? [] : [{ k: 'skin', polys: [wrist], sep: false }]),   // con manga, la muñeca la tapa la tela: sin ella la mano no «flota»
+    ...fingers.slice(0, 3).map(f => ({ k: 'skin', polys: f.polys, sep: true })),
+    { k: 'skin', polys: [palm], sep: true },
+  ];
+  if (o.wand) {   // agarre de puntero: el índice va a lo largo, el pulgar al lado, el mango asoma por debajo del meñique
+    const L = (x, y) => T([x, y]), dl = nrm2([.6, -.17]), at = (d) => [.5 + dl[0] * d, .03 + dl[1] * d];
+    let butt = L(-.14, .2), hEnd = L(...at(.3)), tip = L(...at(2.0));
+    if (o.wandTo) { const g = L(...at(.12)), d = nrm2(sub(o.wandTo, g)); tip = o.wandTo; butt = add(g, d, -.32 * s); hEnd = add(g, d, .16 * s); }   // la punta va donde la escena la necesita
+    const polys = [capsulePts(butt, hEnd, .05 * s, .042 * s, 3), capsulePts(hEnd, tip, .032 * s, .013 * s, 3)];
+    for (const d of [.62, 1.05, 1.45]) { const f = (d - .3) / 1.7; polys.push(circ([lerp(hEnd[0], tip[0], f), lerp(hEnd[1], tip[1], f)], (.04 - d * .008) * s, 8)); }
+    pieces.push({ k: 'wood', polys, sep: true, tip });
+  }
+  pieces.push({ k: 'skin', polys: fingers[3].polys, sep: true }, { k: 'skin', polys: thumb.polys, sep: true });
+  const all = pieces.flatMap(p => p.polys);
+  return { pieces, all, fingers, thumb, s, wandTip: o.wand ? pieces.find(p => p.k === 'wood').tip : null };
+}
+/* «manopla»: la mano de las películas actuales (para comparar a escala de plano general) */
+function mittenRig(o) {
+  const ca = Math.cos(o.ang), sa = Math.sin(o.ang), s = o.s;
+  const T = p => { const x = p[0] * s, y = p[1] * s; return [o.x + x * ca - y * sa, o.y + x * sa + y * ca]; };
+  const c = [T([0, 0]), 0.25 * s];
+  return { all: [capsulePts(T([-.3, 0]), T([.2, .02]), .15 * s, .2 * s, 5)] };
+}
+
+/* =====================================================================
+   RIG DE CUERPO
+   1) La pose sale de articulaciones J (cadera, cuello, rodillas, pies, codos, muñecas).
+      Las da la IK (bodyRig) o la física (ragdoll): el vestido es el mismo.
+   2) dressBody convierte J en piezas: capa (tela), piernas, túnica, cabeza 2.5D, brazos y manos.
+   Unidades de figura: alto ≈ 100, suelo en y = 0, mirando a +x (flip la refleja).
+   ===================================================================== */
+function figX(o) { const sg = o.flip ? -1 : 1; return p => [o.x0 + sg * p[0] * o.k, o.y0 + p[1] * o.k]; }
+function bodyRig(o) {
+  const t = o.t, T = o.target;
+  const F1 = [-7, 0], F2 = [9, 0];
+  const Hp = [1.2 * Math.sin(t * .7), -o.hy];
+  const lean = .06 + .14 * clamp((T[0] - 12) / 40, -1, 1) + o.crouchK * .25;
+  const u = [Math.sin(lean), -Math.cos(lean)], r = [Math.cos(lean), Math.sin(lean)];
+  const tp = (a, b) => [Hp[0] + r[0] * a + u[0] * b, Hp[1] + r[1] * a + u[1] * b];
+  const L1 = ik2(Hp, F1, 24, 25, -1), L2 = ik2(Hp, F2, 24, 25, -1);
+  const Sn = tp(1.5, 27.5), Sf = tp(-1.2, 28);
+  const A = ik2(Sn, T, 14.5, 13.5, 1);
+  const Tf = [Sf[0] + 2.5 + 1.5 * Math.sin(t * 1.1), Sf[1] + 26];
+  const B = ik2(Sf, Tf, 14.5, 13.5, 1);
+  const J = { Hp, lean, K1: L1.E, F1, K2: L2.E, F2, Sn, En: A.E, Wn: A.W, Sf, Ef: B.E, Wf: B.W, t };
+  const eyeY = tp(0, 38)[1];
+  const D = dressBody(J, { ...o, pitch: clamp(-(T[1] - eyeY) / 70, -.35, .45), nearPose: o.wand ? HPOSE.varita : mixHP(HPOSE.relajada, HPOSE.alcanzar, sm((A.reach - .55) / .35)) });
+  D.bones = [[Hp, L1.E, F1], [Hp, L2.E, F2], [Sn, A.E, A.W], [Sf, B.E, B.W], [Hp, tp(0, 30)]].map(c => c.map(D.X));
+  D.target = D.X(T);
+  return D;
+}
+function dressBody(J, o) {
+  const k = o.k, X = figX(o), cw = CAST[o.who], fem = cw.sex === 'f', fl = !!o.flip, t = J.t;
+  const { Hp, lean } = J;
+  const u = [Math.sin(lean), -Math.cos(lean)], r = [Math.cos(lean), Math.sin(lean)];
+  const tp = (a, b) => [Hp[0] + r[0] * a + u[0] * b, Hp[1] + r[1] * a + u[1] * b];
+  const parts = [];
+  /* capa: la misma tela que el pelo (anclas en pantalla, así sirve con flip) */
+  const anc = [tp(2.5, 29.6), tp(-.6, 30.2), tp(-3.6, 30.2), tp(-6.6, 29.6)].map(X);
+  const sgn = fl ? -1 : 1;
+  const CP = clothStep(o.key + ':capa', anc, 7, [60, 63, 66, 69].map(v => v * k), { stiff: o.capeStiff ?? .14, grav: .02 * k, damp: .92, fl: .35, bias: sgn * (-.16 - lean * .4), hs: 1, spread: 1.4, floor: o.y0 }, o.ticks);
+  parts.push({ k: 'cloth', polys: [clothPoly(CP, 'recto', 0)], trimLine: CP.map(row => row[row.length - 1]) });
+  const arm = (S, E, Wr) => {
+    const d = nrm2(sub(X(Wr), X(E))), pp = perp(d), q = fl ? -1 : 1;
+    const sleeve = [add(X(E), pp, 3.4 * k * q), add(X(Wr), pp, 4.6 * k * q), add(add(X(Wr), d, 1.5 * k), pp, -5.8 * k * q), add(X(E), pp, -3.4 * k * q)];
+    return { k: 'cloth', polys: [capsulePts(X(S), X(E), 4 * k, 3.4 * k, 4), sleeve] };
+  };
+  const hand = (E, Wr, pose, wand, wandTo) => { const a = X(E), b = X(Wr); return handRig({ x: b[0], y: b[1], s: 8.5 * k, ang: Math.atan2(b[1] - a[1], b[0] - a[0]), pose, flip: fl, wand, wandTo, noWrist: true }); };
+  const hf = hand(J.Ef, J.Wf, o.farPose || HPOSE.relajada, false);
+  parts.push(arm(J.Sf, J.Ef, J.Wf), { k: 'skin', polys: hf.all, hand: hf });
+  /* piernas y zapatos (el pie gira con la espinilla: sirve tumbado) */
+  for (const [K, F] of [[J.K1, J.F1], [J.K2, J.F2]]) {
+    const d = nrm2(sub(F, K)), fw = [d[1], -d[0]];
+    const shoe = [add(add(F, fw, -2.4), d, -2.8), add(add(F, fw, 6.4), d, -1.6), add(add(F, fw, 6.8), d, .6), add(add(F, fw, -2.6), d, .8)];
+    parts.push({ k: 'ink', polys: [capsulePts(X(Hp), X(K), 3.8 * k, 3.2 * k, 4), capsulePts(X(K), X(F), 3.2 * k, 2.5 * k, 4), shoe.map(X)] });
+  }
+  /* túnica: torso + faldón en el marco del torso, siguiendo a las rodillas */
+  const fwd = (K) => K[0] * r[0] + K[1] * r[1];
+  const kf = fwd(J.K1) > fwd(J.K2) ? [J.K1, J.F1] : [J.K2, J.F2], kb = kf[0] === J.K1 ? [J.K2, J.F2] : [J.K1, J.F1];
+  const sw = Math.sin(t * 1.6) * .8, hf_ = [lerp(kf[0][0], kf[1][0], .42), lerp(kf[0][1], kf[1][1], .42)], hb_ = [lerp(kb[0][0], kb[1][0], .42), lerp(kb[0][1], kb[1][1], .42)];
+  const skirt = [tp(-7.6, 3), tp(6.8, 3), add(kf[0], r, 4.5), add(hf_, r, 6 + sw), [(hf_[0] + hb_[0]) / 2, (hf_[1] + hb_[1]) / 2], add(hb_, r, -8 - sw), add(kb[0], r, -4.5)];
+  const torso = fem ? [tp(-6.6, 0), tp(-7.4, 9), tp(-6.2, 22), tp(-5, 29.5), tp(4.5, 29.5), tp(6.4, 24), tp(5.6, 12), tp(5.8, 0)]
+    : [tp(-7, 0), tp(-8.2, 10), tp(-7.8, 24), tp(-5, 29.5), tp(4.5, 29.5), tp(7, 25), tp(6.8, 12), tp(6.2, 0)];
+  const n0 = tp(.5, 31.5), neckTop = J.Head ? [lerp(n0[0], J.Head[0], .7), lerp(n0[1], J.Head[1], .7)] : n0;
+  parts.push({ k: 'cloth', polys: [skirt.map(X), torso.map(X), capsulePts(X(tp(0, 28)), X(neckTop), 2.6 * k, 2.4 * k, 3)] });
+  /* cabeza */
+  const piv = X(J.Head ? J.Head : tp(1.7, 33.6));
+  const head = headRig({ x: piv[0], y: piv[1], s: 6.4 * k * (o.headK || 1), yaw: (1.0 + (o.yawAdd || 0)) * sgn, pitch: o.pitch || 0, roll: (J.headRoll ?? lean * .4) * sgn, bYaw: .9 * sgn, who: o.who, ex: o.ex || EXPR.neutral, key: o.key + ':h', ticks: o.ticks });
+  /* brazo cercano y mano */
+  const hn = hand(J.En, J.Wn, o.nearPose || HPOSE.relajada, !!o.wand, o.wandTo);
+  const near = [arm(J.Sn, J.En, J.Wn), { k: 'skin', polys: hn.all, hand: hn }];
+  return { parts, head, near, X, wandTip: hn.wandTip };
+}
+
+/* =====================================================================
+   RAGDOLL ACTIVO: las articulaciones son partículas Verlet unidas por huesos.
+   «Músculo» = resorte hacia la pose animada. Golpe → músculo a 0 → cae, choca, se levanta.
+   ===================================================================== */
+const RJ = ['Hp', 'N', 'Head', 'K1', 'F1', 'K2', 'F2', 'En', 'Wn', 'Ef', 'Wf'];
+const RBONES = [['Hp', 'N', 30], ['N', 'Head', 4.8], ['Hp', 'Head', 33.6], ['Hp', 'K1', 24], ['K1', 'F1', 25], ['Hp', 'K2', 24], ['K2', 'F2', 25],
+  ['N', 'En', 14.5], ['En', 'Wn', 13.5], ['N', 'Ef', 14.5], ['Ef', 'Wf', 13.5], ['K1', 'K2', 4, 'min'], ['Hp', 'F1', 18, 'min'], ['Hp', 'F2', 18, 'min']];
+function standPose(x, t, hy = 47.5, lean = .04) {   // de pie (hy 47.5) o agachado (hy ~30, inclinado)
+  const Hp = [x, -hy], u = [Math.sin(lean), -Math.cos(lean)], r = [Math.cos(lean), Math.sin(lean)];
+  const tp = (a, b) => [Hp[0] + r[0] * a + u[0] * b, Hp[1] + r[1] * a + u[1] * b];
+  const L1 = ik2(Hp, [x - 7, 0], 24, 25, -1), L2 = ik2(Hp, [x + 9, 0], 24, 25, -1), N = tp(.5, 29);
+  const A = ik2(N, [N[0] + 9, N[1] + 22 + Math.sin(t * 1.3)], 14.5, 13.5, 1), B = ik2(N, [N[0] + 2, N[1] + 26], 14.5, 13.5, 1);
+  return { Hp, N, Head: tp(1.7, 33.6), K1: L1.E, F1: [x - 7, 0], K2: L2.E, F2: [x + 9, 0], En: A.E, Wn: A.W, Ef: B.E, Wf: B.W };
+}
+function ragdollNew(x) { const P = standPose(x, 0), st = { p: {}, q: {}, muscle: 1, hitT: -99, impacts: [], home: x }; for (const j of RJ) { st.p[j] = P[j].slice(); st.q[j] = P[j].slice(); } return st; }
+function ragdollStep(st, t, ticks, env) {
+  for (let n = 0; n < ticks; n++) {
+    const since = t - st.hitT;
+    const was = st.muscle;
+    st.muscle = since < 2.0 ? 0 : clamp((since - 2.0) / 5.0);   // 2 s en el suelo + 5 s para levantarse
+    if (was === 0 && st.muscle > 0) st.home = Math.max(env.wall + 16, st.p.Hp[0]);   // se levanta donde cayó
+    const st_ = standPose(st.home, t), cr = standPose(st.home, t, 31, .55), w = sm((st.muscle - .45) / .4), target = {}, damp = .985 - .06 * st.muscle;
+    for (const j of RJ) target[j] = [lerp(cr[j][0], st_[j][0], w), lerp(cr[j][1], st_[j][1], w)];   // primero agachado, luego de pie
+    for (const j of RJ) {   // integrar
+      const p = st.p[j], q = st.q[j], vx = (p[0] - q[0]) * damp, vy = (p[1] - q[1]) * damp;
+      q[0] = p[0]; q[1] = p[1]; p[0] += vx; p[1] += vy + .07 * (1 - st.muscle * .9);
+      // músculo: mezcla cinemática hacia la pose (mueve p y q a la vez: no mete velocidad, no rebota)
+      const m = st.muscle * st.muscle * (j === 'F1' || j === 'F2' ? .3 : .1);
+      if (m > 0) { const dx = (target[j][0] - p[0]) * m, dy = (target[j][1] - p[1]) * m; p[0] += dx; p[1] += dy; q[0] += dx; q[1] += dy; }
+    }
+    for (let it = 0; it < 4; it++) {
+      for (const [a, b, L, kind] of RBONES) {
+        const A = st.p[a], B = st.p[b], d = sub(B, A), l = len(d) || 1e-6;
+        if (kind === 'min' && l >= L) continue;
+        const e = (l - L) / l * .5; A[0] += d[0] * e; A[1] += d[1] * e; B[0] -= d[0] * e; B[1] -= d[1] * e;
+      }
+      for (const [H, K, F] of [['Hp', 'K1', 'F1'], ['Hp', 'K2', 'F2']]) {   // la rodilla no se dobla al revés
+        const h = st.p[H], kk = st.p[K], f = st.p[F], d = sub(f, h), c = d[0] * (kk[1] - h[1]) - d[1] * (kk[0] - h[0]);
+        if (c > 0) { const l2 = d[0] * d[0] + d[1] * d[1] || 1, tt = ((kk[0] - h[0]) * d[0] + (kk[1] - h[1]) * d[1]) / l2, m = add(h, d, tt); kk[0] = lerp(kk[0], 2 * m[0] - kk[0], .5); kk[1] = lerp(kk[1], 2 * m[1] - kk[1], .5); }
+      }
+      for (const j of RJ) {   // suelo y pared
+        const p = st.p[j], q = st.q[j], rad = j === 'Head' ? 7 : j === 'N' || j === 'Hp' ? 6 : 3;
+        if (p[1] > -rad * .4) { p[1] = -rad * .4; q[0] = lerp(q[0], p[0], .25); }
+        if (p[0] < env.wall + rad) {
+          const v = q[0] - p[0];
+          if (v > .9 && st.impacts.length < 6 && t - (st.lastImp || -9) > .25) { st.impacts.push({ x: env.wall, y: p[1], t, v }); st.lastImp = t; env.onImpact && env.onImpact(v); }
+          p[0] = env.wall + rad; q[0] = p[0] + v * .12; q[1] = lerp(q[1], p[1], .3);
+        }
+      }
+    }
+  }
+  st.impacts = st.impacts.filter(i => t - i.t < 3);
+  const P = st.p, dn = sub(P.N, P.Hp), lean = Math.atan2(dn[0], -dn[1]);
+  const r = [Math.cos(lean), Math.sin(lean)], u = [Math.sin(lean), -Math.cos(lean)];
+  const S = add(add(P.Hp, u, 27.5), r, 1.5), Sf = add(add(P.Hp, u, 28), r, -1.2);
+  const dh = sub(P.Head, P.N), headRoll = Math.atan2(dh[0], -dh[1]);
+  return { Hp: P.Hp, lean, K1: P.K1, F1: P.F1, K2: P.K2, F2: P.F2, Sn: S, En: P.En, Wn: P.Wn, Sf, Ef: P.Ef, Wf: P.Wf, Head: P.Head, headRoll, t };
+}
+function ragdollHit(st, t, dir, power) {
+  st.hitT = t;
+  const kick = { Head: 1.25, N: 1.15, En: 1, Ef: 1, Wn: .9, Wf: .9, Hp: .65, K1: .3, K2: .3, F1: .08, F2: .08 };
+  for (const j of RJ) { const v = power * kick[j]; st.q[j][0] = st.p[j][0] - dir * v; st.q[j][1] = st.p[j][1] + v * .35; }
+}
+
+/* =====================================================================
+   PASADAS DE ESTILO. El rig entrega polígonos con etiqueta (piel, pelo, tela…);
+   cada estilo decide cómo pintarlos con las mismas primitivas:
+   fill · shade (núcleo de sombra) · rim (luz de borde) · stroke · blob · trim · bg
+   ===================================================================== */
+const SC = { sil: false, boil: false, t: 0, anchor: [0, 0], house: 'G', who: 'joy' };
+let PAPERPAT = null;
+function paperPat() { // el papel del fondo como patrón alineado a la pantalla: «recortar» con papel exacto
+  if (!PAPERPAT || PAPERPAT._w !== W) { PAPERPAT = ctx.createPattern(PAPER, 'no-repeat'); PAPERPAT._w = W; }
+  PAPERPAT.setTransform(new DOMMatrix([1 / U, 0, 0, 1 / U, -W / 2 / U, -H / 2 / U])); return PAPERPAT;
+}
+let FXB = [0, 0, 1, 1];                            // caja en píxeles de la pasada actual (solo se limpia y compone eso)
+function bboxPx(polys, pad = 0) {
+  let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
+  for (const q of polys) for (const p of q) { if (p[0] < x0) x0 = p[0]; if (p[0] > x1) x1 = p[0]; if (p[1] < y0) y0 = p[1]; if (p[1] > y1) y1 = p[1]; }
+  const a = Math.max(0, Math.floor((x0 - pad) * U + W / 2)), b = Math.max(0, Math.floor((y0 - pad) * U + H / 2));
+  return [a, b, Math.min(W, Math.ceil((x1 + pad) * U + W / 2)) - a, Math.min(H, Math.ceil((y1 + pad) * U + H / 2)) - b];
+}
+function fxBegin(polys) { FXB = polys ? bboxPx(polys, 12) : [0, 0, W, H]; fx.setTransform(1, 0, 0, 1, 0, 0); fx.globalCompositeOperation = 'source-over'; fx.globalAlpha = 1; fx.clearRect(FXB[0], FXB[1], FXB[2], FXB[3]); T0(fx); }
+function fxEnd(mode, a) { const [x, y, w, h] = FXB; if (w <= 0 || h <= 0) return; ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalCompositeOperation = mode; ctx.globalAlpha = clamp(a); ctx.drawImage(FX, x, y, w, h, x, y, w, h); ctx.restore(); }
+/* forma menos forma desplazada: núcleo de sombra (hacia la luz) o luz de borde (alejándose de la luz) */
+/* relleno solo-sombra: dibuja la forma muy lejos y trae su sombra desenfocada de vuelta (borde suave sin filtros) */
+const FAR = 20000;
+function softFill(g, P, dx, dy, blurPx, col = '#000') {
+  if (blurPx < .6) { g.save(); g.translate(dx, dy); if (col !== '#000') g.fillStyle = col; g.fill(P); g.restore(); return; }
+  g.save(); g.translate(dx + FAR, dy); g.fillStyle = '#000'; g.shadowColor = col; g.shadowBlur = blurPx; g.shadowOffsetX = -FAR * g.getTransform().a; g.shadowOffsetY = -FAR * g.getTransform().b; g.fill(P); g.restore();
+}
+function fxSoft(P, shift, blurU) { fx.fillStyle = '#000'; fx.fill(P); fx.globalCompositeOperation = 'destination-out'; softFill(fx, P, shift[0], shift[1], blurU * U); fx.globalCompositeOperation = 'source-over'; }
+function fxCrescent(P, shift, passes) {
+  fx.fillStyle = '#000'; fx.fill(P); fx.globalCompositeOperation = 'destination-out';
+  for (const [k, a] of passes) { fx.save(); fx.translate(shift[0] * k, shift[1] * k); fx.globalAlpha = a; fx.fill(P); fx.restore(); }
+  fx.globalCompositeOperation = 'source-over'; fx.globalAlpha = 1;
+}
+function fxFinish(clipP, style) { fx.globalCompositeOperation = 'destination-in'; fx.fill(clipP); fx.globalCompositeOperation = 'source-in'; fx.fillStyle = style; fx.setTransform(1, 0, 0, 1, 0, 0); if (typeof style !== 'string') { T0(fx); fx.fillRect(-SW, -1000, SW * 2, 2000); } else fx.fillRect(FXB[0], FXB[1], FXB[2], FXB[3]); T0(fx); }
+function varPoly(pts, wf) {
+  const L = [], Rr = [], n = pts.length;
+  for (let i = 0; i < n; i++) { const a = pts[Math.max(0, i - 1)], b = pts[Math.min(n - 1, i + 1)], d = nrm2(sub(b, a)), w = wf(i / (n - 1)) / 2; L.push([pts[i][0] - d[1] * w, pts[i][1] + d[0] * w]); Rr.push([pts[i][0] + d[1] * w, pts[i][1] - d[0] * w]); }
+  return L.concat(Rr.reverse());
+}
+const circ = (c, r, n = 14) => { const o = []; for (let i = 0; i < n; i++) { const a = i / n * TAU; o.push([c[0] + Math.cos(a) * r, c[1] + Math.sin(a) * r]); } return o; };
+const boilK = () => SC.boil ? Math.floor(SC.t * 8) % 3 : 0;
+
+/* ---------------- TINTA Y ACUARELA ---------------- */
+const TINTA = {
+  name: 'Tinta y acuarela',
+  pal: { skin: '232,212,182', hair: '30,24,28', cloth: '42,40,60', ink: '22,18,22', stone: '58,54,62', wood: '86,60,40', eyeW: '246,240,228', iris: '24,20,24', line: '36,26,30', mouthIn: '96,40,46' },
+  col(k) { return SC.sil ? '16,14,18' : specialCol(k) || this.pal[k] || this.pal.ink; },
+  P(polys) { return pathOf(polys, true); },
+  fill(polys, k, o = {}) {
+    if (!polys.length) return;
+    const P = this.P(polys);
+    if (o.sep) { ctx.lineWidth = o.sepW || 2.4; ctx.lineJoin = 'round'; ctx.strokeStyle = paperPat(); ctx.stroke(P); }
+    if (!SC.sil && (k === 'skin' || k === 'cloth') && !o.sep) { ctx.strokeStyle = k === 'skin' ? 'rgba(150,96,92,.4)' : 'rgba(10,8,16,.45)'; ctx.lineWidth = 4; ctx.lineJoin = 'round'; ctx.stroke(P); }
+    ctx.fillStyle = `rgb(${this.col(k)})`; ctx.fill(P);
+    if (SC.sil) return;
+    if (!this.tex) { this.tex = ctx.createPattern(WASHTEX, 'repeat'); }
+    this.tex.setTransform(new DOMMatrix().translate(SC.anchor[0], SC.anchor[1]).scale(.9));
+    ctx.save(); ctx.globalCompositeOperation = 'multiply'; ctx.globalAlpha = k === 'skin' ? .7 : .45; ctx.fillStyle = this.tex; ctx.fill(P); ctx.restore();
+  },
+  shade(pu, pc, shift, extras, amt) {
+    if (SC.sil || amt <= .01) return;
+    fxBegin(pc); const P = this.P(pu);
+    fxSoft(P, shift, len(shift) * .32 + 2);
+    if (extras) extras(fx, p => this.P(p));
+    fxFinish(this.P(pc), 'rgb(128,92,118)'); fxEnd('multiply', amt);
+  },
+  rim(polys, d, w, amt, col = SC.rimCol || '255,214,150') {
+    if (amt <= .01) return;
+    fxBegin(polys); const P = this.P(polys);
+    fxSoft(P, [-d[0] * w, -d[1] * w], w * .5);
+    fxFinish(P, `rgb(${col})`); fxEnd(SC.sil ? 'source-over' : 'screen', amt);
+  },
+  stroke(pts, wf, k, a) { if (a <= .01) return; ctx.fillStyle = `rgba(${this.col(k)},${a * .92})`; ctx.fill(pathOf([varPoly(pts, wf)], true)); },
+  blob(polys, k, a) { if (a <= .01) return; ctx.fillStyle = `rgba(${this.col(k)},${a})`; ctx.fill(this.P(polys)); },
+  trim(lines, house, w) { if (SC.sil) return; const h = HOUSES[house]; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; for (const l of lines) { ctx.strokeStyle = `rgba(${h.g},.85)`; ctx.lineWidth = w; ctx.stroke(linePath(l)); ctx.strokeStyle = `rgba(${h.c},.9)`; ctx.lineWidth = w * .45; ctx.stroke(linePath(l)); } },
+  bg(sc) {
+    ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.drawImage(PAPER, 0, 0); T0();
+    const g = ctx.createLinearGradient(0, -500, 0, sc.hz ?? 500); g.addColorStop(0, 'rgba(58,66,92,.3)'); g.addColorStop(1, 'rgba(58,66,92,.02)');
+    ctx.fillStyle = g; ctx.fillRect(-SW / 2, -500, SW, 1000);
+    if (sc.moon) { const [x, y, r] = sc.moon, m = ctx.createRadialGradient(x, y, r * .2, x, y, r * 1.6); m.addColorStop(0, 'rgba(250,244,230,.95)'); m.addColorStop(.6, 'rgba(250,244,230,.8)'); m.addColorStop(.66, 'rgba(250,244,230,.25)'); m.addColorStop(1, 'rgba(250,244,230,0)'); ctx.fillStyle = m; ctx.fillRect(x - r * 1.6, y - r * 1.6, r * 3.2, r * 3.2); }
+    if (sc.ground !== undefined) { const gy = sc.ground; ctx.fillStyle = 'rgba(40,34,40,.16)'; ctx.fillRect(-SW / 2, gy, SW, 500 - gy); ctx.strokeStyle = 'rgba(30,24,28,.45)'; ctx.lineWidth = 2.5; ctx.beginPath(); for (let x = -SW / 2; x <= SW / 2; x += 20) ctx.lineTo(x, gy + N2(x * .004, 3) * 6); ctx.stroke(); }
+  },
+};
+
+/* ---------------- PAPEL RECORTADO ---------------- */
+const PAPEL = {
+  name: 'Papel recortado',
+  pal: { skin: '238,208,172', hair: '54,38,44', cloth: '64,74,116', ink: '40,32,40', stone: '74,72,88', wood: '120,82,52', eyeW: '250,244,232', iris: '40,30,36', line: '58,36,40', mouthIn: '120,46,52' },
+  clothBy: { G: '128,32,40', S: '34,96,66', R: '44,66,128' },
+  col(k) { return k === 'cloth' ? this.clothBy[SC.house] : specialCol(k) || this.pal[k] || this.pal.ink; },
+  jit() { const v = boilK() * 17.3, ax = SC.anchor[0], ay = SC.anchor[1]; return (x, y) => [N2((x - ax) * .11 + v, (y - ay) * .11) * 2.6, N2((x - ax) * .11 + 40 + v, (y - ay) * .11) * 2.6]; },
+  P(polys) { return pathOf(polys, false, this.jit(), 6); },
+  fill(polys, k, o = {}) {
+    if (!polys.length) return;
+    const P = this.P(polys);
+    ctx.save(); ctx.translate(4, 6); ctx.fillStyle = 'rgba(24,16,12,.26)'; ctx.fill(P); ctx.restore();
+    ctx.fillStyle = `rgb(${this.col(k)})`; ctx.fill(P);
+    if (o.sep) { ctx.lineWidth = 1.2; ctx.strokeStyle = 'rgba(255,248,236,.55)'; ctx.stroke(P); }
+    if (!this.gp) this.gp = ctx.createPattern(GRAIN, 'repeat');
+    ctx.save(); ctx.globalCompositeOperation = 'multiply'; ctx.globalAlpha = .55; ctx.fillStyle = this.gp; ctx.fill(P); ctx.restore();
+  },
+  shade(pu, pc, shift, extras, amt) {
+    if (amt <= .01) return;
+    fxBegin(pc); const P = this.P(pu);
+    fxCrescent(P, shift, [[1.05, 1]]);
+    if (extras) extras(fx, p => this.P(p));
+    fxFinish(this.P(pc), 'rgb(150,96,104)'); fxEnd('multiply', amt * .9);
+  },
+  rim(polys, d, w, amt) {
+    if (amt <= .01) return;
+    fxBegin(polys); const P = this.P(polys);
+    fxCrescent(P, [-d[0] * w * 1.2, -d[1] * w * 1.2], [[1, 1]]);
+    fxFinish(P, 'rgb(255,234,186)'); fxEnd('source-over', amt * .85);
+  },
+  stroke(pts, wf, k, a) { if (a <= .01) return; ctx.fillStyle = `rgba(${this.col(k)},${a})`; ctx.fill(pathOf([varPoly(pts, t => wf(t) * 1.15 + .8)], false)); },
+  blob(polys, k, a) { if (a <= .01) return; ctx.fillStyle = `rgba(${this.col(k)},${a})`; ctx.fill(pathOf(polys, false)); },
+  trim(lines, house, w) { const h = HOUSES[house]; ctx.lineCap = 'butt'; ctx.lineJoin = 'miter'; for (const l of lines) { ctx.strokeStyle = `rgb(${h.g})`; ctx.lineWidth = w * 1.1; ctx.stroke(linePath(l)); } },
+  bg(sc) {
+    ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.fillStyle = '#2e3854'; ctx.fillRect(0, 0, W, H); T0();
+    if (!this.gp) this.gp = ctx.createPattern(GRAIN, 'repeat');
+    const lay = (polys, c) => { const P = pathOf(polys, false, this.jit(), 8); ctx.save(); ctx.translate(5, 7); ctx.fillStyle = 'rgba(10,8,16,.3)'; ctx.fill(P); ctx.restore(); ctx.fillStyle = c; ctx.fill(P); ctx.save(); ctx.globalCompositeOperation = 'multiply'; ctx.globalAlpha = .5; ctx.fillStyle = this.gp; ctx.fill(P); ctx.restore(); };
+    if (sc.moon) { const [x, y, r] = sc.moon; lay([circ([x, y], r * 1.25, 40)], 'rgb(66,78,112)'); lay([circ([x, y], r, 40)], 'rgb(240,226,184)'); }
+    const hz = sc.hz ?? 330, hill = (y0, amp, f, ph) => { const o = [[-SW / 2 - 20, 520]]; for (let x = -SW / 2 - 20; x <= SW / 2 + 20; x += 40) o.push([x, y0 + Math.sin(x * f + ph) * amp + N2(x * .01, ph) * amp * .6]); o.push([SW / 2 + 20, 520]); return o; };
+    lay([hill(hz - 40, 40, .004, 1)], 'rgb(56,68,98)'); lay([hill(hz + 30, 28, .006, 4)], 'rgb(38,46,70)');
+    if (sc.ground !== undefined) lay([[[-SW / 2 - 20, sc.ground], [SW / 2 + 20, sc.ground], [SW / 2 + 20, 520], [-SW / 2 - 20, 520]]], 'rgb(30,36,54)');
+  },
+};
+
+/* ---------------- BOCETO (grafito) ---------------- */
+const BOCETO = {
+  name: 'Boceto',
+  pal: { line: '52,50,62', iris: '52,50,62', mouthIn: '70,60,70', eyeW: '246,242,232', wood: '70,66,74' },
+  col(k) { return this.pal[k] || this.pal.line; },
+  jit(seed) { const v = boilK() * 9.1 + seed, ax = SC.anchor[0], ay = SC.anchor[1]; return (x, y) => [N2((x - ax) * .028 + v, (y - ay) * .028) * 4, N2((x - ax) * .028 + 30 + v, (y - ay) * .028) * 4]; },
+  P(polys) { return pathOf(polys, true); },
+  fill(polys, k, o = {}) {
+    if (!polys.length) return;
+    const P = this.P(polys);
+    ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+    ctx.strokeStyle = 'rgba(52,50,62,.55)'; ctx.lineWidth = 3.4; ctx.stroke(pathOf(polys, true, this.jit(0), 7));
+    ctx.strokeStyle = 'rgba(52,50,62,.4)'; ctx.lineWidth = 2.2; ctx.stroke(pathOf(polys, true, this.jit(5.5), 7));
+    ctx.fillStyle = paperPat(); ctx.fill(P);
+    if (!this.h1) { this.h1 = ctx.createPattern(HATCH, 'repeat'); this.h2 = ctx.createPattern(HATCH2, 'repeat'); }
+    const pat = (k === 'hair' && !SC.hairCol) || k === 'ink' ? this.h2 : k === 'cloth' || k === 'stone' || k === 'hair' || k === 'tie' ? this.h1 : null;
+    if (pat) { pat.setTransform(new DOMMatrix().translate(SC.anchor[0], SC.anchor[1]).scale(.55)); ctx.save(); ctx.globalAlpha = k === 'cloth' ? .55 : .85; ctx.fillStyle = pat; ctx.fill(P); ctx.restore(); }
+    if (k === 'wood') { ctx.fillStyle = 'rgba(52,50,62,.6)'; ctx.fill(P); }
+  },
+  shade(pu, pc, shift, extras, amt) {
+    if (amt <= .01) return;
+    fxBegin(pc); const P = this.P(pu);
+    fxSoft(P, shift, 3);
+    if (extras) extras(fx, p => this.P(p));
+    if (!this.h1) { this.h1 = ctx.createPattern(HATCH, 'repeat'); this.h2 = ctx.createPattern(HATCH2, 'repeat'); }
+    this.h1.setTransform(new DOMMatrix().translate(SC.anchor[0], SC.anchor[1]).scale(.5));
+    fxFinish(this.P(pc), this.h1); fxEnd('source-over', amt * 1.3);
+  },
+  rim() { },
+  stroke(pts, wf, k, a) { if (a <= .01) return; ctx.lineCap = 'round'; ctx.strokeStyle = `rgba(${this.col(k)},${a * .75})`; ctx.lineWidth = Math.max(1.6, wf(.5) * .45); const j = this.jit(2); ctx.stroke(linePath(pts.map(p => { const d = j(p[0], p[1]); return [p[0] + d[0] * .3, p[1] + d[1] * .3]; }))); },
+  blob(polys, k, a) { if (a <= .01) return; if (k === 'eyeW') { ctx.fillStyle = paperPat(); ctx.globalAlpha = a; ctx.fill(this.P(polys)); ctx.globalAlpha = 1; return; } ctx.fillStyle = `rgba(${this.col(k)},${a * .8})`; ctx.fill(this.P(polys)); },
+  trim(lines, house, w) { ctx.strokeStyle = 'rgba(52,50,62,.5)'; ctx.lineWidth = 1.6; for (const l of lines) ctx.stroke(linePath(l)); },
+  bg(sc) {
+    ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.drawImage(PAPER, 0, 0); ctx.fillStyle = 'rgba(250,247,238,.45)'; ctx.fillRect(0, 0, W, H); T0();
+    ctx.lineCap = 'round';
+    if (sc.moon) { const [x, y, r] = sc.moon; for (let k = 0; k < 2; k++) { ctx.strokeStyle = `rgba(52,50,62,${.4 - k * .12})`; ctx.lineWidth = 2.2 - k * .6; ctx.stroke(pathOf([circ([x, y], r, 36)], true, this.jit(k * 7), 8)); } }
+    const hz = sc.ground ?? sc.hz ?? 330; ctx.strokeStyle = 'rgba(52,50,62,.35)'; ctx.lineWidth = 1.6;
+    for (let i = 0; i < 9; i++) { const y = hz + i * 9 + (i ? 10 : 0), x0 = -SW / 2 + 40 + (i * 137 % 300), x1 = SW / 2 - 60 - (i * 89 % 260); ctx.beginPath(); ctx.moveTo(x0, y); ctx.lineTo(x1, y + N2(i, 2) * 6); ctx.stroke(); }
+  },
+};
+const STYLES = { tinta: TINTA, papel: PAPEL, boceto: BOCETO };
+function specialCol(k) {   // colores que dependen del personaje o de la casa
+  if (k === 'hair' && SC.hairCol) return SC.hairCol;
+  if (k === 'tie') return HOUSES[SC.house].c;
+  if (k === 'houseG' || k === 'gold') return k === 'gold' ? '214,176,96' : HOUSES[SC.house].g;
+  if (k === 'shirt') return '226,220,206';
+  return null;
+}
+
+/* ---------------- render de cabeza / mano / figura con cualquier estilo ---------------- */
+function lightAmts(L) { return { core: L.z > .95 ? 0 : .62, rim: SC.sil ? .55 + .4 * clamp(-L.z + .3) : .25 + .55 * clamp(-L.z + .2) }; }
+function renderHead(R, S, st) {
+  const L = st.L, s = R.s, la = lightAmts(L);
+  SC.anchor = R.pivot; SC.house = R.house; SC.hairCol = CAST[R.who].hairCol || null;
+  if (R.back.length && !st.noBack) S.fill(R.back, 'hair');
+  if (st.bust) {
+    S.fill([R.neck], 'skin');
+    S.shade([R.neck], [R.neck], [L.d[0] * s * .55 * (1.25 - L.z), L.d[1] * s * .55 * (1.25 - L.z)], (g, mk) => {
+      g.globalAlpha = .8; softFill(g, mk(R.headU), -L.d[0] * s * .18, -L.d[1] * s * .12 + s * .3, s * .08 * U); g.globalAlpha = 1;
+    }, la.core);
+    S.fill(R.shirt, 'shirt'); S.fill(R.collar, 'shirt'); S.fill(R.tie, 'tie');   // la túnica va encima y recorta todo a la V
+    for (const l of R.tieStripes) S.stroke(l, () => s * .028, 'houseG', 1);
+    S.fill(R.bust, 'cloth'); S.trim(R.trim, R.house, s * .07);
+  }
+  const hoop = h => S.stroke(h.pts, () => s * .026, 'gold', h.a);
+  for (const h of R.hoops) if (!h.tucked) hoop(h);
+  if (R.mid.length) S.fill(R.mid, 'hair');
+  S.fill(R.headU, 'skin');
+  const m = s * (1.15 - .95 * L.z), above = clamp(.3 - L.d[1] * .7);
+  S.shade(R.headU, R.headU, [L.d[0] * m, L.d[1] * m], (g, mk) => {
+    g.globalAlpha = .6 * (.6 + .4 * (1 - L.z)); softFill(g, mk([R.nose]), -L.d[0] * s * .13, -L.d[1] * s * .13 + s * .035, s * .03 * U);
+    const sa = (st.feats ? .3 : .6) * (.3 + .7 * above) * (1 + Math.max(0, st.ex.bi) * .4);
+    for (const so of R.F.sockets) { g.globalAlpha = sa * so.a; softFill(g, mk([so.pts]), 0, s * .01, s * .05 * U); }
+    g.globalAlpha = 1;
+  }, la.core * (st.coreK ?? 1));
+  if (st.feats && !SC.sil) renderFeats(R.F, S, s);
+  if (R.F.earLine && !SC.sil) S.stroke(R.F.earLine.pts, t => s * .016 * Math.sin(t * PI + .2), 'line', R.F.earLine.a * .5);
+  S.fill(R.cap, 'hair'); if (R.front.length) S.fill(R.front, 'hair');
+  for (const h of R.hoops) if (h.tucked) hoop(h);
+  if (st.rim !== false) S.rim([...R.headU, ...R.cap, ...R.front, ...R.mid, ...R.back, ...(st.bust ? [R.neck, ...R.bust] : [])], L.d, s * .05 * (1.3 - L.z * .5), la.rim);
+}
+function renderFeats(F, S, s) {
+  for (const e of F.eyes) {
+    if (e.a < .02) continue;
+    const alm = e.up.concat(e.lo.slice().reverse());
+    if (e.op > .25) {
+      S.blob([alm], 'eyeW', e.a * .85);
+      if (e.iris) { ctx.save(); ctx.clip(pathOf([alm], true)); S.blob([circ(e.iris.c, e.iris.r)], 'iris', e.a); ctx.restore(); }
+    }
+    S.stroke(e.up, t => s * (.007 + .022 * Math.sin(t * PI) ** .6), 'line', e.a);
+    if (e.op > .3) S.stroke(e.lo, t => s * .008 * Math.sin(t * PI), 'line', e.a * .45);
+  }
+  for (const b of F.brows) S.stroke(b.pts, t => s * lerp(.034, .012, t), 'line', b.a * .9);
+  for (const m of F.mouth) {
+    if (m.open > .05) S.blob([m.up.concat(m.lo.slice().reverse())], 'mouthIn', m.a * .9);
+    S.stroke(m.up, t => s * lerp(.014, .004, t), 'line', m.a * .75);
+  }
+}
+function renderHand(Hd, S, st) {
+  const L = st.L, la = lightAmts(L);
+  SC.anchor = [Hd.pieces[0].polys[0][0][0], Hd.pieces[0].polys[0][0][1]];
+  for (const p of Hd.pieces) S.fill(p.polys, p.k, { sep: st.sep && p.sep, sepW: Hd.s * .014 });
+  S.shade(Hd.all, Hd.all, [L.d[0] * Hd.s * .3 * (1.2 - L.z), L.d[1] * Hd.s * .3 * (1.2 - L.z)], null, la.core * .8);
+  if (st.rim !== false) S.rim(Hd.all, L.d, Hd.s * .035, la.rim);
+}
+
+/* =====================================================================
+   EFECTOS HECHOS DEL MISMO MATERIAL QUE EL RESTO
+   · el hechizo es una pincelada (cuerpo + cerdas + pincel seco al final)
+   · la luz es papel sin pintar (núcleo con el patrón del propio papel)
+   · el impacto es una flor de tinta húmeda + 1–2 fotogramas invertidos
+   · cada tipo tiene su forma: ataque = puntas, escudo = ensō (círculo de un trazo), maldición = enroscado
+   · los efectos van a 12 FPS («en doses»)
+   ===================================================================== */
+function bez(a, c, b, n = 24) { const o = []; for (let i = 0; i <= n; i++) { const t = i / n, u = 1 - t; o.push([u * u * a[0] + 2 * u * t * c[0] + t * t * b[0], u * u * a[1] + 2 * u * t * c[1] + t * t * b[1]]); } return o; }
+function polyLen(pts) { const L = [0]; for (let i = 1; i < pts.length; i++) L.push(L[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1])); return L; }
+/* pincelada: o = {w: t→ancho, col, a, prog (0..1 dibujado), from (0..1 borrado desde el inicio), dry, seed, core (fracción de ancho en papel), bristles} */
+function inkStroke(pts, o) {
+  const L = polyLen(pts), tot = L[L.length - 1] || 1, end = tot * clamp(o.prog ?? 1), st = tot * clamp(o.from ?? 0);
+  if (end - st < 1) return;
+  const sp = [], tg = [];
+  for (let i = 0; i < pts.length; i++) {
+    if (L[i] < st) { if (L[i + 1] > st) { const f = (st - L[i]) / (L[i + 1] - L[i]); sp.push([lerp(pts[i][0], pts[i + 1][0], f), lerp(pts[i][1], pts[i + 1][1], f)]); tg.push(st / tot); } continue; }
+    if (L[i] <= end) { sp.push(pts[i]); tg.push(L[i] / tot); continue; }
+    const f = (end - L[i - 1]) / (L[i] - L[i - 1]); sp.push([lerp(pts[i - 1][0], pts[i][0], f), lerp(pts[i - 1][1], pts[i][1], f)]); tg.push(end / tot); break;
+  }
+  if (sp.length < 2) return;
+  const dryS = o.dry ?? .7, bw = t => o.w(t) * (1 - .85 * sm((t - dryS) / (1 - dryS + 1e-6)));
+  const n = sp.length, Lr = [], Rr = [];
+  for (let i = 0; i < n; i++) { const a = sp[Math.max(0, i - 1)], b = sp[Math.min(n - 1, i + 1)], d = nrm2(sub(b, a)), w = bw(tg[i]) / 2; Lr.push([sp[i][0] - d[1] * w, sp[i][1] + d[0] * w]); Rr.push([sp[i][0] + d[1] * w, sp[i][1] - d[0] * w]); }
+  const body = pathOf([Lr.concat(Rr.reverse())], true);
+  ctx.fillStyle = `rgba(${o.col},${o.a ?? .9})`; ctx.fill(body);
+  if (o.core) { ctx.strokeStyle = `rgba(20,12,16,${(o.a ?? .9) * .45})`; ctx.lineWidth = 2.6; ctx.lineJoin = 'round'; ctx.stroke(body); }   // pigmento acumulado en el borde
+  const B = o.bristles ?? 7, sd = o.seed || 1; ctx.lineCap = 'round';
+  for (let b = 0; b < B; b++) {
+    const off = (b / (B - 1) * 2 - 1) * .95; ctx.lineWidth = Math.max(.8, o.w(.3) / B * 1.3); ctx.strokeStyle = `rgba(${o.col},${(o.a ?? .9) * .55})`; ctx.beginPath(); let pen = false;
+    for (let i = 0; i < n; i++) {
+      const a = sp[Math.max(0, i - 1)], c = sp[Math.min(n - 1, i + 1)], d = nrm2(sub(c, a)), t = tg[i], dry = t > dryS ? (t - dryS) / (1 - dryS) : 0;
+      const vis = N2(b * 7.31 + sd, t * tot * .045) * .5 + .5 > dry * .85 + .06, w = o.w(t) * .5 * off, x = sp[i][0] - d[1] * w, y = sp[i][1] + d[0] * w;
+      if (vis) { if (pen) ctx.lineTo(x, y); else { ctx.moveTo(x, y); pen = true; } } else pen = false;
+    }
+    ctx.stroke();
+  }
+  if (o.core) {   // la luz: pigmento «levantado» en el centro, suave y continuo (como pasar un pincel limpio y húmedo)
+    const cut = sp.slice(0, Math.max(2, tg.findIndex(t => t > dryS) < 0 ? n : tg.findIndex(t => t > dryS)));
+    const inner = varPoly(cut, t => bw(t * (tg[cut.length - 1] || 1)) * o.core * 1.6);
+    ctx.save(); ctx.globalAlpha = (o.coreA ?? 1) * .85; softFill(ctx, pathOf([inner], true), 0, 0, Math.max(2, o.w(.3) * .22) * U, 'rgb(250,243,226)'); ctx.restore();
+  }
+}
+/* flor de tinta: mancha húmeda irregular en capas; spikes > 0 la vuelve estrella (ataque) */
+function inkBloom(c, r, col, a, seed, spikes = 0, k = 7) {
+  if (a <= .01 || r < 1) return;
+  for (let l = 0; l < 3; l++) {
+    const pts = [];
+    for (let i = 0; i < 44; i++) {
+      const an = i / 44 * TAU, ns = N2(Math.cos(an) * 1.6 + seed + l * 3.1, Math.sin(an) * 1.6 + seed);
+      const rr = r * (1 - l * .2) * (1 + .22 * ns) * (1 + spikes * Math.pow(Math.abs(Math.cos(an * k / 2 + seed)), 12) * (.6 + .4 * Math.sin(i * 1.7 + seed)));
+      pts.push([c[0] + Math.cos(an) * rr, c[1] + Math.sin(an) * rr]);
+    }
+    const P = pathOf([pts], true);
+    ctx.fillStyle = `rgba(${col},${a * (.42 - l * .1)})`; ctx.fill(P);
+    if (!l) { ctx.strokeStyle = `rgba(${col},${a * .5})`; ctx.lineWidth = 2.2; ctx.stroke(P); }
+  }
+}
+/* «luz como papel»: claro sin pintar con borde suave (el papel reservado) */
+function paperLight(c, r, a) {
+  if (a <= .01) return;
+  const P = pathOf([circ(c, r, 24).map((p, i) => [p[0] + N2(i * .7, r) * r * .12, p[1] + N2(i * .7 + 9, r) * r * .12])], true);
+  ctx.save(); ctx.globalAlpha = a * .45; softFill(ctx, P, 0, 0, r * .6 * U, 'rgb(250,243,226)'); ctx.restore();
+  ctx.save(); ctx.globalAlpha = a; ctx.fillStyle = paperPat(); ctx.fill(P); ctx.restore();
+}
+/* --- versión «antes»: brillos de videojuego --- */
+function glowDot(c, r, col, a) { if (a <= .01) return; const g = ctx.createRadialGradient(c[0], c[1], 0, c[0], c[1], r); g.addColorStop(0, `rgba(255,244,214,${a})`); g.addColorStop(.35, `rgba(${col},${.55 * a})`); g.addColorStop(1, `rgba(${col},0)`); ctx.fillStyle = g; ctx.fillRect(c[0] - r, c[1] - r, r * 2, r * 2); }
+function glowLine(a, b, col, al) { if (al <= .01) return; ctx.lineCap = 'round'; ctx.strokeStyle = `rgba(${col},${.85 * al})`; ctx.lineWidth = 7; ctx.beginPath(); ctx.moveTo(...a); ctx.lineTo(...b); ctx.stroke(); ctx.strokeStyle = `rgba(255,248,230,${al})`; ctx.lineWidth = 2.5; ctx.stroke(); }
+
+/* ---------- pestaña ---------- */
+const FXP = 4.8;   // periodo del ciclo
+function drawEfectos(t, ticks) {
+  const o = ST.efectos, S = STYLES[ST.style]; SC.sil = ST.style === 'tinta'; SC.boil = ST.boil; SC.t = t;
+  const tt = o.slow ? t * .35 : t, ph = tt % FXP;
+  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.drawImage(PAPER, 0, 0); T0();
+  const other = ST.who === 'damien' ? 'anami' : 'damien';
+  [['antes', -250], ['ahora', 250]].forEach(([mode, cy], i) => {
+    ctx.save(); ctx.beginPath(); ctx.rect(-SW / 2, cy - 245, SW, 490); ctx.clip();
+    const gy = cy + 165, k = 2.75, fph = mode === 'ahora' ? Math.floor(ph * 12) / 12 : ph;
+    /* cielo de anochecer (tono medio: la tinta y el papel se leen encima) */
+    if (ST.style === 'tinta') {
+      ctx.fillStyle = 'rgba(58,64,88,.78)'; ctx.fillRect(-SW / 2, cy - 250, SW, 500);
+      if (!TINTA.tex) TINTA.tex = ctx.createPattern(WASHTEX, 'repeat');
+      ctx.save(); ctx.globalCompositeOperation = 'multiply'; ctx.globalAlpha = .5; ctx.fillStyle = TINTA.tex; ctx.fillRect(-SW / 2, cy - 250, SW, 500); ctx.restore();
+      ctx.fillStyle = 'rgba(20,18,26,.55)'; ctx.fillRect(-SW / 2, gy, SW, 300);
+    } else { S.bg({ ground: gy, hz: gy - 60 }); T0(); ctx.beginPath(); ctx.rect(-SW / 2, cy - 245, SW, 490); ctx.clip(); }
+    label(mode === 'antes' ? 'Antes · brillos' : 'Ahora · tinta y papel', -SW / 2 + 30, cy - 205, { align: 'left', size: 30, col: ST.style === 'boceto' ? 'rgba(40,30,32,.8)' : 'rgba(239,230,210,.85)' });
+    const L = { d: nrm2([.3, -1]), z: -.6 };
+    /* coreografía según el hechizo */
+    const kind = o.kind, hc = HOUSES[CAST[ST.who].house], oc = HOUSES[CAST[other].house];
+    let lRaise = sm((ph - .55) / .45) * (1 - sm((ph - 3.4) / .8)), rRaise = 0, knock = 0, crouch = 0;
+    let lTarget = [lerp(10, 33, lRaise), lerp(-26, -70, lRaise)];
+    if (kind === 'escudo') { lTarget = [lerp(10, 26, lRaise), lerp(-26, -82, lRaise)]; rRaise = sm((ph - .95) / .35) * (1 - sm((ph - 3) / .8)); }
+    if (kind === 'maldicion') lTarget = [lerp(10, 30, lRaise), lerp(-26, -52, lRaise)];
+    if (kind === 'ataque') knock = eio(clamp((ph - 1.75) / .3)) * (1 - sm((ph - 2.9) / 1.4));
+    if (kind === 'maldicion') crouch = sm((ph - 2.3) / .9) * (1 - sm((ph - 3.9) / .8));
+    const Lf = bodyRig({ x0: -560, y0: gy, k, t: tt, target: lTarget, hy: 47.5, crouchK: 0, who: ST.who, key: `fx${i}l`, ticks, yawAdd: 0, wand: true }); Lf.target = null;
+    const Rf = bodyRig({ x0: 470 + knock * 26 * k, y0: gy, k, t: tt, target: kind === 'escudo' ? [lerp(10, 32, rRaise), lerp(-26, -70, rRaise)] : [10, -26], hy: 47.5 - crouch * 13, crouchK: crouch * .9 - knock * .5, who: other, key: `fx${i}r`, ticks, yawAdd: 0, flip: true, wand: kind === 'escudo' }); Rf.target = null;
+    renderFig(Lf, S, L, {}, 0); renderFig(Rf, S, L, {}, 1);
+    const tipL = Lf.wandTip, tipR = Rf.wandTip, chest = Rf.X([2, -60 + crouch * 10]), feet = Rf.X([2, -2]);
+    if (mode === 'antes') fxAntes(kind, ph, tipL, tipR, chest, feet, hc, oc, Lf);
+    else fxAhora(kind, fph, tipL, tipR, chest, feet, hc, oc, Lf, gy, cy);
+    ctx.restore();
+  });
+  ctx.strokeStyle = 'rgba(239,230,210,.6)'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(-SW / 2, 0); ctx.lineTo(SW / 2, 0); ctx.stroke();
+}
+function fxAntes(kind, ph, tipL, tipR, chest, feet, hc, oc, Lf) {
+  if (kind === 'ataque') {
+    glowDot(tipL, 45 * sm((ph - 1) / .45), hc.g, sm((ph - 1) / .4) * (1 - sm((ph - 1.5) / .2)));
+    const f = clamp((ph - 1.45) / .3), fade = 1 - sm((ph - 1.75) / .4);
+    if (ph > 1.45) glowLine(lerp2(tipL, chest, Math.max(0, f - .4)), lerp2(tipL, chest, f), hc.g, fade);
+    if (ph > 1.75) glowDot(chest, 40 + 90 * sm((ph - 1.75) / .4), hc.c, 1 - sm((ph - 1.75) / .7));
+  } else if (kind === 'escudo') {
+    const sc = Lf.X([4, -50]), a = sm((ph - .9) / .4) * (1 - sm((ph - 2.8) / .6));
+    if (a > .01) { const g = ctx.createRadialGradient(sc[0], sc[1], 110, sc[0], sc[1], 185); g.addColorStop(0, `rgba(${hc.g},0)`); g.addColorStop(.7, `rgba(${hc.g},${.45 * a})`); g.addColorStop(1, `rgba(${hc.g},0)`); ctx.fillStyle = g; ctx.fillRect(sc[0] - 185, sc[1] - 185, 370, 370); }
+    if (tipR) { glowDot(tipR, 40, oc.g, sm((ph - 1.2) / .25) * (1 - sm((ph - 1.5) / .2))); const hit = add(sc, [160, -14]), f = clamp((ph - 1.45) / .3);
+      if (ph > 1.45) glowLine(lerp2(tipR, hit, Math.max(0, f - .4)), lerp2(tipR, hit, f), oc.g, 1 - sm((ph - 1.75) / .3));
+      if (ph > 1.75) glowDot(hit, 30 + 60 * sm((ph - 1.75) / .3), oc.c, 1 - sm((ph - 1.75) / .5)); }
+  } else {
+    const f = clamp((ph - 1.1) / .9), a = 1 - sm((ph - 3.4) / .8);
+    if (ph > 1.1) glowLine(tipL, lerp2(tipL, chest, f), HOUSES.S.c, a);
+    if (ph > 2) glowDot(chest, 70, HOUSES.S.c, a * .8);
+  }
+}
+const lerp2 = (a, b, t) => [lerp(a[0], b[0], t), lerp(a[1], b[1], t)];
+function fxAhora(kind, ph, tipL, tipR, chest, feet, hc, oc, Lf, gy, cy) {
+  const inv = (a, b) => ph >= a && ph < b;   // fotogramas invertidos del golpe
+  if (kind === 'ataque') {
+    /* carga: la tinta se recoge hacia la punta (trazos que convergen) y la punta se «levanta» a papel */
+    const ch = clamp((ph - 1.0) / .45);
+    if (ch > 0 && ph < 1.5) { for (let s = 0; s < 6; s++) { const an = s / 6 * TAU + ph * 3, r0 = 70 * (1 - ch) + 14, p0 = add(tipL, [Math.cos(an) * r0, Math.sin(an) * r0]), p1 = add(tipL, [Math.cos(an + .5) * (r0 * .45), Math.sin(an + .5) * (r0 * .45)]);
+      inkStroke([p0, lerp2(p0, p1, .5), p1], { w: t => 7 * (1 - t * .6), col: hc.c, a: .85, dry: .4, seed: s, bristles: 3 }); }
+      paperLight(tipL, 6 + 16 * ch, ch); }
+    /* golpe: pincelada curva del color de la casa con alma de papel */
+    const path = bez(tipL, [lerp(tipL[0], chest[0], .5), Math.min(tipL[1], chest[1]) - 70], chest, 30);
+    const f = clamp((ph - 1.45) / .25), dis = sm((ph - 1.9) / 1.4);
+    if (ph >= 1.45 && dis < 1) {
+      /* el color sangra en el papel por donde pasó: un lavado ancho y desenfocado bajo el trazo */
+      if (ph > 1.6) { const wash = varPoly(path.slice(0, Math.max(2, Math.round(30 * f))), t => 70 * Math.sin(Math.min(1, t * 1.2) * PI * .5 + .2)); ctx.save(); ctx.globalAlpha = .35 * sm((ph - 1.6) / .5) * (1 - dis); softFill(ctx, pathOf([wash], true), 0, 0, 22 * U, `rgb(${hc.c})`); ctx.restore(); }
+      inkStroke(path, { w: t => 56 * Math.min(1, t * 8) * (1 - t * .5) * (1 + .22 * Math.sin(t * 11 + 1) * Math.sin(t * 4.3)), col: hc.c, a: .93 * (1 - dis), prog: f, from: dis * .9, dry: .62, seed: 3, core: .3, coreA: 1 - dis, bristles: 11 });
+    }
+    /* impacto: flor de luz (oro/plata de la casa) con papel reservado en el centro; nunca rojo sobre el cuerpo */
+    if (ph >= 1.75 && ph < 3.4) { const g = sm((ph - 1.75) / .35), fade = 1 - sm((ph - 2.3) / .9); inkBloom(chest, 24 + 62 * g, hc.g, .8 * fade, 4, .9, 7); paperLight(chest, 30 * (1 - sm((ph - 1.75) / .6)) + 4, fade); }
+    if (inv(1.75, 1.92)) impactFrame(cy);
+  } else if (kind === 'escudo') {
+    /* ensō: el círculo de un solo trazo, dibujado en vivo, abierto al final */
+    const sc = Lf.X([4, -50]), R = 150, RY = 172, pr = clamp((ph - .9) / .45), fade = sm((ph - 2.8) / .8);
+    const ring = []; for (let s = 0; s <= 60; s++) { const an = -PI * .62 + s / 60 * TAU * .97; ring.push([sc[0] + Math.cos(an) * R * (1 + .035 * Math.sin(s * .8)), sc[1] + Math.sin(an) * RY]); }
+    if (pr > 0 && fade < 1) {
+      inkStroke(ring, { w: t => 40 * Math.min(1, t * 12) * (1 - t * .55) * (1 + .15 * Math.sin(t * 13)), col: hc.c, a: .92 * (1 - fade), prog: pr, dry: .62, seed: 7, core: .22, coreA: .9 * (1 - fade), bristles: 10 });
+      if (ph > 1.75) { const rp = sm((ph - 1.75) / .7); ctx.strokeStyle = `rgba(${hc.g},${.7 * (1 - rp)})`; ctx.lineWidth = 3; ctx.beginPath(); ctx.ellipse(sc[0], sc[1], R * (1 + rp * .3), RY * (1 + rp * .3), 0, 0, TAU); ctx.stroke(); }
+    }
+    if (tipR) {
+      const hit = add(sc, [R * .98, -14]), f = clamp((ph - 1.45) / .3);
+      if (ph > 1.2 && ph < 1.5) paperLight(tipR, 6 + 12 * sm((ph - 1.2) / .25), 1);
+      const bolt = bez(tipR, [lerp(tipR[0], hit[0], .5), Math.min(tipR[1], hit[1]) - 40], hit, 24);
+      if (ph >= 1.45 && ph < 2.2) inkStroke(bolt, { w: t => 32 * Math.min(1, t * 8) * (1 - t * .5) * (1 + .2 * Math.sin(t * 9)), col: oc.c, bristles: 9, a: .9 * (1 - sm((ph - 1.8) / .4)), prog: f, from: sm((ph - 1.75) / .4), dry: .75, seed: 2, core: .3 });
+      /* el golpe rebota en gotas */
+      if (ph >= 1.75 && ph < 2.8) { const a = 1 - sm((ph - 1.9) / .9), age = ph - 1.75, rr = mulberry32(11);
+        inkBloom(hit, 18 + 26 * sm(age / .3), oc.c, .8 * a, 9, .8, 5);
+        ctx.fillStyle = `rgba(${oc.c},${a})`; for (let d = 0; d < 9; d++) { const an = -PI * .5 + (rr() - .3) * 2.2, sp = 150 + rr() * 220; const x = hit[0] + Math.cos(an) * sp * age * (an > 0 ? -1 : 1) * .2 + sp * age * .8, y = hit[1] + Math.sin(an) * sp * age + 380 * age * age; if (y < gy) { ctx.beginPath(); ctx.arc(x, y, 3 + rr() * 5, 0, TAU); ctx.fill(); } } }
+      if (inv(1.75, 1.84)) impactFrame(cy);
+    }
+  } else {
+    /* maldición: un zarcillo verde que crece despacio, se arrastra por el suelo y trepa enroscándose */
+    const g = HOUSES.S, gr = clamp((ph - 1.05) / 1.6), fade = sm((ph - 3.5) / 1.1);
+    if (ph > .9 && ph < 1.3) paperLight(tipL, 5 + 8 * sm((ph - .9) / .3), 1 - sm((ph - 1.2) / .1));
+    const pts = [], gp = [tipL[0] + 40, gy - 4];
+    for (let s = 0; s <= 10; s++) pts.push(lerp2(tipL, gp, s / 10).map((v, j) => v + (j ? 0 : Math.sin(s * .9) * 6)));
+    for (let s = 1; s <= 30; s++) { const x = lerp(gp[0], feet[0] - 6, s / 30); pts.push([x, gy - 4 - Math.abs(Math.sin(s * .55)) * 9]); }
+    for (let s = 1; s <= 26; s++) { const f = s / 26; pts.push([feet[0] + Math.sin(f * TAU * 2.2) * 26 * (1 - f * .3), lerp(feet[1], chest[1] + 20, f)]); }
+    if (gr > 0 && fade < 1) {
+      inkStroke(pts, { w: t => 9 + 5 * Math.sin(t * 40), col: g.c, a: .92 * (1 - fade), prog: gr, dry: .93, seed: 5, bristles: 4 });
+      /* rizos: ganchos que brotan a lo largo del zarcillo */
+      const Lp = polyLen(pts), tot = Lp[Lp.length - 1];
+      for (let j = 6; j < pts.length - 2; j += 6) { if (Lp[j] / tot > gr) break; const p = pts[j], s = j % 12 ? 1 : -1, cur = []; for (let q = 0; q <= 10; q++) { const an = q / 10 * PI * 1.6, r = 22 * (1 - q / 12); cur.push([p[0] + s * Math.sin(an) * r, p[1] - (1 - Math.cos(an)) * r * .8]); }
+        inkStroke(cur, { w: t => 6 * (1 - t), col: g.c, a: .85 * (1 - fade), prog: clamp((gr - Lp[j] / tot) * 6), dry: .6, seed: j, bristles: 3 }); }
+      if (gr > .75) inkBloom(lerp2(feet, chest, .5), 40 + 50 * sm((ph - 2.4) / 1), g.c, .4 * (1 - fade), 6);
+    }
+  }
+}
+function impactFrame(cy) { ctx.save(); ctx.globalCompositeOperation = 'difference'; ctx.fillStyle = 'rgb(239,230,210)'; ctx.fillRect(-SW / 2, cy - 250, SW, 500); ctx.restore(); }
+
+/* =====================================================================
+   PESTAÑAS, CONTROLES Y BUCLE
+   ===================================================================== */
+const RM = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+const ST = {
+  tab: 'rostro', who: 'joy', style: 'tinta', boil: true,
+  rostro: { ex: 'neutral', feats: 'sin', fin: 'lavado', yaw: 35, pitch: 0, roll: 0, anim: !RM, az: 35, lz: .15, vol: false },
+  manos: { pose: 'varita', anim: !RM, sep: true, fin: 'lavado', ang: -15, az: 60 },
+  cuerpo: { fps: 12, crouch: .6, bones: false, fin: 'silueta' },
+  estilos: { anim: !RM, ex: 'decidida', feats: 'sin' },
+  efectos: { kind: 'ataque', slow: false },
+  fisica: { auto: true, power: 2.6, fin: 'silueta', fps: 60, bones: false },
+};
+const deg = d => d * PI / 180;
+let curEx = { ...EXPR.neutral };
+function exStep(target, dt) { const k = 1 - Math.exp(-dt * 6), e = EXPR[target]; for (const key in e) curEx[key] = lerp(curEx[key], e[key], k); }
+const lightOf = (az, lz) => ({ d: [Math.cos(deg(az)), -Math.sin(deg(az))], z: lz });
+function label(txt, x, y, o = {}) {
+  ctx.font = `${o.it === false ? '' : 'italic '}${o.size || 26}px "Cormorant Garamond", Georgia, serif`;
+  ctx.textAlign = o.align || 'center'; ctx.fillStyle = o.col || 'rgba(40,30,32,.78)'; ctx.fillText(txt, x, y);
+}
+function lightGlyph(cx, cy, L, r) {
+  const p = [clamp(cx + L.d[0] * r, -SW / 2 + 60, SW / 2 - 60), clamp(cy + L.d[1] * r, -440, 400)], back = L.z < 0;
+  ctx.strokeStyle = 'rgba(150,96,40,.75)'; ctx.fillStyle = back ? 'rgba(240,182,72,.25)' : 'rgba(240,182,72,.85)'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.arc(p[0], p[1], 15, 0, TAU); ctx.fill(); ctx.stroke();
+  for (let i = 0; i < 8; i++) { const a = i / 8 * TAU; ctx.beginPath(); ctx.moveTo(p[0] + Math.cos(a) * 21, p[1] + Math.sin(a) * 21); ctx.lineTo(p[0] + Math.cos(a) * 29, p[1] + Math.sin(a) * 29); ctx.stroke(); }
+  label(back ? 'luz (detrás)' : L.z > .6 ? 'luz (delante)' : 'luz', p[0], p[1] + 54, { size: 22 });
+}
+
+/* ---------- ROSTRO ---------- */
+function drawRostro(t, ticks) {
+  const o = ST.rostro, S = STYLES[ST.style]; SC.sil = ST.style === 'tinta' && o.fin === 'silueta'; SC.boil = ST.boil; SC.t = t;
+  S.bg({ moon: [560, -270, 100] });
+  const yaw = o.anim ? Math.sin(t * .55) * 1.05 + .08 * Math.sin(t * 1.7) : deg(o.yaw);
+  const pitch = deg(o.pitch) + (o.anim ? .07 * Math.sin(t * .8) : 0), roll = deg(o.roll);
+  const R = headRig({ x: -150, y: -20, s: 175, yaw, pitch, roll, bYaw: yaw * .35, who: ST.who, ex: curEx, key: 'rostro', ticks });
+  const L = lightOf(o.az, o.lz);
+  renderHead(R, S, { L, bust: true, feats: o.feats === 'min', ex: curEx });
+  if (o.vol) {
+    const v = R.vol, ln = (pts, c) => { ctx.strokeStyle = c; ctx.lineWidth = 2.4; ctx.setLineDash([9, 6]); ctx.stroke(pathOf([pts], false)); ctx.setLineDash([]); };
+    ln(v.skull, 'rgba(40,110,200,.9)'); ln(v.jaw, 'rgba(200,40,50,.9)'); ln(v.keel, 'rgba(30,140,80,.95)'); ln(v.nose, 'rgba(230,140,20,.95)');
+    ctx.fillStyle = '#222'; ctx.beginPath(); ctx.arc(R.pivot[0], R.pivot[1], 6, 0, TAU); ctx.fill();
+    const lg = [['cráneo (elipsoide)', 'rgba(40,110,200,.95)'], ['mandíbula (envolvente)', 'rgba(200,40,50,.95)'], ['quilla del perfil', 'rgba(30,140,80,.95)'], ['nariz', 'rgba(230,140,20,.95)']];
+    lg.forEach(([n, c], i) => { ctx.fillStyle = c; ctx.fillRect(-SW / 2 + 40, -440 + i * 36, 26, 6); label(n, -SW / 2 + 80, -430 + i * 36, { align: 'left', size: 24, it: false }); });
+  }
+  lightGlyph(-150, -120, L, 430);
+  /* tira de comparación a escala de plano medio */
+  const x0 = 470, y0 = 330; SC.sil = ST.style === 'tinta';
+  label('plano medio: frente · ¾ · perfil', x0 + 70, y0 - 60, { size: 22 });
+  [-0.02, .8, 1.45].forEach((yw, i) => {
+    const r = headRig({ x: x0 - 60 + i * 130, y: y0 + 40, s: 34, yaw: yw, pitch: 0, roll: 0, bYaw: yw * .35, who: ST.who, ex: EXPR.neutral, key: 'mini' + i, ticks });
+    renderHead(r, S, { L, bust: true, feats: false, ex: EXPR.neutral, rim: false });
+  });
+  SC.sil = false;
+}
+
+/* ---------- MANOS ---------- */
+const PORDER = ['abierta', 'relajada', 'puño', 'señalar', 'varita', 'garra', 'alcanzar'];
+function drawManos(t) {
+  const o = ST.manos, S = STYLES[ST.style]; SC.sil = ST.style === 'tinta' && o.fin === 'silueta'; SC.boil = ST.boil; SC.t = t;
+  S.bg({});
+  let pose, name, wand;
+  if (o.anim) { const per = 1.9, i = Math.floor(t / per) % PORDER.length, j = (i + 1) % PORDER.length, f = eio(clamp((t / per % 1 - .55) / .45)); pose = mixHP(HPOSE[PORDER[i]], HPOSE[PORDER[j]], f); name = f < .5 ? PORDER[i] : PORDER[j]; wand = name === 'varita'; }
+  else { pose = HPOSE[o.pose]; name = o.pose; wand = o.pose === 'varita'; }
+  const L = lightOf(o.az, .1);
+  const Hd = handRig({ x: -260, y: 60, s: 500, ang: deg(o.ang), pose, wand });
+  renderHand(Hd, S, { L, sep: o.sep });
+  label(HPN[name], -170, -380, { size: 40 });
+  lightGlyph(-60, 40, L, 400);
+  /* escala real de película */
+  const bx = 600, by = 120; SC.sil = ST.style === 'tinta';
+  ctx.strokeStyle = 'rgba(40,30,32,.35)'; ctx.lineWidth = 1.5; ctx.strokeRect(bx - 170, by - 170, 340, 360);
+  label('a escala de película', bx, by - 190, { size: 22 });
+  const m = mittenRig({ x: bx - 90, y: by - 40, s: 30, ang: deg(o.ang) });
+  S.fill(m.all, 'ink'); label('antes', bx - 90, by + 20, { size: 20 });
+  const h2 = handRig({ x: bx + 50, y: by - 40, s: 30, ang: deg(o.ang), pose, wand });
+  renderHand(h2, S, { L, sep: o.sep, rim: false }); label('ahora', bx + 70, by + 20, { size: 20 });
+  const h3 = handRig({ x: bx - 60, y: by + 110, s: 75, ang: deg(o.ang), pose, wand });
+  renderHand(h3, S, { L, sep: o.sep, rim: false }); label('plano medio', bx, by + 175, { size: 20 });
+  SC.sil = false;
+}
+
+/* ---------- CUERPO ---------- */
+const FIGS = [{ x0: -430, key: 'f60', cache: null, fq: -1, acc: 0 }, { x0: 330, key: 'f12', cache: null, fq: -1, acc: 0 }];
+let DRAG = null;
+function drawCuerpo(t, ticks) {
+  const o = ST.cuerpo, S = STYLES[ST.style]; SC.sil = ST.style === 'tinta' && o.fin === 'silueta'; SC.boil = ST.boil; SC.t = t;
+  const gy = 330, k = 5.1;
+  S.bg({ moon: [0, -300, 80], ground: gy });
+  const L = { d: nrm2([.15, -1]), z: -.5 };
+  FIGS.forEach((F, i) => {
+    const q = i === 0 ? t : Math.floor(t * o.fps) / o.fps, fr = Math.floor(t * o.fps);
+    F.acc += ticks;
+    if (i === 1 && F.cache && fr === F.fq) return renderFig(F.cache, S, L, o, i);
+    const tg = DRAG ? [(DRAG[0] - F.x0) / k, (DRAG[1] - gy) / k] : [24 + 13 * Math.sin(q * .9), -64 + 22 * Math.sin(q * 1.3 + 1)];
+    const ck = o.crouch * Math.pow(Math.sin(q * .7) * .5 + .5, 2);
+    const B = bodyRig({ x0: F.x0, y0: gy, k, t: q, target: tg, hy: 47.5 - ck * 11, crouchK: ck, who: ST.who, key: F.key, ticks: i === 0 ? ticks : Math.min(8, F.acc), yawAdd: 0 });
+    F.acc = 0; F.fq = fr; F.cache = B;
+    renderFig(B, S, L, o, i);
+  });
+  label('60 FPS · suave', FIGS[0].x0, gy + 80, { size: 30 });
+  label(`${o.fps} FPS · en ${o.fps === 12 ? 'doses' : 'treses'}`, FIGS[1].x0, gy + 80, { size: 30 });
+  label(DRAG ? '' : 'arrastra sobre el lienzo para mover la mano', 0, gy + 140, { size: 22 });
+}
+function renderFig(B, S, L, o, i) {
+  const house = B.head.house, all = [];
+  SC.anchor = B.X([0, -50]); SC.house = house;
+  B.parts.forEach((p, i) => {
+    if (p.hand) renderHand(p.hand, S, { L, sep: true, rim: false }); else { S.fill(p.polys, p.k); if (p.trimLine) S.trim([p.trimLine], house, 4); }
+    all.push(...p.polys);
+    if (i === 0 && B.head.back.length) { S.fill(B.head.back, 'hair'); SC.anchor = B.X([0, -50]); }   // el pelo cae sobre la capa
+  });
+  renderHead(B.head, S, { L, bust: false, feats: false, ex: EXPR.neutral, rim: false, noBack: true });
+  all.push(...B.head.headU, ...B.head.cap, ...B.head.front, ...B.head.mid, ...B.head.back);
+  for (const p of B.near) { if (p.hand) renderHand(p.hand, S, { L, sep: true, rim: false }); else S.fill(p.polys, p.k); all.push(...p.polys); }
+  S.rim(all, L.d, 6, SC.sil ? .7 : .4);
+  if (o.bones && B.bones) {
+    ctx.strokeStyle = 'rgba(204,42,46,.9)'; ctx.lineWidth = 3; ctx.fillStyle = 'rgba(204,42,46,.9)';
+    for (const c of B.bones) { ctx.stroke(linePath(c)); for (const p of c) { ctx.beginPath(); ctx.arc(p[0], p[1], 5, 0, TAU); ctx.fill(); } }
+  }
+  const tg = B.target; if (!tg) return; ctx.strokeStyle = 'rgba(176,24,38,.8)'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.arc(tg[0], tg[1], 12, 0, TAU); ctx.moveTo(tg[0] - 20, tg[1]); ctx.lineTo(tg[0] + 20, tg[1]); ctx.moveTo(tg[0], tg[1] - 20); ctx.lineTo(tg[0], tg[1] + 20); ctx.stroke();
+}
+
+
+/* ---------- FÍSICA: ragdoll activo contra una pared ---------- */
+const FIS = { rd: null, t0: 0, hit: false, shake: 0, cast: -9, impactsSeen: 0 };
+function fisReset(t) { FIS.rd = ragdollNew(0); FIS.t0 = t; FIS.hit = false; FIS.cast = -9; }
+function drawFisica(t, ticks) {
+  const o = ST.fisica, S = STYLES[ST.style]; SC.sil = ST.style === 'tinta' && o.fin === 'silueta'; SC.boil = ST.boil; SC.t = t;
+  const gy = 330, k = 5.1, vx0 = -60, ax0 = 600, wallF = -78, wallX = vx0 + wallF * k;
+  if (!FIS.rd || t < FIS.t0) fisReset(t);
+  let ph = t - FIS.t0;
+  if (ph > 11.5 && o.auto) { const keep = FIS.t0 + 11.5; fisReset(keep); ph -= 11.5; }
+  /* temblor de cámara tras el choque */
+  FIS.shake *= Math.pow(.86, ticks || 0);
+  SHX = (Math.sin(t * 71) * FIS.shake * 14) * U; SHY = (Math.cos(t * 53) * FIS.shake * 9) * U;
+  S.bg({ moon: [180, -300, 70], ground: gy });
+  /* pared de piedra */
+  T0(); const wp = [[-SW / 2 - 40, -520], [wallX, -520], [wallX + N2(1, 2) * 3, gy], [-SW / 2 - 40, gy]];
+  SC.anchor = [wallX, 0]; S.fill([wp], SC.sil ? 'ink' : 'stone');
+  ctx.strokeStyle = SC.sil ? 'rgba(239,230,210,.12)' : 'rgba(239,230,210,.22)'; ctx.lineWidth = 2;
+  for (let r = 0; r < 12; r++) { const y = -500 + r * 70; ctx.beginPath(); ctx.moveTo(-SW / 2, y); ctx.lineTo(wallX - 4, y + N2(r, 1) * 5); ctx.stroke(); for (let c = 0; c < 4; c++) { const x = wallX - 30 - c * 140 - (r % 2) * 70; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + 3, y + 70); ctx.stroke(); } }
+  /* atacante: levanta la varita, lanza, vuelve */
+  const att = ST.who === 'damien' ? 'anami' : 'damien';
+  const raise = sm((ph - 1.0) / .6) * (1 - sm((ph - 3.2) / .8));
+  const tgA = [lerp(10, 30, raise), lerp(-26, -74, raise)];
+  const A = bodyRig({ x0: ax0, y0: gy, k, t, target: tgA, hy: 47.5, crouchK: .15 * raise, who: att, key: 'fa', ticks, yawAdd: 0, flip: true, wand: true }); A.target = null;
+  /* víctima */
+  const rd = FIS.rd;
+  if (!FIS.hit && ph >= 2.05) { FIS.hit = true; ragdollHit(rd, t, -1, o.power); }
+  const J = ragdollStep(rd, t, ticks, { wall: wallF, onImpact: v => { FIS.shake = Math.min(1, FIS.shake + v / 5); } });
+  const muscleLow = rd.muscle < .5;
+  const V = dressBody(J, { k, x0: vx0, y0: gy, who: ST.who, key: 'fv', ticks, flip: false, nearPose: muscleLow ? HPOSE.abierta : HPOSE.relajada, farPose: muscleLow ? HPOSE.abierta : HPOSE.relajada, ex: EXPR.neutral, capeStiff: .17 });
+  const L = { d: nrm2([.2, -1]), z: -.5 };
+  renderFig(V, S, L, {}, 0);
+  renderFig(A, S, L, {}, 1);
+  /* impacto: polvo claro que se abre y astillas oscuras que salen despedidas (sugerido, nunca gráfico) */
+  for (const im of rd.impacts) {
+    const age = t - im.t, pw = Math.min(1.4, im.v / 2), cx = wallX, cy = gy + im.y * k, rr = mulberry32(Math.floor(im.t * 1000) + 7);
+    const puff = 1 - sm(age / 1.6);
+    for (let i = 0; i < 7; i++) { const an = (rr() - .5) * 2.2, d = (18 + rr() * 50) * eio(Math.min(1, age / .7)) * pw, rad = (14 + rr() * 22) * (0.5 + age) * pw, x = cx + 6 + Math.cos(an) * d, y = cy + Math.sin(an) * d - age * 18;
+      const g = ctx.createRadialGradient(x, y, 0, x, y, rad); g.addColorStop(0, `rgba(226,214,190,${.55 * puff})`); g.addColorStop(1, 'rgba(226,214,190,0)'); ctx.fillStyle = g; ctx.fillRect(x - rad, y - rad, rad * 2, rad * 2); }
+    ctx.fillStyle = `rgba(20,16,20,${1 - sm(age / 1.2)})`;
+    for (let i = 0; i < 9; i++) { const an = (rr() - .5) * 2.4, sp = (60 + rr() * 140) * pw, x = cx + 4 + Math.cos(an) * sp * age, y = cy + Math.sin(an) * sp * age + 260 * age * age, r = 2 + rr() * 4;
+      if (y < gy) { ctx.beginPath(); ctx.moveTo(x - r, y); ctx.lineTo(x, y - r * 1.3); ctx.lineTo(x + r, y + r * .4); ctx.closePath(); ctx.fill(); } }
+  }
+  /* hechizo: destello en la punta y trazo hasta el pecho */
+  if (A.wandTip) {
+    const [x, y] = A.wandTip, hc = HOUSES[A.head.house];
+    const glow = sm((ph - 1.4) / .4) * (1 - sm((ph - 2.2) / .3));
+    if (glow > .01) { const r = 40 + 30 * glow, g = ctx.createRadialGradient(x, y, 0, x, y, r); g.addColorStop(0, `rgba(255,244,214,${glow})`); g.addColorStop(.35, `rgba(${hc.g},${.6 * glow})`); g.addColorStop(1, `rgba(${hc.c},0)`); ctx.fillStyle = g; ctx.fillRect(x - r, y - r, r * 2, r * 2); }
+    const f = clamp((ph - 1.8) / .25), fade = 1 - sm((ph - 2.05) / .35);
+    if (ph > 1.8 && fade > .01) {
+      const tx = vx0 + 3 * k, ty = gy - 75 * k, hx = lerp(x, tx, f), hy = lerp(y, ty, f), tx0 = lerp(x, tx, Math.max(0, f - .35)), ty0 = lerp(y, ty, Math.max(0, f - .35));
+      ctx.lineCap = 'round'; ctx.strokeStyle = `rgba(${hc.g},${.9 * fade})`; ctx.lineWidth = 7; ctx.beginPath(); ctx.moveTo(tx0, ty0); ctx.lineTo(hx, hy); ctx.stroke();
+      ctx.strokeStyle = `rgba(255,248,230,${fade})`; ctx.lineWidth = 2.5; ctx.stroke();
+      if (f >= 1) { const r = 90 * (1 - fade) + 20, g = ctx.createRadialGradient(tx, ty, 0, tx, ty, r); g.addColorStop(0, `rgba(255,244,214,${fade})`); g.addColorStop(1, `rgba(${hc.c},0)`); ctx.fillStyle = g; ctx.fillRect(tx - r, ty - r, r * 2, r * 2); }
+    }
+  }
+  if (o.bones) {
+    ctx.strokeStyle = 'rgba(204,42,46,.9)'; ctx.fillStyle = 'rgba(204,42,46,.9)'; ctx.lineWidth = 3; const X = V.X;
+    for (const [a, b, , kind] of RBONES) { if (kind) continue; ctx.beginPath(); ctx.moveTo(...X(rd.p[a])); ctx.lineTo(...X(rd.p[b])); ctx.stroke(); }
+    for (const j of RJ) { ctx.beginPath(); ctx.arc(...X(rd.p[j]), 5, 0, TAU); ctx.fill(); }
+  }
+  label(`músculo ${Math.round(rd.muscle * 100)} %`, vx0 + 40, gy + 80, { size: 26 });
+  SHX = SHY = 0;
+}
+
+/* ---------- ESTILOS ---------- */
+function drawEstilos(t, ticks) {
+  const o = ST.estilos, S = STYLES[ST.style]; SC.sil = false; SC.boil = ST.boil; SC.t = t;
+  S.bg({ moon: [560, -250, 110], hz: 360 });
+  const yaw = o.anim ? .62 + .32 * Math.sin(t * .5) : .7, pitch = o.anim ? .06 + .06 * Math.sin(t * .7) : .08;
+  const R = headRig({ x: -360, y: -40, s: 165, yaw, pitch, roll: 0, bYaw: yaw * .4, who: ST.who, ex: curEx, key: 'est', ticks });
+  const L = { d: nrm2([560 + 360, -250 + 160]), z: -.15 };
+  renderHead(R, S, { L, bust: true, feats: o.feats === 'min', ex: curEx });
+  const ha = -1.25 + (o.anim ? .1 * Math.sin(t * .9) : 0), wx = 200, wy = 250;
+  SC.anchor = [wx, wy]; SC.house = CAST[ST.who].house;
+  const hd = [Math.cos(ha), Math.sin(ha)], cuff = [wx - hd[0] * .03 * 290, wy - hd[1] * .03 * 290];   // la manga va encima y termina en la muñeca
+  const Hd = handRig({ x: wx, y: wy, s: 290, ang: ha, pose: mixHP(HPOSE.varita, HPOSE.puño, o.anim ? .15 + .15 * Math.sin(t * 1.3) : .1), wand: true });
+  renderHand(Hd, S, { L, sep: true });
+  SC.anchor = [wx, wy]; S.fill([capsulePts(add(cuff, hd, -620), cuff, 95, 60, 5)], 'cloth');
+  if (Hd.wandTip && o.style !== 'boceto') {
+    const [x, y] = Hd.wandTip, r = 60 + 8 * Math.sin(t * 3), g = ctx.createRadialGradient(x, y, 0, x, y, r);
+    g.addColorStop(0, 'rgba(255,240,200,.95)'); g.addColorStop(.3, 'rgba(240,182,72,.45)'); g.addColorStop(1, 'rgba(240,182,72,0)'); ctx.fillStyle = g; ctx.fillRect(x - r, y - r, r * 2, r * 2);
+  }
+}
+
+/* ---------- controles ---------- */
+const PANEL = document.getElementById('panel'), HUD = document.getElementById('hud');
+const CHARS = Object.fromEntries(Object.entries(CAST).map(([k, v]) => [k, v.name]));
+const UI = {
+  rostro: [
+    ['seg', 'Personaje', () => ST, 'who', CHARS],
+    ['seg', 'Expresión', o => o, 'ex', EXN],
+    ['seg', 'Rasgos', o => o, 'feats', { sin: 'Sin rasgos', min: 'Rasgos mínimos' }],
+    ['seg', 'Acabado (tinta)', o => o, 'fin', { lavado: 'Lavado con sombra', silueta: 'Silueta' }, () => ST.style === 'tinta'],
+    ['tog', 'Girar sola', o => o, 'anim'],
+    ['rng', 'Giro', o => o, 'yaw', -90, 90, 1, '°', o => !o.anim],
+    ['rng', 'Cabeceo', o => o, 'pitch', -30, 30, 1, '°'],
+    ['rng', 'Inclinación', o => o, 'roll', -25, 25, 1, '°'],
+    ['rng', 'Dirección de la luz', o => o, 'az', 0, 360, 1, '°'],
+    ['rng', 'Luz: contraluz ↔ de frente', o => o, 'lz', -1, 1, .01, ''],
+    ['tog', 'Ver volúmenes', o => o, 'vol'],
+  ],
+  manos: [
+    ['tog', 'Recorrer posturas', o => o, 'anim'],
+    ['seg', 'Postura', o => o, 'pose', HPN, o => !o.anim],
+    ['tog', 'Línea de papel entre dedos', o => o, 'sep'],
+    ['seg', 'Acabado (tinta)', o => o, 'fin', { lavado: 'Lavado con sombra', silueta: 'Silueta' }, () => ST.style === 'tinta'],
+    ['rng', 'Giro de muñeca', o => o, 'ang', -90, 60, 1, '°'],
+    ['rng', 'Dirección de la luz', o => o, 'az', 0, 360, 1, '°'],
+  ],
+  cuerpo: [
+    ['seg', 'Personaje', () => ST, 'who', CHARS],
+    ['seg', 'Ritmo de la derecha', o => o, 'fps', { 12: '12 FPS', 8: '8 FPS' }],
+    ['rng', 'Agacharse', o => o, 'crouch', 0, 1, .01, ''],
+    ['seg', 'Acabado (tinta)', o => o, 'fin', { silueta: 'Silueta', lavado: 'Lavado' }, () => ST.style === 'tinta'],
+    ['tog', 'Ver huesos', o => o, 'bones'],
+  ],
+  efectos: [
+    ['seg', 'Hechizo', o => o, 'kind', { ataque: 'Ataque', escudo: 'Escudo', maldicion: 'Maldición' }],
+    ['tog', 'Cámara lenta', o => o, 'slow'],
+    ['seg', 'Personaje', () => ST, 'who', CHARS],
+  ],
+  fisica: [
+    ['btn', 'Lanzar hechizo ahora', () => { FIS.t0 = TT - 1.0; FIS.hit = false; }],
+    ['tog', 'Repetir solo', o => o, 'auto'],
+    ['seg', 'Personaje', () => ST, 'who', CHARS],
+    ['rng', 'Fuerza del golpe', o => o, 'power', 1, 5, .1, ''],
+    ['seg', 'Acabado (tinta)', o => o, 'fin', { silueta: 'Silueta', lavado: 'Lavado' }, () => ST.style === 'tinta'],
+    ['tog', 'Ver huesos', o => o, 'bones'],
+  ],
+  estilos: [
+    ['seg', 'Personaje', () => ST, 'who', CHARS],
+    ['seg', 'Expresión', o => o, 'ex', EXN],
+    ['seg', 'Rasgos', o => o, 'feats', { sin: 'Sin rasgos', min: 'Rasgos mínimos' }],
+    ['tog', 'Animar', o => o, 'anim'],
+  ],
+};
+const NOTES = {
+  rostro: 'La cabeza son cuatro volúmenes en 3D proyectados y unidos. La sombra es la misma forma menos una copia desplazada hacia la luz; la nariz proyecta su propia sombra y las cuencas de los ojos se oscurecen con la luz cenital. En «Sin rasgos», las cejas existen solo como el borde de esa sombra.',
+  manos: 'Cinco dedos de tres falanges en vista lateral. La línea de papel entre piezas es lo que hace legible un puño en silueta: apágala para ver la diferencia. A escala de plano general la mano mide unos 30u, así que el detalle solo se nota de plano medio hacia dentro.',
+  cuerpo: 'Las piernas se resuelven con IK de dos huesos: la cadera sube y baja y los pies no se mueven. La capa y el pelo son la misma tela con resorte, cortada distinto. Izquierda y derecha son el mismo personaje; la derecha solo cambia de pose 12 veces por segundo, como la animación dibujada a mano.',
+  efectos: 'Arriba, los efectos de ahora: brillos y líneas de luz, el lenguaje de un videojuego. Abajo, hechos del mismo material que el resto: el hechizo es una pincelada, la luz es papel sin pintar, el impacto es una flor de tinta con un fotograma invertido, y cada tipo tiene su forma (puntas, ensō, zarcillo). Los de abajo van a 12 FPS.',
+  fisica: 'Al recibir el hechizo, el «músculo» que sujeta la pose cae a cero: el cuerpo pasa a ser física pura (huesos como varillas, gravedad, suelo y pared), choca, y el músculo vuelve poco a poco hasta que se levanta. La capa y el pelo reaccionan solos porque son tela.',
+  estilos: 'El mismo rig pintado con tres pasadas distintas; el selector de arriba cambia el estilo en todas las pestañas. El temblor de línea no es ruido por fotograma: son tres variantes fijas que se alternan a 8 FPS.',
+};
+const STYLE_ROW = [['seg', 'Estilo (todas las pestañas)', () => ST, 'style', { tinta: 'Tinta y acuarela', papel: 'Papel recortado', boceto: 'Boceto' }], ['tog', 'Temblor de línea (8 FPS)', () => ST, 'boil']];
+function buildPanel() {
+  PANEL.innerHTML = '';
+  const o = ST[ST.tab];
+  const note = document.createElement('p'); note.className = 'note'; note.textContent = NOTES[ST.tab]; PANEL.appendChild(note);
+  for (const [type, lab, objF, key, a, b, c, unit, en] of [...STYLE_ROW, ...UI[ST.tab]]) {
+    const obj = objF(o), row = document.createElement('div'); row.className = 'ctl';
+    const id = `c-${ST.tab}-${key}`;
+    if (type === 'btn') {
+      const bt = document.createElement('button'); bt.type = 'button'; bt.className = 'act'; bt.id = `${id}-btn`; bt.textContent = lab; bt.onclick = () => objF(); row.appendChild(bt); PANEL.appendChild(row); continue;
+    }
+    if (type === 'seg') {
+      const enabled = typeof a === 'function' ? true : (b ? b(o) : true);
+      const opts = a, cond = typeof b === 'function' ? b : null;
+      const h = document.createElement('div'); h.className = 'lab'; h.textContent = lab; row.appendChild(h);
+      const g = document.createElement('div'); g.className = 'seg'; g.setAttribute('role', 'group'); g.setAttribute('aria-label', lab);
+      for (const [v, n] of Object.entries(opts)) {
+        const bt = document.createElement('button'); bt.type = 'button'; bt.textContent = n; bt.id = `${id}-${v}`;
+        const val = typeof obj[key] === 'number' ? +v : v;
+        bt.setAttribute('aria-pressed', String(obj[key] === val));
+        if (cond && !cond(o)) bt.disabled = true;
+        bt.onclick = () => { obj[key] = val; if (key === 'who') SPR.clear(); buildPanel(); };
+        g.appendChild(bt);
+      }
+      row.appendChild(g);
+    } else if (type === 'tog') {
+      const l = document.createElement('label'); l.className = 'tog'; l.htmlFor = id;
+      const i = document.createElement('input'); i.type = 'checkbox'; i.id = id; i.checked = !!obj[key];
+      i.onchange = () => { obj[key] = i.checked; buildPanel(); };
+      const sp = document.createElement('span'); sp.textContent = lab; l.append(i, sp); row.appendChild(l);
+    } else {
+      const [mn, mx, st] = [a, b, c];
+      const h = document.createElement('label'); h.className = 'lab'; h.htmlFor = id;
+      const out = document.createElement('output'); const fmt = v => (st < 1 ? (+v).toFixed(2) : v) + unit;
+      h.textContent = lab + ' '; out.textContent = fmt(obj[key]); h.appendChild(out);
+      const i = document.createElement('input'); i.type = 'range'; i.id = id; i.min = mn; i.max = mx; i.step = st; i.value = obj[key];
+      if (en && !en(o)) i.disabled = true;
+      i.oninput = () => { obj[key] = +i.value; out.textContent = fmt(i.value); };
+      row.append(h, i);
+    }
+    PANEL.appendChild(row);
+  }
+  for (const b of document.querySelectorAll('.tabs button')) b.setAttribute('aria-selected', String(b.dataset.tab === ST.tab));
+  cv.style.touchAction = ST.tab === 'cuerpo' ? 'none' : 'auto';
+}
+for (const b of document.querySelectorAll('.tabs button')) b.onclick = () => { ST.tab = b.dataset.tab; try { history.replaceState(null, '', '#' + ST.tab); } catch (e) { } buildPanel(); };
+{ const h = (location.hash || '').slice(1); if (UI[h]) ST.tab = h; }
+const toUnits = e => { const r = cv.getBoundingClientRect(); return [((e.clientX - r.left) / r.width * W - W / 2) / U, ((e.clientY - r.top) / r.height * H - H / 2) / U]; };
+cv.addEventListener('pointerdown', e => { if (ST.tab !== 'cuerpo') return; DRAG = toUnits(e); cv.setPointerCapture(e.pointerId); });
+cv.addEventListener('pointermove', e => { if (DRAG) DRAG = toUnits(e); });
+const endDrag = () => { DRAG = null; };
+cv.addEventListener('pointerup', endDrag); cv.addEventListener('pointercancel', endDrag);
+
+/* ---------- bucle ---------- */
+let LAST = performance.now(), ACC = 0, TT = 0, FROZEN = null, EMA = 0, HUDT = 0, FPS = 0;
+function draw(t, ticks, dt) {
+  const ex = ST.tab === 'estilos' ? ST.estilos.ex : ST.rostro.ex; exStep(ex, dt);
+  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over'; T0();
+  if (ST.tab === 'rostro') drawRostro(t, ticks);
+  else if (ST.tab === 'manos') drawManos(t);
+  else if (ST.tab === 'cuerpo') drawCuerpo(t, ticks);
+  else if (ST.tab === 'fisica') drawFisica(t, ticks);
+  else if (ST.tab === 'efectos') drawEfectos(t, ticks);
+  else drawEstilos(t, ticks);
+}
+function frame(now) {
+  const raw = (now - LAST) / 1000, dt = Math.min(.1, raw); LAST = now; if (raw > 0) FPS = FPS ? lerp(FPS, 1 / raw, .05) : 1 / raw;
+  resize();
+  if (FROZEN === null) TT += dt;
+  ACC += dt; let ticks = Math.floor(ACC * 60); ACC -= ticks / 60; ticks = Math.min(ticks, 4);
+  const t0 = performance.now(); draw(FROZEN ?? TT, FROZEN === null ? ticks : 0, dt); const ms = performance.now() - t0;
+  EMA = EMA ? lerp(EMA, ms, .05) : ms;
+  if (now - HUDT > 400) { HUDT = now; HUD.textContent = `${Math.round(FPS)} FPS · ${EMA.toFixed(1)} ms de dibujo · ${W}×${H}`; }
+  requestAnimationFrame(frame);
+}
+GRAIN = makeGrain(); WASHTEX = makeWashTex(); HATCH = makeHatch(9, -.8, 1.3, 'rgba(52,50,62,.75)'); HATCH2 = makeHatch(5, -.8, 1.5, 'rgba(40,38,50,.9)');
+resize(); buildPanel(); requestAnimationFrame(frame);
+window.__lab = {
+  ST, set(tab, patch = {}, glob = {}) { ST.tab = tab; Object.assign(ST[tab], patch); Object.assign(ST, glob); SPR.clear(); buildPanel(); },
+  shot(t, warm = 90) { FROZEN = null; resize(); const st = t - warm / 60; for (let i = 0; i < warm; i++) draw(st + i / 60, 1, 1 / 60); FROZEN = t; draw(t, 0, 1 / 60); },
+  perf(n = 60) { const a = []; for (let i = 0; i < n; i++) { const t0 = performance.now(); draw(i / 60, 1, 1 / 60); a.push(performance.now() - t0); } a.sort((x, y) => x - y); return { med: a[n >> 1], p95: a[Math.floor(n * .95)] }; },
+};
+
+</script>

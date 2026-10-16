@@ -1,0 +1,280 @@
+<title>Tiquete de producción</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;1,500&family=Spectral:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Una hoja de guion sobre la mesa de producción: una columna, cada sección es un «plano» numerado
+   por su orden real de trabajo; la cinta lateral marca el estado del tiquete. */
+:root {
+  --bg: #efe8da; --sheet: #f8f4ea; --ink: #1d1a1c; --dim: #6e665e; --line: #d8cebd;
+  --accent: #a3222f; --accent-ink: #fff6ee; --field: #fffdf7; --ok: #3f6b4a; --warn: #9a6a1c;
+  --f-display: "Cormorant Garamond", Georgia, serif; --f-body: "Spectral", Georgia, serif; --f-label: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg: #16151a; --sheet: #1f1e24; --ink: #ece6da; --dim: #a39a8e; --line: #3a3842; --accent: #e0606a; --accent-ink: #1a1214; --field: #26252c; --ok: #7fb58c; --warn: #d8a75a; color-scheme: dark; } }
+:root[data-theme="dark"] { --bg: #16151a; --sheet: #1f1e24; --ink: #ece6da; --dim: #a39a8e; --line: #3a3842; --accent: #e0606a; --accent-ink: #1a1214; --field: #26252c; --ok: #7fb58c; --warn: #d8a75a; color-scheme: dark; }
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font: 400 17px/1.55 var(--f-body); padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 28px 64px; }
+.sheet { max-width: 880px; margin: 0 auto; background: var(--sheet); border: 1px solid var(--line); border-left: 6px solid var(--accent); padding: 28px clamp(16px, 4vw, 44px) 36px; display: grid; gap: 30px; }
+.sheet[data-estado="listo"] { border-left-color: var(--warn); } .sheet[data-estado="entregado"] { border-left-color: var(--ok); }
+h1 { font: 600 clamp(32px, 5vw, 46px)/1.05 var(--f-display); margin: 0; text-wrap: balance; }
+h2 { font: 600 26px/1.15 var(--f-display); margin: 0; display: flex; gap: 12px; align-items: baseline; flex-wrap: wrap; }
+h2 .n { font: 500 13px var(--f-label); color: var(--accent); letter-spacing: .08em; }
+.lead { color: var(--dim); margin: 6px 0 0; max-width: 62ch; }
+.label, label > span { font: 500 12px/1.3 var(--f-label); letter-spacing: .07em; text-transform: uppercase; color: var(--dim); }
+label { display: grid; gap: 6px; min-width: 0; }
+input, select, textarea { font: inherit; color: var(--ink); background: var(--field); border: 1px solid var(--line); border-radius: 3px; padding: 9px 11px; width: 100%; min-width: 0; }
+textarea { min-height: 84px; resize: vertical; line-height: 1.5; }
+input:focus-visible, select:focus-visible, textarea:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.row { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); }
+section { display: grid; gap: 14px; padding-top: 22px; border-top: 1px solid var(--line); }
+.top { display: flex; flex-wrap: wrap; gap: 10px; align-items: end; justify-content: space-between; }
+.bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+button { font: 500 13px var(--f-label); letter-spacing: .04em; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 3px; padding: 8px 12px; cursor: pointer; }
+button:hover { border-color: var(--ink); }
+button.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+button.quiet { border-color: transparent; color: var(--dim); padding: 6px 8px; }
+.modes { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+.mode { border: 1px solid var(--line); border-radius: 3px; padding: 12px 14px; cursor: pointer; display: grid; gap: 4px; background: var(--field); }
+.mode input { position: absolute; opacity: 0; pointer-events: none; }
+.mode b { font: 600 20px var(--f-display); }
+.mode small { color: var(--dim); font-size: 14px; line-height: 1.4; }
+.mode code { font: 500 12px var(--f-label); color: var(--accent); }
+.mode:has(input:checked) { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+.mode:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 2px; }
+.list { display: grid; gap: 12px; }
+.card { border: 1px solid var(--line); border-radius: 3px; padding: 14px; display: grid; gap: 12px; background: var(--field); }
+.card .head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.card .head .label { color: var(--accent); }
+.block .times { display: grid; grid-template-columns: 1fr 1fr 1.2fr; gap: 10px; }
+@media (max-width: 520px) { .block .times { grid-template-columns: 1fr 1fr; } }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { font: 400 15px var(--f-body); background: var(--field); border: 1px solid var(--line); border-radius: 999px; padding: 4px 6px 4px 12px; display: inline-flex; gap: 6px; align-items: center; max-width: 100%; overflow-wrap: anywhere; }
+.chip button { border: 0; padding: 0 6px; font-size: 15px; line-height: 1; color: var(--dim); }
+.chipin { display: flex; gap: 8px; } .chipin input { flex: 1; }
+.meter { display: flex; gap: 4px; align-items: center; flex-wrap: wrap; font: 500 12px var(--f-label); color: var(--dim); }
+.meter i { width: 20px; height: 6px; background: var(--line); border-radius: 2px; display: inline-block; }
+.meter i.on { background: var(--ok); }
+.status { font: 500 12px var(--f-label); color: var(--dim); }
+.claude { border: 1px dashed var(--accent); border-radius: 3px; padding: 14px; display: grid; gap: 12px; }
+.claude .q { display: grid; gap: 6px; } .claude .q p { margin: 0; font-style: italic; }
+.empty { color: var(--dim); font-style: italic; margin: 0; }
+.dialog { border: 1px solid var(--accent); padding: 12px 14px; border-radius: 3px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.tabular { font-variant-numeric: tabular-nums; }
+@media (prefers-reduced-motion: no-preference) { .card, .chip { transition: border-color .15s; } }
+</style>
+
+<main class="sheet" id="sheet" data-estado="borrador">
+  <header class="top">
+    <div style="min-width:0">
+      <div class="label">Claude-Hollywood · tiquete de producción</div>
+      <h1 id="hTitle">Tiquete nuevo</h1>
+      <p class="lead">Lo que pongas aquí es lo que Claude lee antes de crear. Escribe hechos que se vean o se oigan («el fuego evapora los charcos»); los vacíos los pregunta o los completa según el modo.</p>
+    </div>
+    <div class="bar">
+      <label style="min-width:200px"><span>Tiquete</span><select id="pick"></select></label>
+      <button id="btnNew" type="button">Nuevo</button>
+      <button id="btnDel" type="button" class="quiet">Borrar</button>
+    </div>
+  </header>
+  <div id="confirm" class="dialog" hidden><span>¿Borrar este tiquete? No se puede deshacer.</span><button id="yesDel" type="button" class="primary">Borrar</button><button id="noDel" type="button">Cancelar</button></div>
+
+  <section>
+    <h2><span class="n">01</span>Ficha</h2>
+    <div class="row">
+      <label style="grid-column:1/-1"><span>Título</span><input id="titulo" placeholder="El Invernadero de Cristal y Ceniza"></label>
+      <label><span>Duración (min)</span><input id="duracion" class="tabular" inputmode="decimal" placeholder="3"></label>
+      <label><span>Estilo</span><select id="estilo"><option value="acuarela">Acuarela / sumi-e</option><option value="papel">Papel recortado</option><option value="mixto">Mixto</option><option value="otro">Otro (descríbelo en notas)</option></select></label>
+      <label><span>Universo</span><input id="universo" placeholder="El Juramento Roto · independiente"></label>
+      <label><span>Estado</span><select id="estado"><option value="borrador">Borrador</option><option value="listo">Listo para Claude</option><option value="produccion">En producción</option><option value="entregado">Entregado</option></select></label>
+    </div>
+    <div class="label">Modo de trabajo</div>
+    <div class="modes" role="radiogroup" aria-label="Modo de trabajo">
+      <label class="mode"><input type="radio" name="modo" value="asistido"><b>Asistido</b><small>Hablamos antes de empezar. Claude no construye hasta que los dos aprobemos el plan por planos.</small><code>/sumi-e-canvas-film asistido</code></label>
+      <label class="mode"><input type="radio" name="modo" value="control" checked><b>Control</b><small>Por defecto. Si algo no está claro, 3–5 preguntas; lo demás lo completa Claude y deja a la vista lo que decidió.</small><code>/sumi-e-canvas-film control</code></label>
+      <label class="mode"><input type="radio" name="modo" value="auto"><b>Full auto</b><small>Claude puede cambiar casi todo menos lo sagrado. Si quiere tocarlo, para y te manda un pitch corto.</small><code>/sumi-e-canvas-film auto</code></label>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="n">02</span>La idea</h2>
+    <label><span>En una frase</span><textarea id="logline" style="min-height:64px" placeholder="Dos magos se baten en un invernadero victoriano abandonado bajo una tormenta, hasta que el choque lo deja sin techo."></textarea></label>
+    <label><span>Sensación (qué debe sentir quien la vea)</span><textarea id="tono" placeholder="Calma tensa que estalla; el silencio después vale más que el ruido."></textarea></label>
+  </section>
+
+  <section>
+    <h2><span class="n">03</span>Lo que no se toca</h2>
+    <p class="lead">En modo Auto, Claude puede cambiar todo lo demás. Pulsa Enter para añadir.</p>
+    <div class="label">Sagrado</div>
+    <div class="chips" id="sagradoChips"></div>
+    <div class="chipin"><input id="sagradoIn" aria-label="Añadir algo sagrado" placeholder="El final con la luna en el charco"><button type="button" data-add="sagrado">Añadir</button></div>
+    <div class="label">Lo que NO quiero</div>
+    <div class="chips" id="noquieroChips"></div>
+    <div class="chipin"><input id="noquieroIn" aria-label="Añadir algo que no quieres" placeholder="Brillos de neón, caras con rasgos"><button type="button" data-add="noquiero">Añadir</button></div>
+  </section>
+
+  <section>
+    <h2><span class="n">04</span>Personajes</h2>
+    <div class="list" id="personajes"></div>
+    <div><button type="button" id="addPersonaje">+ Personaje</button></div>
+  </section>
+
+  <section>
+    <h2><span class="n">05</span>Lugares</h2>
+    <div class="list" id="lugares"></div>
+    <div><button type="button" id="addLugar">+ Lugar</button></div>
+  </section>
+
+  <section>
+    <h2><span class="n">06</span>Guion por bloques</h2>
+    <p class="lead">Cada bloque: qué se ve, qué se oye y, si te importa, la cámara. La prioridad dice qué se salva si hay que recortar.</p>
+    <div class="list" id="bloques"></div>
+    <div><button type="button" id="addBloque">+ Bloque</button></div>
+  </section>
+
+  <section>
+    <h2><span class="n">07</span>Técnica y entregables</h2>
+    <div class="row">
+      <label><span>Textos en pantalla</span><select id="textos"><option value="ninguno">Ninguno (solo título y fin)</option><option value="subtitulos">Subtítulos de diálogo</option><option value="narracion">Narración</option></select></label>
+      <label><span>Idioma</span><input id="idioma" placeholder="Español"></label>
+      <label><span>Sonido</span><select id="sonido"><option value="completo">Completo (ambiente, efectos, música)</option><option value="ambiente">Solo ambiente y efectos</option><option value="sin">Sin sonido</option></select></label>
+    </div>
+    <label><span>Referencias de sensación (películas, cuadros, juegos: el porqué, no el diseño)</span><textarea id="refs" placeholder="La quietud antes del golpe en las películas de samuráis; luz de tormenta que atraviesa vidrio sucio."></textarea></label>
+    <label><span>Notas para Claude</span><textarea id="notas" placeholder="Lo que no cabe arriba: dudas, ideas sueltas, cosas que quieres probar."></textarea></label>
+  </section>
+
+  <section>
+    <h2><span class="n">08</span>Respuesta de Claude</h2>
+    <div class="claude" id="claude"><p class="empty">Aquí aparecen las preguntas de Claude y lo que decidió por su cuenta. Contesta debajo de cada pregunta; se guarda solo.</p></div>
+  </section>
+
+  <footer class="top" style="align-items:center">
+    <div class="meter" id="meter" aria-live="polite"></div>
+    <div class="bar"><span class="status" id="status">—</span><button type="button" id="btnCopy" class="primary">Copiar tiquete</button></div>
+  </footer>
+</main>
+
+<script>
+(() => {
+  const $ = s => document.querySelector(s);
+  const blank = () => ({ titulo: '', duracion: '', estilo: 'acuarela', universo: '', estado: 'borrador', modo: 'control', logline: '', tono: '', sagrado: [], noquiero: [], personajes: [], lugares: [], bloques: [], textos: 'ninguno', idioma: 'Español', sonido: 'completo', refs: '', notas: '', claude: { preguntas: [], supuestos: [] } });
+  const S = { db: null, tickets: {}, cur: null, timer: 0, writing: false, again: false, local: false };
+  const status = t => { $('#status').textContent = t; };
+  const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const T = () => S.tickets[S.cur];
+
+  /* ---------- guardar (una escritura a la vez por tiquete; ráfagas agrupadas) ---------- */
+  function touch() { const t = T(); if (!t) return; t.updatedAt = new Date().toISOString(); status('Guardando…'); clearTimeout(S.timer); S.timer = setTimeout(save, 700); meter(); }
+  async function save() {
+    const id = S.cur, t = S.tickets[id]; if (!t) return;
+    if (S.local || !S.db) { try { localStorage.setItem('tiquetes', JSON.stringify(S.tickets)); status('Guardado en este navegador'); } catch (e) { status('No se pudo guardar: usa «Copiar tiquete»'); } return; }
+    if (S.writing) { S.again = true; return; }
+    S.writing = true;
+    try { await S.db.doc('tickets/' + id).set(JSON.parse(JSON.stringify(t))); status('Guardado'); }
+    catch (e) { status(e && e.code === 'quota_exceeded' ? 'Sin espacio: borra tiquetes viejos' : 'No se guardó; reintenta editando'); }
+    S.writing = false; if (S.again) { S.again = false; save(); }
+  }
+
+  /* ---------- campos simples ---------- */
+  const simple = ['titulo', 'duracion', 'estilo', 'universo', 'estado', 'logline', 'tono', 'textos', 'idioma', 'sonido', 'refs', 'notas'];
+  simple.forEach(k => $('#' + k).addEventListener('input', e => { const t = T(); if (!t) return; t[k] = e.target.value; if (k === 'titulo') { $('#hTitle').textContent = t.titulo || 'Tiquete sin título'; fillPick(); } if (k === 'estado') $('#sheet').dataset.estado = t.estado; touch(); }));
+  document.querySelectorAll('input[name=modo]').forEach(r => r.addEventListener('change', e => { const t = T(); if (t) { t.modo = e.target.value; touch(); } }));
+
+  /* ---------- listas de chips ---------- */
+  function chips(k) { const t = T(); $('#' + k + 'Chips').innerHTML = (t[k] || []).map((v, i) => `<span class="chip">${esc(v)}<button type="button" aria-label="Quitar" data-del="${k}" data-i="${i}">×</button></span>`).join(''); }
+  function addChip(k) { const inp = $('#' + k + 'In'), v = inp.value.trim(); if (!v) return; T()[k].push(v); inp.value = ''; chips(k); touch(); }
+  document.querySelectorAll('[data-add]').forEach(b => b.addEventListener('click', () => addChip(b.dataset.add)));
+  ['sagrado', 'noquiero'].forEach(k => $('#' + k + 'In').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); addChip(k); } }));
+  document.addEventListener('click', e => { const b = e.target.closest('[data-del]'); if (!b) return; T()[b.dataset.del].splice(+b.dataset.i, 1); chips(b.dataset.del); touch(); });
+
+  /* ---------- tarjetas repetibles ---------- */
+  const CARDS = {
+    personajes: { label: 'Personaje', fields: [['nombre', 'Nombre', 'input', 'Mago A'], ['silueta', 'Silueta y porte', 'input', 'Alto, capa pesada hasta el suelo'], ['pelo', 'Pelo', 'input', 'Lacio largo'], ['magia', 'Su magia / color', 'input', 'Fuego, oro, carmesí'], ['quien', 'Quién es y qué quiere', 'textarea', '']] },
+    lugares: { label: 'Lugar', fields: [['nombre', 'Nombre', 'input', 'Invernadero victoriano'], ['cuando', 'Época, hora y clima', 'input', 'Noche de tormenta'], ['como', 'Cómo es', 'textarea', 'Hierro oxidado, cientos de paneles agrietados, raíces que rompieron el suelo'], ['reacciona', 'Qué se rompe o reacciona', 'textarea', 'El vidrio, los charcos, los helechos']] },
+    bloques: { label: 'Bloque', fields: [['desde', 'Desde (mm:ss)', 'input', '0:00'], ['hasta', 'Hasta (mm:ss)', 'input', '0:30'], ['prio', 'Prioridad', 'select', ''], ['titulo', 'Título', 'input', 'La calma'], ['ve', 'Qué se ve', 'textarea', 'Un relámpago atraviesa el vidrio sucio y revela el polvo flotando'], ['oye', 'Qué se oye', 'textarea', 'Lluvia sobre el techo; trueno; gotas que caen'], ['camara', 'Cámara', 'input', 'General; paneo lento a la derecha']] },
+  };
+  const PRIO = [['1', '1 · imprescindible'], ['2', '2 · importante'], ['3', '3 · si cabe']];
+  function renderCards(k) {
+    const t = T(), C = CARDS[k];
+    $('#' + k).innerHTML = (t[k] || []).map((it, i) => `<div class="card ${k === 'bloques' ? 'block' : ''}"><div class="head"><span class="label">${C.label} ${i + 1}</span><button type="button" class="quiet" data-rm="${k}" data-i="${i}">Quitar</button></div>` +
+      (k === 'bloques' ? `<div class="times">${C.fields.slice(0, 3).map(f => field(k, i, f, it)).join('')}</div>` + C.fields.slice(3).map(f => field(k, i, f, it)).join('') : `<div class="row">${C.fields.filter(f => f[2] !== 'textarea').map(f => field(k, i, f, it)).join('')}</div>` + C.fields.filter(f => f[2] === 'textarea').map(f => field(k, i, f, it)).join('')) + '</div>').join('') || `<p class="empty">Todavía ninguno.</p>`;
+  }
+  function field(k, i, [f, lab, type, ph], it) {
+    const id = `${k}-${i}-${f}`, v = esc(it[f]), a = `id="${id}" data-k="${k}" data-i="${i}" data-f="${f}"`;
+    if (type === 'select') return `<label for="${id}"><span>${lab}</span><select ${a}>${PRIO.map(([val, txt]) => `<option value="${val}" ${String(it[f] || '2') === val ? 'selected' : ''}>${txt}</option>`).join('')}</select></label>`;
+    if (type === 'textarea') return `<label for="${id}"><span>${lab}</span><textarea ${a} placeholder="${esc(ph)}">${v}</textarea></label>`;
+    return `<label for="${id}"><span>${lab}</span><input ${a} value="${v}" placeholder="${esc(ph)}"${f === 'desde' || f === 'hasta' ? ' class="tabular"' : ''}></label>`;
+  }
+  document.addEventListener('input', e => { const el = e.target; if (!el.dataset || !el.dataset.k) return; const it = T()[el.dataset.k][+el.dataset.i]; if (it) { it[el.dataset.f] = el.value; touch(); } });
+  document.addEventListener('click', e => { const b = e.target.closest('[data-rm]'); if (!b) return; T()[b.dataset.rm].splice(+b.dataset.i, 1); renderCards(b.dataset.rm); touch(); });
+  $('#addPersonaje').onclick = () => { T().personajes.push({}); renderCards('personajes'); touch(); };
+  $('#addLugar').onclick = () => { T().lugares.push({}); renderCards('lugares'); touch(); };
+  $('#addBloque').onclick = () => { const b = T().bloques, last = b[b.length - 1]; b.push({ desde: last ? last.hasta || '' : '0:00', prio: '2' }); renderCards('bloques'); touch(); };
+
+  /* ---------- la respuesta de Claude (la escribe Claude; tú contestas) ---------- */
+  function renderClaude() {
+    const c = (T().claude) || { preguntas: [], supuestos: [] }, el = $('#claude');
+    if (!c.preguntas.length && !c.supuestos.length && !c.nota) { el.innerHTML = '<p class="empty">Aquí aparecen las preguntas de Claude y lo que decidió por su cuenta. Contesta debajo de cada pregunta; se guarda solo.</p>'; return; }
+    el.innerHTML = (c.nota ? `<p style="margin:0">${esc(c.nota)}</p>` : '') +
+      (c.preguntas.length ? '<div class="label">Preguntas</div>' + c.preguntas.map((q, i) => `<div class="q"><p>${esc(q.q)}</p><textarea data-ans="${i}" aria-label="Tu respuesta" placeholder="Tu respuesta">${esc(q.a)}</textarea></div>`).join('') : '') +
+      (c.supuestos.length ? '<div class="label">Lo que decidió Claude</div><ul style="margin:0;padding-left:20px">' + c.supuestos.map(s => `<li>${esc(s)}</li>`).join('') + '</ul>' : '');
+  }
+  document.addEventListener('input', e => { const i = e.target.dataset && e.target.dataset.ans; if (i === undefined) return; T().claude.preguntas[+i].a = e.target.value; touch(); });
+
+  /* ---------- completitud ---------- */
+  function meter() {
+    const t = T(); if (!t) return;
+    const checks = [['título', !!t.titulo], ['idea', !!t.logline], ['sagrado', t.sagrado.length > 0], ['personajes', t.personajes.length > 0], ['lugar', t.lugares.length > 0], ['bloques', t.bloques.length > 0], ['sensación', !!t.tono]];
+    const n = checks.filter(c => c[1]).length;
+    $('#meter').innerHTML = checks.map(([k, ok]) => `<i class="${ok ? 'on' : ''}" title="${k}"></i>`).join('') + `<span>${n}/${checks.length} · falta: ${checks.filter(c => !c[1]).map(c => c[0]).join(', ') || 'nada'}</span>`;
+  }
+
+  /* ---------- texto compacto para pegar en el chat ---------- */
+  function compact(t) {
+    const L = [`# TIQUETE · ${t.titulo || 'sin título'}`, `modo: ${t.modo} · estilo: ${t.estilo} · duración: ${t.duracion || '?'} min · universo: ${t.universo || '-'} · estado: ${t.estado}`];
+    if (t.logline) L.push(`idea: ${t.logline}`); if (t.tono) L.push(`sensación: ${t.tono}`);
+    if (t.sagrado.length) L.push('SAGRADO: ' + t.sagrado.join(' | ')); if (t.noquiero.length) L.push('NO: ' + t.noquiero.join(' | '));
+    t.personajes.forEach((p, i) => L.push(`P${i + 1} ${p.nombre || '?'}: ${[p.silueta, p.pelo && 'pelo ' + p.pelo, p.magia && 'magia ' + p.magia, p.quien].filter(Boolean).join('; ')}`));
+    t.lugares.forEach((l, i) => L.push(`L${i + 1} ${l.nombre || '?'}: ${[l.cuando, l.como, l.reacciona && 'reacciona: ' + l.reacciona].filter(Boolean).join('; ')}`));
+    t.bloques.forEach((b, i) => L.push(`B${i + 1} [${b.desde || '?'}–${b.hasta || '?'}] p${b.prio || 2} ${b.titulo || ''}\n  ve: ${b.ve || '-'}\n  oye: ${b.oye || '-'}${b.camara ? '\n  cámara: ' + b.camara : ''}`));
+    L.push(`técnica: textos ${t.textos} · idioma ${t.idioma || '-'} · sonido ${t.sonido}`);
+    if (t.refs) L.push('refs: ' + t.refs); if (t.notas) L.push('notas: ' + t.notas);
+    const q = (t.claude && t.claude.preguntas || []).filter(x => x.a); if (q.length) L.push('RESPUESTAS: ' + q.map(x => `${x.q} → ${x.a}`).join(' | '));
+    return L.join('\n');
+  }
+  $('#btnCopy').onclick = async () => { const txt = compact(T()); try { await navigator.clipboard.writeText(txt); status('Copiado: pégalo en el chat'); } catch (e) { const ta = document.createElement('textarea'); ta.value = txt; ta.style.minHeight = '220px'; $('#claude').prepend(ta); ta.select(); status('Selecciona y copia el texto de arriba'); } };
+
+  /* ---------- tiquetes ---------- */
+  function fillPick() { const ids = Object.keys(S.tickets).sort((a, b) => String(S.tickets[b].updatedAt || '').localeCompare(String(S.tickets[a].updatedAt || ''))); $('#pick').innerHTML = ids.map(id => `<option value="${id}" ${id === S.cur ? 'selected' : ''}>${esc(S.tickets[id].titulo || 'Sin título')}</option>`).join(''); }
+  function load(id) {
+    S.cur = id; const t = T(); if (!t) return;
+    for (const k of Object.keys(blank())) if (t[k] === undefined) t[k] = blank()[k];
+    simple.forEach(k => { $('#' + k).value = t[k] ?? ''; });
+    document.querySelectorAll('input[name=modo]').forEach(r => { r.checked = r.value === t.modo; });
+    $('#hTitle').textContent = t.titulo || 'Tiquete sin título'; $('#sheet').dataset.estado = t.estado;
+    chips('sagrado'); chips('noquiero'); ['personajes', 'lugares', 'bloques'].forEach(renderCards); renderClaude(); meter(); fillPick();
+  }
+  function newTicket() { const id = 't' + Date.now().toString(36); S.tickets[id] = { ...blank(), updatedAt: new Date().toISOString() }; load(id); touch(); }
+  $('#btnNew').onclick = newTicket;
+  $('#pick').onchange = e => load(e.target.value);
+  $('#btnDel').onclick = () => { $('#confirm').hidden = false; };
+  $('#noDel').onclick = () => { $('#confirm').hidden = true; };
+  $('#yesDel').onclick = async () => { $('#confirm').hidden = true; const id = S.cur; delete S.tickets[id]; if (S.db && !S.local) { try { await S.db.doc('tickets/' + id).delete(); } catch (e) { } } else { try { localStorage.setItem('tiquetes', JSON.stringify(S.tickets)); } catch (e) { } } const ids = Object.keys(S.tickets); ids.length ? load(ids[0]) : newTicket(); };
+
+  /* ---------- arranque: primero en local, luego la base compartida ---------- */
+  S.tickets = { local: { ...blank() } }; S.cur = 'local'; S.local = true; load('local'); status('Cargando…');
+  (async () => {
+    let db = null; try { db = await (window.claude && window.claude.use ? window.claude.use('db') : null); } catch (e) { db = null; }
+    if (!db) { try { const saved = JSON.parse(localStorage.getItem('tiquetes') || 'null'); if (saved && Object.keys(saved).length) { S.tickets = saved; load(Object.keys(saved)[0]); } } catch (e) { } status('Se guarda solo en este navegador · usa «Copiar tiquete»'); return; }
+    S.db = db; S.local = false;
+    let first = true;
+    db.collection('tickets').onSnapshot(snap => {
+      const editing = document.activeElement && document.activeElement.closest('.sheet') && document.activeElement.matches('input, textarea, select');
+      const fresh = {}; snap.docs.forEach(d => { fresh[d.id] = JSON.parse(JSON.stringify(d.data())); });
+      if (first) { first = false; S.tickets = fresh; const ids = Object.keys(fresh); if (ids.length) { const pick = ids.sort((a, b) => String(fresh[b].updatedAt || '').localeCompare(String(fresh[a].updatedAt || '')))[0]; load(pick); } else newTicket(); status('Guardado en el tiquete compartido'); return; }
+      /* cambios de fuera (por ejemplo, Claude escribe sus preguntas): se aplican si no estás escribiendo en ese tiquete */
+      for (const [id, t] of Object.entries(fresh)) { if (snap.metadata.hasPendingWrites) continue; const mine = S.tickets[id]; if (!mine || (t.updatedAt || '') > (mine.updatedAt || '')) { S.tickets[id] = t; if (id === S.cur && !editing) load(id); else if (id === S.cur) { mine.claude = t.claude; renderClaude(); } } }
+      fillPick();
+    }, () => status('Sin conexión con la base: lo nuevo se guarda al volver'));
+  })();
+})();
+</script>

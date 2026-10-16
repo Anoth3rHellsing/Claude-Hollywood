@@ -89,3 +89,5 @@ Cualquier película acepta `?t=SEGUNDOS` en la URL para abrir en modo prueba en 
 2. Copiar `motor/juramento-ep3` a una carpeta nueva y añadirla a `ORDER` y `NAME` en `build.py`.
 3. Escenarios nuevos en un `02x_*.js`, escenas en `06_*.js`, partitura en `04b_music.js`.
 4. Revisar con capturas, audio y rendimiento (ver `LECCIONES.md` §9 y §10).
+
+> El skill publicable (con el motor Escenarios, una plantilla que funciona y las guías) está en `../plugins/sumi-e-canvas-film/` y se instala desde el marketplace del repo. `skill/SKILL.md` es la edición personal; `python plugins/sumi-e-canvas-film/sync.py` actualiza la pública.

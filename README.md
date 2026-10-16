@@ -111,3 +111,15 @@ Capturarlos con las herramientas de siempre (`shot.py`) de las películas en `D:
 - **ElevenLabs:** el conector de claude.ai no aparece solo en Claude Code. Hay que añadir el servidor MCP de ElevenLabs a Claude Code o darle una API key. Revisar su documentación; aquí no se ha probado.
 - **Claude Code en la nube** no ve `C:\` ni `D:\`, solo repositorios de GitHub. Ya tienes todo disponible en este repositorio (incluyendo la carpeta `Claude-Hollywood/`).
 - Prompt de arranque sugerido: *«Lee `README.md`, `tiquete.json` y `guion.json` en esta carpeta, y `Claude-Hollywood/skill/SKILL.md`. Seguimos Claude Hollywood 101 en modo asistido desde "Pasos siguientes".»*
+
+## Instala el skill (marketplace de Claude Code)
+
+El procedimiento y el motor con que se hicieron estas películas están empaquetados como plugin:
+
+```
+/plugin install sumi-e-canvas-film --marketplace Anoth3rHellsing/Code-Corn
+```
+
+O en dos pasos: `/plugin marketplace add Anoth3rHellsing/Code-Corn` y luego `/plugin install sumi-e-canvas-film@code-corn`.
+
+Para claude.ai o Claude Desktop, sube [`dist/sumi-e-canvas-film.zip`](dist/sumi-e-canvas-film.zip) en **Customize → Skills**. Detalles en [`plugins/sumi-e-canvas-film/README.md`](plugins/sumi-e-canvas-film/README.md).

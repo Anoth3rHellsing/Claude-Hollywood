@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
+  "name": "code-corn",
+  "description": "Claude Hollywood: skills para hacer películas animadas en un solo HTML con Canvas 2D y sonido sintetizado.",
+  "owner": { "name": "Anoth3rHellsing", "url": "https://github.com/Anoth3rHellsing" },
+  "plugins": [
+    {
+      "name": "sumi-e-canvas-film",
+      "source": "./plugins/sumi-e-canvas-film",
+      "description": "Películas, cortos e intros animadas en un solo HTML: acuarela/sumi-e, papel recortado y mapas 3D detallados con personajes pixel, diálogos con bleeps de 8 bits y música procedural. Incluye el motor Escenarios y una plantilla que funciona.",
+      "category": "creative",
+      "tags": ["animation", "canvas", "film", "watercolor", "pixel-art", "procedural-audio", "spanish"]
+    }
+  ]
+}

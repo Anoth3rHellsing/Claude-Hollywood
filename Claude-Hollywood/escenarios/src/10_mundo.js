@@ -66,7 +66,8 @@ function hplane(T, x0, x1, z0, z1, y, o = {}) {
     const za = clamp(zOf(Y0), zn, z1), zb = clamp(zOf(Y1), zn, z1), sa = PS(za), sb = PS(zb), Xr = SW / 2 + 6 - CAM.tx;
     /* la tira es un paralelogramo: el borde derecho del lado cercano se queda corto; se estira para cubrir la pantalla */
     const xl = Math.max(x0, CAM.x + (-SW / 2 - 6 - CAM.tx) / Math.min(sa, sb)), xr = Math.min(x1, Math.max(CAM.x + Xr / sa, xl + (Xr - (xl - CAM.x) * sb) / sa)); if (xr <= xl) continue;
-    const p0 = PJ(xl, y, za), p1 = PJ(xr, y, za), p2 = PJ(xl, y, zb);
+    /* el ancho se toma del borde cercano (el más largo): así dos trozos de suelo contiguos se solapan un poco en vez de dejar triángulos vacíos */
+    const p0 = PJ(xl, y, za), p2 = PJ(xl, y, zb), q = PJ(xr, y, zb), p1 = [p0[0] + Math.max(q[0] - p2[0], PJ(xr, y, za)[0] - p0[0]), p0[1]];
     texStrip(T, (xl - x0) / (x1 - x0), (xr - x0) / (x1 - x0), (z1 - za) / (z1 - z0), (z1 - zb) / (z1 - z0), p0, p1, p2, .8);
   }
   ctx.globalAlpha = 1;

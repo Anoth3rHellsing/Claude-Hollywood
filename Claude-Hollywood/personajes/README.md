@@ -26,3 +26,18 @@ Al crear un personaje nuevo se le da un **nombre realista** al azar.
 | Brote | maceta con audífonos | Lo-Fi Codes |
 | Tetera | barista del carrito de café | Lo-Fi Codes |
 | Aguada | tacita con boina (diseño de Nico) | Claude Hollywood 101 |
+
+## Transeúntes (vecinos de Almagre)
+
+Personajes de fondo generados por forma (`npcDef`): caminan por las aceras, hacen cola en Molienda y miran pasar a Teo.
+
+| Personaje | Qué es |
+|---|---|
+| **Mateo Quiroga** | Taza de oficina con franja azul; siempre llega tarde a la parada. |
+| **Inés Barragán** | Taza de cerámica verde; abre la floristería. |
+| **Lucía Benavente** | Tostada; estudiante con prisa. |
+| **Anselmo Requena** | Lata de conservas; jubilado que pasea al alba. |
+| **Carmen Olaizola** | Cebolla morada; vende flores en la esquina. |
+| **Iván Salcedo** | Botella de leche; repartidor madrugador. |
+| **Nora Echeverría** | Lata de té con flores; maestra de primaria. |
+

@@ -473,7 +473,8 @@ function hplane(T, x0, x1, z0, z1, y, o = {}) {
     const za = clamp(zOf(Y0), zn, z1), zb = clamp(zOf(Y1), zn, z1), sa = PS(za), sb = PS(zb), Xr = SW / 2 + 6 - CAM.tx;
     /* la tira es un paralelogramo: el borde derecho del lado cercano se queda corto; se estira para cubrir la pantalla */
     const xl = Math.max(x0, CAM.x + (-SW / 2 - 6 - CAM.tx) / Math.min(sa, sb)), xr = Math.min(x1, Math.max(CAM.x + Xr / sa, xl + (Xr - (xl - CAM.x) * sb) / sa)); if (xr <= xl) continue;
-    const p0 = PJ(xl, y, za), p1 = PJ(xr, y, za), p2 = PJ(xl, y, zb);
+    /* el ancho se toma del borde cercano (el más largo): así dos trozos de suelo contiguos se solapan un poco en vez de dejar triángulos vacíos */
+    const p0 = PJ(xl, y, za), p2 = PJ(xl, y, zb), q = PJ(xr, y, zb), p1 = [p0[0] + Math.max(q[0] - p2[0], PJ(xr, y, za)[0] - p0[0]), p0[1]];
     texStrip(T, (xl - x0) / (x1 - x0), (xr - x0) / (x1 - x0), (z1 - za) / (z1 - z0), (z1 - zb) / (z1 - z0), p0, p1, p2, .8);
   }
   ctx.globalAlpha = 1;
@@ -1203,9 +1204,11 @@ function dlgDraw(D, t, o = {}) {
   if (d.face !== false && ELENCO[d.who]) { const f = elencoFace(d.who, d.face || {}), fs = Math.max(1, Math.round(p * 1.7)), fw = f.width * fs, fh = f.height * fs; g.imageSmoothingEnabled = false; g.drawImage(f, bx + 7 * p, by + Math.round((bh - fh) / 2), fw, fh); tx = bx + 7 * p + fw + 7 * p; }
   const cpl = Math.floor((bx + bw - 8 * p - tx) / (6 * p)) - 2, lines = dlgWrap(d.txt, cpl);
   const shown = d.rev.filter(r => t - d.t >= r).length, M = MOODS[d.mood || 'normal'];
-  let left = shown;
-  pxText(g, '*', tx, by + 9 * p, p, '#fff');
-  lines.forEach((L, i) => { if (left <= 0) return; const s = L.slice(0, left); left -= L.length + 1; pxText(g, s, tx + 12 * p, by + 9 * p + i * 13 * p, p, o.col || '#fff', { shake: M.shake && shown < d.txt.length + 8 ? Math.floor(t * 14) : 0 }); });
+  /* caben tres líneas: si el texto es más largo, sube como en los RPG (se ven las tres últimas que se están escribiendo) */
+  const parts = []; let left = shown; for (const L of lines) { if (left <= 0) break; parts.push(L.slice(0, left)); left -= L.length + 1; }
+  const first = Math.max(0, parts.length - 3);
+  pxText(g, '*', tx, by + 9 * p, p, first ? '#888' : '#fff');
+  parts.slice(first).forEach((s, i) => pxText(g, s, tx + 12 * p, by + 9 * p + i * 13 * p, p, o.col || '#fff', { shake: M.shake && shown < d.txt.length + 8 ? Math.floor(t * 14) : 0 }));
   g.restore(); T0();
 }
 /* rótulo de hora (arriba a la izquierda): «07:15 AM» grande y el lugar debajo; aparece letra a letra */
@@ -1658,6 +1661,41 @@ ELENCO.aguada = {
   frame(o = {}) { const g = gridOf(this.base); gridEyes(g, this.eyes, 'O', o); return gridPad(g, 4); },
 };
 
+/* =====================================================================
+   TRANSEÚNTES · vecinos de Almagre (fondo vivo: caminan, esperan, miran pasar a Teo). Se generan por forma:
+   una lista de [medio ancho, carácter] por fila; el contorno, los ojos, las mejillas, la sombra lateral y las
+   piernas salen igual para todos, así encajan con el resto del elenco.
+   ===================================================================== */
+function npcFrame(spec, o = {}, extra) {
+  const W = 20, cx = 10, B = spec.length, H_ = B + 6, g = Array.from({ length: H_ }, () => Array(W).fill('.'));
+  spec.forEach(([hw, ch], r) => { for (let c = cx - hw; c < cx + hw; c++) g[r + 1][c] = ch; if (hw > 2) g[r + 1][cx + hw - 1] = ch === ch.toUpperCase() ? ch.toLowerCase() : ch; });
+  const legR = B + 1, lens = [3 - (o.legL ? 2 : 0), 3 - (o.legR ? 2 : 0)];
+  [[cx - 3, lens[0]], [cx + 1, lens[1]]].forEach(([c0, L]) => { for (let k = 0; k < L; k++) { g[legR + k][c0] = 'j'; g[legR + k][c0 + 1] = 'j'; } });
+  if (extra) extra(g, cx, o);
+  const ey = o.eyeRow;   // ojos 2×2 con brillo, mejillas y boca
+  for (const ex of [cx - 4, cx + 2]) { if (o.blink) { g[ey + 1][ex] = 'K'; g[ey + 1][ex + 1] = 'K'; } else { g[ey][ex] = 'K'; g[ey][ex + 1] = o.wide ? 'T' : 'K'; g[ey + 1][ex] = 'K'; g[ey + 1][ex + 1] = 'K'; if (o.wide) { g[ey - 1][ex] = 'K'; g[ey - 1][ex + 1] = 'K'; } } }
+  g[ey + 2][cx - 5] = 'E'; g[ey + 2][cx + 4] = 'E'; if (o.happy) { g[ey + 2][cx - 1] = 'K'; g[ey + 2][cx] = 'K'; } else g[ey + 3][cx - 1] = 'K';
+  const out = g.map(r => r.slice());   // contorno: todo vacío que toca algo pintado
+  for (let y = 0; y < H_; y++) for (let x = 0; x < W; x++) if (g[y][x] === '.' && [[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dy]) => g[y + dy] && g[y + dy][x + dx] && g[y + dy][x + dx] !== '.' && g[y + dy][x + dx] !== 'K')) out[y][x] = 'K';
+  return out;
+}
+const NPC_PAL = { K: PXK, T: [255, 255, 255], E: [244, 142, 128], j: [60, 56, 64] };
+const npcDef = (id, nombre, rol, pal, spec, eyeRow, voz, extra) => { ELENCO[id] = { nombre, rol, pelicula: 'Entre el Vapor y el Bit', npc: true, voz, pal: { ...NPC_PAL, ...pal }, cell: 3.3, foot: 10, frame(o = {}) { return npcFrame(spec, { ...o, eyeRow }, extra); } }; };
+const MUG = [[6, 'w'], [6, 'W'], [6, 'W'], [6, 'B'], [6, 'B'], [6, 'W'], [6, 'W'], [6, 'W'], [6, 'W'], [6, 'W'], [6, 'W'], [6, 'W'], [5, 'W']];
+const mugHandle = (g, cx) => { for (let r = 4; r <= 9; r++) g[r][cx + 8] = 'K'; g[4][cx + 7] = 'K'; g[9][cx + 7] = 'K'; };
+npcDef('mateo', 'Mateo Quiroga', 'Taza de oficina; siempre llega tarde a la parada', { W: [244, 244, 240], w: [200, 200, 204], B: [70, 110, 170], b: [50, 84, 140] }, MUG, 7, { base: 330, onda: 'square' }, mugHandle);
+npcDef('ines', 'Inés Barragán', 'Taza de cerámica verde; abre la floristería', { W: [150, 196, 160], w: [110, 150, 120], B: [240, 236, 220], b: [200, 196, 180] }, MUG, 7, { base: 520, onda: 'triangle' }, mugHandle);
+npcDef('lucia', 'Lucía Benavente', 'Tostada; estudiante con prisa', { C: [176, 110, 54], c: [140, 84, 40], P: [240, 206, 140], p: [214, 176, 112] },
+  [[4, 'C'], [6, 'C'], [7, 'P'], [7, 'P'], [7, 'P'], [7, 'P'], [7, 'P'], [7, 'P'], [7, 'P'], [7, 'P'], [7, 'P'], [7, 'C']], 5, { base: 600, onda: 'square' });
+npcDef('anselmo', 'Anselmo Requena', 'Lata de conservas; jubilado que pasea al alba', { S: [190, 194, 200], s: [140, 146, 154], R: [196, 54, 48], r: [150, 36, 34], Y: [240, 200, 80], y: [200, 160, 60] },
+  [[5, 'S'], [5, 'S'], [5, 'R'], [5, 'R'], [5, 'Y'], [5, 'R'], [5, 'R'], [5, 'R'], [5, 'R'], [5, 'R'], [5, 'S'], [5, 'S']], 5, { base: 260, onda: 'triangle' });
+npcDef('carmen', 'Carmen Olaizola', 'Cebolla morada; vende flores en la esquina', { G: [96, 160, 70], g: [70, 120, 50], P: [156, 70, 140], p: [120, 50, 108] },
+  [[1, 'G'], [1, 'G'], [3, 'P'], [5, 'P'], [6, 'P'], [7, 'P'], [7, 'P'], [7, 'P'], [7, 'P'], [6, 'P'], [5, 'P'], [3, 'P']], 6, { base: 440, onda: 'triangle' });
+npcDef('ivan', 'Iván Salcedo', 'Botella de leche; repartidor madrugador', { R: [200, 60, 50], r: [160, 40, 34], M: [246, 246, 240], m: [206, 210, 214], L: [90, 150, 210], l: [70, 120, 180] },
+  [[2, 'R'], [2, 'M'], [2, 'M'], [3, 'M'], [4, 'M'], [5, 'M'], [5, 'L'], [5, 'L'], [5, 'M'], [5, 'M'], [5, 'M'], [5, 'M'], [5, 'M']], 8, { base: 380, onda: 'square' });
+npcDef('nora', 'Nora Echeverría', 'Lata de té con flores; maestra de primaria', { S: [230, 214, 170], s: [190, 172, 130], R: [90, 140, 120], r: [64, 110, 92], Y: [240, 150, 160], y: [200, 120, 130] },
+  [[5, 'S'], [5, 'R'], [5, 'R'], [5, 'Y'], [5, 'R'], [5, 'R'], [5, 'R'], [5, 'Y'], [5, 'R'], [5, 'R'], [5, 'S']], 4, { base: 560, onda: 'triangle' });
+const NPCS = ['mateo', 'ines', 'lucia', 'anselmo', 'carmen', 'ivan', 'nora'];
 /* ---------- cuadro → lienzo (con caché) ---------- */
 const PX_CACHE = new Map();
 function elencoCanvas(id, o = {}) {
@@ -2404,11 +2442,13 @@ const dustDens = p => p < TJ ? 0 : Math.exp(-(p - TJ - 1) * .25);
    ESCENA 2a · LA CALLE ALMAGRE (07:35): travelling lateral rápido con cuatro planos de profundidad
    1 · primer plano fuera de foco en el bordillo (z ≈ 320): parquímetros, bocas de incendio, postes con cables
    2 · Teo corriendo por la acera de concreto agrietada (z = 560), charcos que reflejan el cielo y las fachadas
+   2b · la calzada (z 760…1180) con taxis, coches, furgonetas de reparto y el autobús; alcantarillas que humean;
+        la acera de enfrente con vecinos que caminan
    3 · fachadas de ladrillo con escaleras de incendio que humean por las calderas de la mañana (z = 1400)
    4 · la ciudad lejana en la neblina fría (z = 9000)
    Tonos fríos cian y gris; al final, la fachada cálida de Molienda Reserva.
    ===================================================================== */
-const CA = { ZF: 1400, ZT: 560, ZC: 300, END: 9640, X0: -1600, X1: 11600 };
+const CA = { ZF: 1400, ZT: 560, ZC: 300, R0: 760, R1: 1180, LA: 900, LB: 1060, END: 9640, X0: -1600, X1: 11600 };
 const CAX = {};
 const COOL = [132, 150, 172];
 /* ---------- un edificio (sprite en cm, base en y = 0) ---------- */
@@ -2479,9 +2519,65 @@ function paintMoliendaFront() {
   g.fillStyle = 'rgb(30,26,26)'; g.fillRect(w * .2, -600, w * .6, 110);
   marcaLogo(g, 'molienda', w * .2 + 30, -585, 80, { dark: true });
   wcTex(g, S.c.width, S.c.height, .25, .2);
+  /* la puerta de vidrio con marco de acero negro, tirador y campanilla */
+  { const dx = 620, dw = 120; g.fillStyle = 'rgb(22,20,22)'; g.fillRect(dx - 8, -340, dw + 16, 340); const dg = g.createLinearGradient(0, -330, 0, 0); dg.addColorStop(0, 'rgb(255,196,120)'); dg.addColorStop(1, 'rgb(170,96,50)'); g.fillStyle = dg; g.fillRect(dx, -330, dw, 322);
+    g.fillStyle = 'rgba(70,36,24,.7)'; g.beginPath(); g.ellipse(dx + 70, -180, 22, 26, 0, 0, TAU); g.fill(); g.fillRect(dx + 44, -158, 52, 150);   // alguien dentro, en la barra
+    g.fillStyle = 'rgba(255,255,255,.16)'; g.beginPath(); g.moveTo(dx + 10, -8); g.lineTo(dx + 60, -330); g.lineTo(dx + 84, -330); g.lineTo(dx + 34, -8); g.fill();
+    g.fillStyle = 'rgb(190,170,120)'; g.fillRect(dx + 14, -200, 6, 90); g.fillStyle = 'rgb(240,232,214)'; g.fillRect(dx + 34, -120, 54, 18); g.fillStyle = 'rgb(40,30,26)'; g.font = '700 11px "Space Mono", monospace'; g.fillText('ABIERTO', dx + 37, -107);
+    g.fillStyle = 'rgb(200,170,90)'; g.beginPath(); g.arc(dx + dw - 10, -326, 7, 0, PI); g.fill(); g.fillStyle = 'rgb(60,56,52)'; g.fillRect(dx - 14, -2, dw + 28, 8); }   // campanilla y umbral
   S.door = { x: 620, w: 120 };
   return S;
 }
+/* ---------- vehículos (de perfil, mirando a la izquierda; las ruedas se dibujan vivas) ---------- */
+function paintVehicle(kind, col, seed, brand, right) {   /* right: mira a la derecha (la carrocería se refleja; los rótulos no) */
+  const L = kind === 'bus' ? 1100 : kind === 'van' ? 520 : 450, Ht = kind === 'bus' ? 300 : kind === 'van' ? 220 : 150, S = spr([-10, -Ht - 30, L + 10, 4], 1.4), g = S.g, r = mulberry32(seed), c = col;
+  if (right) { g.translate(L, 0); g.scale(-1, 1); }
+  const unflip = (cx, f) => { g.save(); if (right) { g.translate(cx, 0); g.scale(-1, 1); g.translate(-cx, 0); } f(); g.restore(); };
+  const body = g.createLinearGradient(0, -Ht, 0, -20); body.addColorStop(0, cssc(shc(c, .25))); body.addColorStop(.45, cssc(c)); body.addColorStop(1, cssc(shc(c, -.3)));
+  g.fillStyle = body; g.beginPath();
+  if (kind === 'sedan' || kind === 'taxi') { g.moveTo(6, -36); g.lineTo(4, -78); g.quadraticCurveTo(8, -94, 40, -98); g.lineTo(130, -102); g.quadraticCurveTo(160, -104, 190, -146); g.quadraticCurveTo(205, -152, 300, -150); g.quadraticCurveTo(345, -146, 380, -104); g.lineTo(440, -98); g.quadraticCurveTo(452, -92, 450, -60); g.lineTo(446, -36); g.closePath(); }
+  else if (kind === 'van') { g.moveTo(6, -36); g.lineTo(4, -90); g.quadraticCurveTo(10, -104, 50, -112); g.lineTo(110, -200); g.quadraticCurveTo(120, -214, 150, -214); g.lineTo(510, -214); g.quadraticCurveTo(520, -212, 520, -196); g.lineTo(518, -36); g.closePath(); }
+  else { g.moveTo(4, -40); g.lineTo(2, -270); g.quadraticCurveTo(4, -296, 40, -298); g.lineTo(1080, -298); g.quadraticCurveTo(1098, -296, 1098, -276); g.lineTo(1096, -40); g.closePath(); }
+  g.fill(); g.strokeStyle = 'rgba(20,20,26,.8)'; g.lineWidth = 2.5; g.stroke();
+  const glass = (pts) => { const gg = g.createLinearGradient(0, -300, 0, -90); gg.addColorStop(0, 'rgb(170,196,214)'); gg.addColorStop(.6, 'rgb(90,110,130)'); gg.addColorStop(1, 'rgb(60,70,86)'); g.fillStyle = gg; g.beginPath(); pts.forEach(([x, y], i) => i ? g.lineTo(x, y) : g.moveTo(x, y)); g.closePath(); g.fill(); g.fillStyle = 'rgba(255,255,255,.3)'; g.beginPath(); g.moveTo(pts[0][0] + 20, pts[0][1]); g.lineTo(pts[1][0] + 10, pts[1][1]); g.lineTo(pts[1][0] + 30, pts[1][1]); g.lineTo(pts[0][0] + 40, pts[0][1]); g.fill(); };
+  if (kind === 'sedan' || kind === 'taxi') { glass([[150, -104], [196, -142], [262, -144], [262, -104]]); glass([[272, -104], [272, -144], [300, -144], [356, -104]]); g.fillStyle = cssc(shc(c, -.4)); g.fillRect(262, -146, 10, 44);
+    g.strokeStyle = 'rgba(20,20,26,.5)'; g.lineWidth = 1.5; g.beginPath(); g.moveTo(268, -100); g.lineTo(268, -40); g.moveTo(150, -100); g.lineTo(150, -44); g.moveTo(376, -100); g.lineTo(380, -44); g.stroke(); g.fillStyle = 'rgba(30,30,34,.8)'; g.fillRect(212, -86, 20, 4); g.fillRect(320, -86, 20, 4); g.fillRect(138, -116, 14, 10); }
+  else if (kind === 'van') { glass([[60, -110], [114, -196], [150, -200], [150, -110]]); g.fillStyle = cssc(shc(c, -.15)); g.fillRect(170, -196, 330, 140); g.strokeStyle = 'rgba(20,20,26,.4)'; g.lineWidth = 1.5; g.strokeRect(170, -196, 330, 140); }
+  else { for (let k = 0; k < 8; k++) glass([[60 + k * 125, -190], [60 + k * 125, -270], [170 + k * 125, -270], [170 + k * 125, -190]]); g.fillStyle = 'rgb(30,30,34)'; g.fillRect(10, -270, 40, 230); g.fillStyle = cssc(shc(c, -.25)); g.fillRect(60, -170, 1000, 110); }
+  if (kind === 'taxi') { g.fillStyle = 'rgb(30,30,34)'; for (let k = 0; k < 24; k++) if (k % 2) g.fillRect(40 + k * 16, -76, 16, 8); else g.fillRect(40 + k * 16, -68, 16, 8); g.fillStyle = 'rgb(250,246,230)'; g.fillRect(222, -166, 64, 16); unflip(254, () => { g.fillStyle = 'rgb(30,30,34)'; g.font = '700 14px "Josefin Sans", sans-serif'; g.fillText('TAXI', 234, -153); }); unflip(205, () => { g.font = '700 10px "Josefin Sans", sans-serif'; g.fillStyle = 'rgb(30,30,34)'; g.fillText('ALMAGRE · 24 h', 160, -50); }); }
+  if (brand) { const bx = kind === 'bus' ? 120 : 196, by = kind === 'bus' ? -158 : -184, bh = kind === 'bus' ? 80 : 100; const pw = kind === 'bus' ? 860 : 290; g.fillStyle = 'rgba(250,248,240,.95)'; g.fillRect(bx - 10, by - 6, pw, bh + 12); unflip(bx - 10 + pw / 2, () => marcaLogo(g, brand, bx, by, bh)); }
+  g.fillStyle = 'rgb(250,240,200)'; g.fillRect(4, kind === 'bus' ? -110 : -84, 10, 14); g.fillStyle = 'rgb(200,40,36)'; g.fillRect(L - 10, kind === 'bus' ? -110 : -84, 8, 16);   // faro y piloto
+  g.fillStyle = 'rgb(40,40,46)'; g.fillRect(0, -42, L, 10);   // parachoques/estribo
+  const wr = kind === 'bus' ? 46 : 34, wx = kind === 'bus' ? [170, 900] : kind === 'van' ? [92, 420] : [86, 366];
+  for (const x of wx) { g.fillStyle = 'rgb(24,24,28)'; g.beginPath(); g.arc(x, -wr, wr + 8, PI, TAU); g.fill(); }   // pasos de rueda
+  wcTex(g, S.c.width, S.c.height, .15, .15);
+  S.L = L; S.wr = wr; S.wx = right ? wx.map(x => L - x) : wx; return S;
+}
+const LANES = [
+  { z: CA.LA, dir: 1, cars: [['sedan', [176, 46, 40], 0, 1180], ['taxi', [246, 196, 40], 1500, 1260], ['van', [236, 230, 218], 3100, 1000, 'molienda'], ['sedan', [170, 176, 184], 4600, 1150]] },
+  { z: CA.LB, dir: -1, cars: [['bus', [60, 110, 150], 400, 820, 'kronotek'], ['taxi', [246, 196, 40], 2300, 1150], ['sedan', [52, 70, 104], 3500, 1080], ['van', [214, 220, 226], 4900, 960, 'nimbo']] },
+];
+function vehiclesPaint() { let k = 0; for (const Ln of LANES) for (const C of Ln.cars) C.S = paintVehicle(C[0], C[1], 600 + k++, C[4], Ln.dir > 0); for (const Ln of LANES) for (const C of Ln.cars) texShadeKeep(C.S, COOL, .22); }
+const WRAP = 7200;
+function vehicleAt(Ln, C, t) { const w0 = CAM.x - 3200, raw = C[2] + Ln.dir * C[3] * (t - 61.5); return { x: w0 + ((raw - w0) % WRAP + WRAP) % WRAP, z: Ln.z }; }
+function vehicleDraw(Ln, C, t) {
+  const S = C.S, P = vehicleAt(Ln, C, t), x0 = P.x - S.L / 2, flip = Ln.dir > 0, bob = Math.sin(t * 9 + C[2]) * .8;
+  const sh = poly3([[P.x - S.L / 2, 14.5, P.z - 20], [P.x + S.L / 2, 14.5, P.z - 20], [P.x + S.L / 2 + 30, 14.5, P.z + 50], [P.x - S.L / 2 + 30, 14.5, P.z + 50]]); if (sh) { ctx.fillStyle = 'rgba(30,32,40,.4)'; ctx.fill(sh); }
+  bill(S, x0, 15 + bob, P.z);
+  const s = PS(P.z), rot = -Ln.dir * (t * C[3] / S.wr);
+  for (const wx of S.wx) { const cxw = x0 + wx, c = PJ(cxw, 15 - S.wr, P.z), R_ = S.wr * s; ctx.fillStyle = 'rgb(28,28,32)'; ctx.beginPath(); ctx.arc(c[0], c[1], R_, 0, TAU); ctx.fill(); ctx.fillStyle = 'rgb(150,154,162)'; ctx.beginPath(); ctx.arc(c[0], c[1], R_ * .55, 0, TAU); ctx.fill(); ctx.strokeStyle = 'rgb(80,84,92)'; ctx.lineWidth = Math.max(1, R_ * .12); for (let k = 0; k < 5; k++) { const a = rot + k * TAU / 5; ctx.beginPath(); ctx.moveTo(c[0], c[1]); ctx.lineTo(c[0] + Math.cos(a) * R_ * .5, c[1] + Math.sin(a) * R_ * .5); ctx.stroke(); } }
+  /* estela de velocidad tenue detrás */
+  ctx.strokeStyle = 'rgba(220,226,232,.25)'; ctx.lineWidth = Math.max(1, 2 * s); for (let k = 0; k < 3; k++) { const yy = -40 - k * 30, a = PJ(flip ? x0 : x0 + S.L, yy, P.z), b = PJ(flip ? x0 - 160 : x0 + S.L + 160, yy, P.z); ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.stroke(); }
+}
+/* ---------- alcantarillas (el único vapor de la calle) ---------- */
+const MANHOLES = [{ x: 2300, z: 930, y: 14.5 }, { x: 7600, z: 1080, y: 14.5 }, { x: 6000, z: 590, y: -.4, walk: true }];
+function manholeDraw(M) { const P = poly3(ellP(M.x, M.z, 38, 30, 22).map(([x, z]) => [x, M.y, z])); if (!P) return; ctx.fillStyle = 'rgb(52,50,50)'; ctx.fill(P); ctx.strokeStyle = 'rgb(110,106,100)'; ctx.lineWidth = Math.max(1, 2 * PS(M.z)); ctx.stroke(P);
+  for (let k = -2; k <= 2; k++) { const a = PJ(M.x - 26, M.y - .2, M.z + k * 9), b = PJ(M.x + 26, M.y - .2, M.z + k * 9); ctx.strokeStyle = 'rgba(130,126,120,.7)'; ctx.lineWidth = Math.max(.6, PS(M.z)); ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.stroke(); } }
+/* ---------- vecinos: caminan por la acera de enfrente; algunos esperan en la nuestra y miran pasar a Teo ---------- */
+const WALKERS = Array.from({ length: 22 }, (_, i) => ({ id: NPCS[i % NPCS.length], x0: -1200 + i * 520 + hsh(i, 1) * 300, z: 1240 + hsh(i, 2) * 110, dir: hsh(i, 3) < .5 ? 1 : -1, v: 80 + hsh(i, 4) * 60 }));
+const STANDERS = [{ id: 'carmen', x: 1900, z: 700 }, { id: 'mateo', x: 2050, z: 715 }, { id: 'anselmo', x: 4500, z: 705 }, { id: 'nora', x: 7000, z: 700 }, { id: 'ivan', x: 7150, z: 712 }, { id: 'lucia', x: 8450, z: 705 }];
+function npcWalkDraw(N, t) { const x = N.x0 + N.dir * N.v * (t - 61.5); if (Math.abs(x - CAM.x) > 2600) return; const st = Math.floor(t / (.36 - N.v / 1000)) + N.x0; pxDraw(N.id, { legL: st % 2, legR: (st + 1) % 2, blink: (t * .4 + N.x0) % 1 < .05 }, x, Math.abs(Math.sin(t * 8 + N.x0)) * 1.5, N.z, { flip: N.dir < 0 }); }
+function npcStandDraw(N, t, teoX) { if (Math.abs(N.x - CAM.x) > 2600) return; const d = teoX - N.x, near = Math.abs(d) < 260; pxShadow(N.id, N.x, N.z, 0, { a: .22 }); pxDraw(N.id, { wide: near, blink: !near && (t * .3 + N.x) % 1 < .05, happy: !near && d < -260 && d > -900 }, N.x, near ? 4 : 0, N.z, { flip: d < 0 }); }
 /* ---------- objetos del bordillo (se desenfocan una vez) ---------- */
 function paintMeter() { const S = spr([-20, -135, 20, 2], 3), g = S.g; g.fillStyle = 'rgb(60,64,70)'; g.fillRect(-3, -90, 6, 90); g.fillStyle = 'rgb(70,90,110)'; g.beginPath(); g.ellipse(0, -110, 14, 22, 0, 0, TAU); g.fill(); g.fillStyle = 'rgb(200,220,230)'; g.beginPath(); g.ellipse(0, -114, 9, 10, 0, 0, TAU); g.fill(); g.fillStyle = 'rgb(220,60,40)'; g.fillRect(-4, -116, 8, 3); marcaLogo(g, 'almagre', -5, -98, 10, { layout: 'emblema' }); return S; }
 function paintHydrant() { const S = spr([-26, -80, 26, 2], 3), g = S.g, c = [196, 50, 40]; wcWash(g, [[-14, 0], [14, 0], [12, -52], [16, -56], [10, -66], [-10, -66], [-16, -56], [-12, -52]], c, .98, { reserve: false, mode: 'source-over', amt: .4, seed: 3, step: 6 }); g.fillStyle = cssc(shc(c, -.2)); g.fillRect(-22, -46, 44, 12); g.beginPath(); g.ellipse(0, -66, 10, 8, 0, PI, TAU); g.fill(); g.fillStyle = 'rgba(255,255,255,.3)'; g.fillRect(-9, -50, 4, 46); return S; }
@@ -2501,14 +2597,15 @@ function callePaint() {
   CAX.brickTile = matBrick(300, 240, { seed: 71, soot: 0, wash: .4, whitewash: false, d: .9 });
   CAX.sky = paintSkyCool(); CAX.skyline = paintSkyline();
   CAX.walk = matConcrete(1200, 1100, { seed: 31, c: [164, 168, 172] }); CAX.curb = matWash(1200, 18, [150, 152, 156], { seed: 4 });
-  CAX.road = matAsphalt(1200, 300, { seed: 41, lineY: 60 });
+  CAX.road = matAsphalt(1200, 420, { seed: 41, lineY: 205 }); CAX.curbF = matWash(1200, 18, [176, 178, 180], { seed: 5 });
   CAX.blds = []; const r = mulberry32(5); let x = CA.X0;
   const shops = ['bodega', 'laundry', 'door', 'shutter', 'bodega', 'door', 'laundry', 'shutter'];
   for (let i = 0; x < CA.END - 500; i++) { const w = 640 + r() * 300, h = 1100 + r() * 450, S = paintBuilding(100 + i, w, h, { shop: shops[i % shops.length] }); CAX.blds.push({ x, S }); x += w + (r() < .2 ? 40 : 0); }
   CAX.molienda = { x: CA.END - 680, S: paintMoliendaFront() };
   x = CA.END - 680 + 900; for (let i = 0; x < CA.X1; i++) { const w = 700, S = paintBuilding(300 + i, w, 1300); CAX.blds.push({ x, S }); x += w; }
   CAX.meter = sprBlur(paintMeter(), 6); CAX.hydrant = sprBlur(paintHydrant(), 6); CAX.pole = sprBlur(paintPole(), 2);
-  for (const k of ['walk', 'curb', 'road']) texShade(CAX[k], COOL, .22);
+  for (const k of ['walk', 'curb', 'road', 'curbF']) texShade(CAX[k], COOL, .22);
+  vehiclesPaint();
   for (const B of CAX.blds) texShadeKeep(B.S, COOL, .3);
 }
 /* ---------- charcos (en la acera, por donde corre Teo) ---------- */
@@ -2539,16 +2636,20 @@ function drawCalle(t, o = {}) {
   bill(CAX.molienda.S, CAX.molienda.x, 0, CA.ZF);
   /* luz cálida del escaparate de Molienda sobre la acera */
   const mg = PJ(CAX.molienda.x + 450, -150, CA.ZF); LGT(mg[0], mg[1], 520 * PS(CA.ZF), '255,190,110', .55);
-  /* vapor de las calderas (rejillas de las escaleras y azoteas) */
-  for (const B of CAX.blds) { const c = PJ(B.x + B.S.w / 2, 0, CA.ZF); if (c[0] < -SW / 2 - 600 || c[0] > SW / 2 + 600) continue; for (const [vx, vy] of B.S.vents) steamCols(t, { x: B.x + vx, y: vy, z: CA.ZF - 10 }, { n: 5, h: 380, w: 11, a: .5, sway: 34, drift: .3, spread: 24 }); }
   /* suelo: asfalto (delante), bordillo, acera */
-  for (let k = Math.floor((CAM.x - 4000) / 1200); k * 1200 < CAM.x + 4000; k++) { hplane(CAX.road, k * 1200, (k + 1) * 1200, 0, CA.ZC, 15); hplane(CAX.walk, k * 1200, (k + 1) * 1200, CA.ZC, CA.ZF, 0); vplane(CAX.curb, [k * 1200, CA.ZC], [(k + 1) * 1200, CA.ZC], 0, 15); }
+  for (let k = Math.floor((CAM.x - 4000) / 1200); k * 1200 < CAM.x + 4000; k++) { const a = k * 1200, b = a + 1200; hplane(CAX.walk, a, b, CA.R1, CA.ZF, 0); hplane(CAX.road, a, b, CA.R0, CA.R1, 15); vplane(CAX.curbF, [a, CA.R1], [b, CA.R1], 0, 15); hplane(CAX.walk, a, b, 20, CA.R0, 0); }
+  for (const M of MANHOLES) if (!M.walk) manholeDraw(M);
   callePuddles(t, o.refl);
-  /* rejilla de vapor en la acera */
-  { const q = poly3([[GRATE.x - 60, -.5, GRATE.z - 25], [GRATE.x + 60, -.5, GRATE.z - 25], [GRATE.x + 60, -.5, GRATE.z + 25], [GRATE.x - 60, -.5, GRATE.z + 25]]); if (q) { ctx.fillStyle = 'rgb(46,48,52)'; ctx.fill(q); ctx.strokeStyle = 'rgb(110,114,120)'; ctx.lineWidth = 1; for (let k = -50; k <= 50; k += 10) { const a = PJ(GRATE.x + k, 0, GRATE.z - 25), b = PJ(GRATE.x + k, 0, GRATE.z + 25); ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.stroke(); } } }
+  /* la tapa de registro de la acera (de ahí sale el vapor que cruza Teo) */
+  manholeDraw(MANHOLES[2]);
   if (o.floorFx) o.floorFx(t);
   if (o.items) o.items(put, t);
-  put(GRATE.z - 1, () => steamCols(t, { x: GRATE.x, y: 0, z: GRATE.z }, { n: 7, h: 260, w: 8, a: .4, sway: 26, spread: 70, drift: o.gust ? o.gust(t) : 0 }));
+  put(GRATE.z - 1, () => steamCols(t, { x: GRATE.x, y: 0, z: GRATE.z }, { n: 7, h: 260, w: 8, a: .4, sway: 26, spread: 30, drift: o.gust ? o.gust(t) : 0 }));
+  for (const M of MANHOLES) if (!M.walk && Math.abs(M.x - CAM.x) < 3000) put(M.z - 1, () => steamCols(t, { x: M.x, y: M.y, z: M.z }, { n: 6, h: 300, w: 9, a: .38, sway: 30, spread: 26, drift: .25 }));
+  /* tráfico y vecinos */
+  for (const Ln of LANES) for (const C of Ln.cars) { const P = vehicleAt(Ln, C, t); if (Math.abs(P.x - CAM.x) < 2800) put(P.z + (Ln.dir > 0 ? .1 : .2), () => vehicleDraw(Ln, C, t)); }
+  for (const N of WALKERS) put(N.z, () => npcWalkDraw(N, t));
+  const tx = o.teoX ? o.teoX(t) : -1e5; for (const N of STANDERS) put(N.z, () => npcStandDraw(N, t, tx));
   /* primer plano del bordillo: parquímetros, bocas de incendio, postes y cables */
   for (let k = Math.floor((CAM.x - 1500) / 380); k * 380 < CAM.x + 1500; k++) { const x = k * 380 + 200; put(250, () => bill(hsh(k, 9) < .25 ? CAX.hydrant : CAX.meter, x, 0, 250)); }
   for (let k = Math.floor((CAM.x - 3000) / 1300); k * 1300 < CAM.x + 3000; k++) { const x = k * 1300 + 900; put(420, () => { bill(CAX.pole, x, 0, 420); }); }
@@ -2776,17 +2877,21 @@ function drawCafe(t, o = {}) {
   /* vitrina curva con dulces, vidrio empañado en las esquinas de abajo */
   put(C.z0 + 1, () => drawVitrine(t));
   put(745, () => drawMachine(t, o));
-  put(744, () => { bill(MOX.grinder, 320, C.top, 730); steamCols(t, { x: 64, y: C.top - 20, z: 742 }, { n: 5, h: 230, w: 3, a: o.wand ? o.wand(t) : .08, sway: 10, spread: 6, drift: .1 }); steamCols(t, { x: 285, y: C.top - 20, z: 742 }, { n: 3, h: 200, w: 2.5, a: .07, sway: 8, spread: 4 }); });
+  put(744, () => { bill(MOX.grinder, 320, C.top, 730); steamCols(t, { x: 64, y: C.top - 20, z: 742 }, { n: 5, h: 230, w: 3, a: o.wand ? o.wand(t) : .08, sway: 10, spread: 6, drift: .1 }); });
   /* bombillas Edison */
   for (let x = -560; x <= 700; x += 150) { put(850, () => edison(x, 850, 90 + (x / 150 % 3 + 3) % 3 * 20, t)); put(640, () => edison(x + 75, 640, 120 + (x / 150 % 2 + 2) % 2 * 25, t, .8)); }
   /* mesas y clientes con portátiles */
-  const custo = [[-470, 470, 0, true], [600, 830, 1, false], [520, 300, 2, true]];
-  for (const [x, z, k, lap] of custo) put(z, () => {
+  const custo = [[-470, 470, 0, true, 'mateo'], [600, 830, 1, false, 'ines'], [520, 300, 2, true], [-200, 380, 1, false, 'anselmo']];
+  const startle = (t > 86.7 && t < 89.8) || (t > 114.3 && t < 116);   // la puerta, el derrape y la salida de Teo
+  for (const [x, z, k, lap, npc] of custo) put(z, () => {
     const P = MOX.people[k], tb = z < 400 ? MOX.tableB : MOX.table;
-    bill(P, x, 0, z + 30); bill(tb, x, 0, z);
+    if (npc) pxDraw(npc, { wide: startle, blink: !startle && (t * .3 + x) % 1 < .05, happy: !startle && (t * .17 + x * .01) % 1 < .3 }, x + (lap ? -6 : 0), 52 + (startle ? 3 : 0), z + 24, { flip: x > 0 }); else bill(P, x, 0, z + 30);
+    bill(tb, x, 0, z);
     if (lap) { const L = z < 400 ? MOX.laptopB : MOX.laptop; bill(L, x + 4, -76, z - 8); const g0 = PJ(x + 4, -96, z - 8); const near = z < 400 ? .35 : 1; LGT(g0[0], g0[1], 170 * PS(z) * near, '110,160,255', .8 * near); LGF(g0[0], g0[1], 30 * PS(z) * near, '170,210,255', .4 * near); }
     else { const c = PJ(x, -80, z); ctx.fillStyle = 'rgb(240,236,226)'; ctx.fillRect(c[0] - 4 * PS(z), c[1] - 6 * PS(z), 8 * PS(z), 6 * PS(z)); }
   });
+  /* Iván hace cola para su café (mira a Teo cuando derrapa a su lado) */
+  put(612, () => { const st = startle || (t > 88.4 && t < 90.5); pxShadow('ivan', 470, 612, 0, { a: .25 }); pxDraw('ivan', { wide: st, blink: !st && (t * .27) % 1 < .05 }, 470, st ? 4 : 0, 612, { flip: true }); });
   /* servilletas */
   if (o.napkins) for (let i = 0; i < 3; i++) { const N = napkinAt(i, t, o.napkins, [-470, -76, 470]); put(N.z - 1, () => drawNapkin(N)); }
   put(D.z0 + .5, () => drawBell(t, o.opens || []));
@@ -2832,7 +2937,7 @@ const gustGrate = t => { const tx = S2.A + (GRATE.x - S2.X0) / S2.V, d = t - tx;
 function drawCalleScene(t) {
   const B = teoCalle(t);
   drawCalle(t, {
-    gust: gustGrate,
+    gust: gustGrate, teoX: () => B.x,
     refl: () => { if (!B.hide && B.y < 30) pxReflect('teo', B.f, B.x, B.y, B.z, t, { a: .45, flip: B.flip }); },
     items: put_ => put_(B.z - .5, () => { pxShadow('teo', B.x, B.z, B.y); pxDraw('teo', B.f, B.x, B.y, B.z, { flip: B.flip }); if (B.skid !== undefined) { const [fx, fy] = pxFoot(B.x, 0, B.z); pxBurst(fx - 10 * pxCell('teo', B.z), fy, pxCell('teo', B.z), B.skid, 10, 4, [[200, 200, 196], [150, 150, 150]], 10, 8, .6); } }),
     fx: t2 => { const tj = S2.A + (PUD_JUMP - 160 - S2.X0) / S2.V, tl = S2.A + (PUD_JUMP + 160 - S2.X0) / S2.V; for (const [ts, xx] of [[tj, PUD_JUMP - 150], [tl, PUD_JUMP + 150]]) { const a = t2 - ts; if (a > 0 && a < .8) { const [fx, fy] = pxFoot(xx, 0, CA.ZT), c = pxCell('teo', CA.ZT); pxBurst(fx, fy, c, a, 14, 9, [[200, 220, 236], [160, 184, 204], [240, 248, 252]], 12, 14, .8); } } },
@@ -2995,7 +3100,34 @@ function parquePaint() {
   PKX.sky = paintParkSky(); PKX.path = matGravel(1200, 200, { seed: 71 }); PKX.grass = matGrass(1200, 300, { seed: 81 }); PKX.bank = matGrass(1200, 140, { seed: 82, c: [100, 140, 70] }); PKX.far = matGrass(2000, 200, { seed: 83, c: [110, 150, 76] });
   PKX.willows = [paintWillow(11), paintWillow(12), paintWillow(13)]; PKX.trees = [paintParkTree(21), paintParkTree(22, { autumn: true }), paintParkTree(23), paintParkTree(24, { w: 900 })];
   PKX.canopy = [paintCanopy(31), paintCanopy(32)]; PKX.fg = [paintPlantsFG(41), paintPlantsFG(42), paintPlantsFG(43)]; PKX.bench = paintBench(); PKX.lamp = paintLampPark();
-  PKX.gh = paintGreenhouseWall();
+  PKX.gh = paintGreenhouseWall(); PKX.ghCan = paintGhCanopy();
+}
+/* el follaje que se ve a través del techo: copas, frondas de palmera y enredaderas pegadas al vidrio, con huecos
+   de cielo que se abren poco a poco hacia arriba (nunca un salto brusco de «hay plantas» a «no hay nada») */
+function paintGhCanopy() {
+  const w = PK.GH.x1 - PK.GH.x0, h = 640, T = tex(w, h, .35), g = T.g, r = mulberry32(311);
+  const gr = g.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, 'rgb(150,186,170)'); gr.addColorStop(.35, 'rgb(96,142,100)'); gr.addColorStop(1, 'rgb(44,82,50)'); g.fillStyle = gr; g.fillRect(0, 0, w, h);
+  for (let i = 0; i < 70; i++) { const x = r() * w, y = 60 + r() * 300, rr = 60 + r() * 90; g.fillStyle = `rgba(206,226,224,${.25 + r() * .3})`; g.beginPath(); g.ellipse(x, y * .7, rr, rr * .5, 0, 0, TAU); g.fill(); }   // claros de cielo, suaves
+  for (let i = 0; i < 260; i++) { const x = r() * w, y = 80 + Math.pow(r(), .7) * (h - 60), rr = 30 + r() * 70, c = pick3(r, [[40, 84, 46], [58, 108, 58], [76, 128, 64], [34, 70, 40], [92, 140, 72]]); g.fillStyle = cssc(c, .9); for (let k = 0; k < 6; k++) { g.beginPath(); g.ellipse(x + (r() - .5) * rr, y + (r() - .5) * rr * .6, rr * (.4 + r() * .4), rr * (.25 + r() * .25), r() * 3, 0, TAU); g.fill(); } }   // copas
+  for (let i = 0; i < 46; i++) { const x = r() * w, y = h - r() * 260, c = pick3(r, [[38, 80, 44], [52, 100, 52]]); for (let k = 0; k < 9; k++) { const a = -PI / 2 + (k - 4) * .34, L = 120 + r() * 120, ex = x + Math.cos(a) * L, ey = y + Math.sin(a) * L; g.strokeStyle = cssc(c, .9); g.lineWidth = 5; g.beginPath(); g.moveTo(x, y); g.quadraticCurveTo((x + ex) / 2, ey - 30, ex, ey); g.stroke(); for (let q = 1; q < 10; q++) { const u = q / 10, px = lerp(x, ex, u), py = lerp(y, ey, u) - Math.sin(u * PI) * 30; g.lineWidth = 2.5; g.beginPath(); g.moveTo(px, py); g.lineTo(px + Math.cos(a + 1.2) * 22, py + Math.sin(a + 1.2) * 22); g.moveTo(px, py); g.lineTo(px + Math.cos(a - 1.2) * 22, py + Math.sin(a - 1.2) * 22); g.stroke(); } } }   // frondas
+  for (let i = 0; i < 90; i++) { const x = r() * w, y = r() * h, s = 18 + r() * 34; g.save(); g.translate(x, y); g.rotate(r() * TAU); g.fillStyle = cssc(pick3(r, [[30, 70, 36], [46, 96, 46], [64, 116, 52]]), .95); g.beginPath(); g.moveTo(-s, 0); g.quadraticCurveTo(0, -s * .7, s, 0); g.quadraticCurveTo(0, s * .7, -s, 0); g.fill(); g.restore(); }   // hojas pegadas al vidrio
+  return T; }
+/* testeros y laterales de vidrio: el arco cerrado (con plantas detrás) para que la estructura no quede hueca */
+function ghFace(x, pts, t, seed) {
+  const P = poly3(pts.map(([y, z]) => [x, y, z])); if (!P) return; const yTop = Math.min(...pts.map(p => p[0])), zs = pts.map(p => p[1]), z0 = Math.min(...zs), z1 = Math.max(...zs);
+  ctx.save(); ctx.clip(P); const a = PJ(x, yTop, z0), b = PJ(x, 0, z0), gr = ctx.createLinearGradient(0, a[1], 0, b[1]); gr.addColorStop(0, 'rgb(150,184,170)'); gr.addColorStop(.4, 'rgb(84,130,90)'); gr.addColorStop(1, 'rgb(40,74,46)'); ctx.fillStyle = gr; ctx.fill(P);
+  for (let i = 0; i < 40; i++) { const y = lerp(yTop * .95, -40, hsh(i, seed)), z = lerp(z0, z1, hsh(i, seed + 1)), c = PJ(x, y, z), rr = (30 + hsh(i, seed + 2) * 60) * PS(z); ctx.fillStyle = `rgba(${40 + hsh(i, 3) * 40 | 0},${84 + hsh(i, 4) * 50 | 0},${44 + hsh(i, 5) * 24 | 0},.85)`; ctx.beginPath(); ctx.ellipse(c[0], c[1], rr, rr * .6, hsh(i, 6) * 3, 0, TAU); ctx.fill(); }
+  ctx.fillStyle = 'rgba(214,230,236,.18)'; ctx.fill(P);
+  ctx.strokeStyle = 'rgb(36,48,46)'; for (let z = z0; z <= z1; z += 60) { const p = PJ(x, 0, z), q = PJ(x, yTop - 40, z); ctx.lineWidth = Math.max(.6, 2 * PS(z)); ctx.beginPath(); ctx.moveTo(p[0], p[1]); ctx.lineTo(q[0], q[1]); ctx.stroke(); }
+  for (let y = -66; y > yTop; y -= 66) { const p = PJ(x, y, z0), q = PJ(x, y, z1); ctx.lineWidth = Math.max(.6, 1.6 * PS(z0)); ctx.beginPath(); ctx.moveTo(p[0], p[1]); ctx.lineTo(q[0], q[1]); ctx.stroke(); }
+  ctx.restore(); ctx.strokeStyle = 'rgb(36,48,46)'; ctx.lineWidth = Math.max(1, 4 * PS(z0)); ctx.stroke(P);
+}
+function ghEnds(t) {
+  const GH = PK.GH, z0 = GH.z, arch = (yb, R, a0, a1, n = 10) => { const o = []; for (let k = 0; k <= n; k++) { const a = lerp(a0, a1, k / n); o.push([yb - R * Math.sin(a), z0 + R * (1 - Math.cos(a)) * 1.4]); } return o; };
+  const lo = arch(-GH.h, 520, 0, 1.25), zb = lo[lo.length - 1][1], end = [[0, z0]].concat(lo, [[lo[lo.length - 1][0], zb], [0, zb]]);
+  ghFace(GH.x0, end, t, 11); ghFace(GH.x1, end, t, 21);
+  const hi = arch(-GH.ch, 380, 0, 1.25), zp = hi[hi.length - 1][1], aMeet = Math.acos(1 - (zp - z0) / (1.4 * 520)), side = [[-GH.h, z0]].concat(hi, [[-GH.h - 520 * Math.sin(aMeet), zp]], arch(-GH.h, 520, aMeet, 0, 8));
+  ghFace(GH.cx0, side, t, 31); ghFace(GH.cx1, side, t, 41);
 }
 /* la bóveda curva: filas de paneles en 3D que se van hacia atrás */
 function ghRoof(t, x0, x1, yb, z0, R, o = {}) {
@@ -3003,7 +3135,9 @@ function ghRoof(t, x0, x1, yb, z0, R, o = {}) {
   for (let i = 0; i < rows; i++) { const a0 = i / rows * 1.25, a1 = (i + 1) / rows * 1.25, Y = a => yb - R * Math.sin(a), Z = a => z0 + R * (1 - Math.cos(a)) * 1.4;
     for (let x = x0; x < x1; x += PW) { const q = [[x, Y(a1), Z(a1)], [x + PW, Y(a1), Z(a1)], [x + PW, Y(a0), Z(a0)], [x, Y(a0), Z(a0)]], P = poly3(q); if (!P) continue;
       const h = hsh(x * .01, i), ty = h < .14 ? 1 : h < .3 ? 2 : 0, sky = mixc([190, 214, 232], [250, 244, 226], i / rows);
-      ctx.fillStyle = cssc(ty === 1 ? shc(sky, .12) : ty === 2 ? mixc(sky, [240, 244, 240], .5) : mixc(sky, [120, 160, 120], .35), .92); ctx.fill(P);
+      if (o.T) { const u0 = (x - o.ux0) / (o.ux1 - o.ux0), u1 = (x + PW - o.ux0) / (o.ux1 - o.ux0), v = k => 1 - (k / rows) * (o.vk ?? 1); texStrip(o.T, u0, u1, v(i + 1), v(i), PJ(x, Y(a1), Z(a1)), PJ(x + PW, Y(a1), Z(a1)), PJ(x, Y(a0), Z(a0)), .8);
+        ctx.fillStyle = cssc(ty === 1 ? shc(sky, .12) : ty === 2 ? [244, 248, 246] : sky, ty === 2 ? .45 : ty === 1 ? .22 : .14); ctx.fill(P); }
+      else { ctx.fillStyle = cssc(ty === 1 ? shc(sky, .12) : ty === 2 ? mixc(sky, [240, 244, 240], .5) : mixc(sky, [120, 160, 120], .35), .92); ctx.fill(P); }
       const glint = Math.max(0, Math.sin((x - CAM.x) * .004 + i * .7 - t * .6)); if (glint > .92) { ctx.fillStyle = `rgba(255,255,240,${(glint - .92) * 8})`; ctx.fill(P); }
       ctx.strokeStyle = 'rgb(36,48,46)'; ctx.lineWidth = Math.max(.6, 2.4 * PS(Z(a0))); ctx.stroke(P); } }
 }
@@ -3058,7 +3192,8 @@ function drawParque(t, o = {}) {
       for (let i = 0; i < 3; i++) { const D = DUCK(t, i); pxReflect('ramiro', D.f, D.x, 0, D.z, t, { a: .4, flip: D.flip, amp: 1 }); } if (N) moonReflect(t); } });
   /* el invernadero: bóveda, pabellón central, muro de vidrio */
   if (CAM.x > GH.x0 - 3000) {
-    ghRoof(t, GH.x0, GH.cx0, -GH.h, GH.z, 520); ghRoof(t, GH.cx1, GH.x1, -GH.h, GH.z, 520); ghRoof(t, GH.cx0, GH.cx1, -GH.ch, GH.z, 380);
+    const can = { T: PKX.ghCan, ux0: GH.x0, ux1: GH.x1 };
+    ghRoof(t, GH.x0, GH.cx0, -GH.h, GH.z, 520, can); ghRoof(t, GH.cx1, GH.x1, -GH.h, GH.z, 520, can); ghEnds(t); ghRoof(t, GH.cx0, GH.cx1, -GH.ch, GH.z, 380, { ...can, vk: .85 });
     vplane(PKX.gh, [GH.x0, GH.z], [GH.x1, GH.z], -GH.ch, 0);
     const wallP = [[GH.x0, -GH.h, GH.z], [GH.cx0, -GH.h, GH.z], [GH.cx0, -GH.ch, GH.z], [GH.cx1, -GH.ch, GH.z], [GH.cx1, -GH.h, GH.z], [GH.x1, -GH.h, GH.z], [GH.x1, -60, GH.z], [GH.x0, -60, GH.z]];
     ctx.save(); if (clip3(wallP)) {
@@ -3185,7 +3320,7 @@ function paintPassFront() { const T = matSteel(800, 95, { seed: 107, vert: true,
     x += w + 8 + r() * 14; }
   g.fillStyle = 'rgb(110,114,122)'; g.fillRect(0, 78, 800, 17); g.fillStyle = 'rgba(0,0,0,.3)'; g.fillRect(0, 78, 800, 2);
   return T; }
-function paintShelf(W_ = 600, seed = 111) { const S = spr([0, -70, W_, 4], 3), g = S.g, r = mulberry32(seed);
+function paintKitchenShelf(W_ = 600, seed = 111) { const S = spr([0, -70, W_, 4], 3), g = S.g, r = mulberry32(seed);
   g.fillStyle = 'rgb(170,174,182)'; g.fillRect(0, -2, W_, 5); g.fillStyle = 'rgba(255,255,255,.8)'; g.fillRect(0, -2, W_, 1);
   for (let x = 6; x < W_ - 60;) { const k = r(); if (k < .35) { const w = 30, h = 26 + r() * 20; g.fillStyle = 'rgba(220,232,236,.75)'; g.fillRect(x, -h, w, h); g.fillStyle = cssc([[200, 150, 60], [120, 70, 40], [220, 210, 180], [60, 110, 50]][r() * 4 | 0]); g.fillRect(x + 2, -h * .7, w - 4, h * .7 - 1); g.fillStyle = 'rgb(30,30,34)'; g.fillRect(x, -h - 4, w, 4); g.fillStyle = 'rgb(250,250,246)'; g.fillRect(x + 6, -h * .5, 18, 6); x += w + 4; }
     else if (k < .6) { for (let j = 0; j < 9; j++) { g.fillStyle = `rgb(${240 - j % 2 * 16},${240 - j % 2 * 16},${238 - j % 2 * 14})`; g.fillRect(x, -3 - j * 3, 44, 2.6); } x += 50; }
@@ -3214,7 +3349,7 @@ function cocinaPaint() {
   KIX.wallL = matSubway(750, 330, { seed: 94 }); KIX.wallR = matSubway(750, 330, { seed: 95 });
   KIX.rangeF = paintRangeFront(); KIX.rangeTop = matSteel(800, 180, { seed: 104, c: [120, 124, 130], bands: [[.3, .1, .3]] });
   KIX.hoodF = paintHoodFront(); KIX.hoodB = matSteel(800, 260, { seed: 105, c: [150, 154, 160] });
-  KIX.passTop = matSteel(800, 140, { seed: 106, bands: [[.25, .06, .55], [.7, .04, .35]] }); KIX.passF = paintPassFront(); KIX.shelf = paintShelf(160, 111); KIX.dining = paintDining(); KIX.printer = paintPrinter(); KIX.tickets = [0, 1, 2, 3, 4, 5].map(k => paintTicket(120 + k)); KIX.passItems = paintPassItems();
+  KIX.passTop = matSteel(800, 140, { seed: 106, bands: [[.25, .06, .55], [.7, .04, .35]] }); KIX.passF = paintPassFront(); KIX.shelf = paintKitchenShelf(160, 111); KIX.dining = paintDining(); KIX.printer = paintPrinter(); KIX.tickets = [0, 1, 2, 3, 4, 5].map(k => paintTicket(120 + k)); KIX.passItems = paintPassItems();
   KIX.side = matSteel(200, 200, { seed: 108, c: [160, 164, 170] }); KIX.counter = matSteel(200, 120, { seed: 109 });
   KIX.pans = [[0, 26, 1], [1, 20, 0], [2, 32, 1], [3, 16, 0], [4, 24, 1], [5, 18, 0], [6, 28, 1]].map(([s, r, l]) => paintCopperPan(300 + s, r, l));
   KIX.knives = paintKnifeBar(); KIX.ladles = [paintLadle(70), paintLadle(84), paintLadle(64)]; KIX.roner = paintRoner(); KIX.lamp = paintPassLamp(); KIX.door = paintSwingDoor(); KIX.clock = paintWallClock();
@@ -3722,7 +3857,8 @@ const DLG4 = [
   { t: 190.4, who: 'rosa', mood: 'normal', txt: 'Llegas tarde, Cazorla.', face: { tired: true }, hold: .5 },
   { t: 192.3, who: 'teo', mood: 'prisa', txt: '¡Son las ocho y veintinueve!', face: { wide: true, sweat: true }, hold: .3 },
   { t: 195.4, who: 'rosa', mood: 'tecnico', txt: 'Ocho y treinta.', face: {}, hold: .7 },
-  { t: 197.3, who: 'rosa', mood: 'tecnico', txt: 'La Guía Brújula llega a la una. Mesa siete. Lo de siempre... pero perfecto.', face: {}, hold: .3 },
+  { t: 197.3, who: 'rosa', mood: 'tecnico', txt: 'La Guía Brújula llega a la una. Mesa siete.', face: {}, hold: .25 },
+  { t: 200.6, who: 'rosa', mood: 'tecnico', txt: 'Lo de siempre... pero perfecto.', face: { happy: true }, hold: .2 },
   { t: 203.1, who: 'teo', mood: 'tecnico', txt: 'Sí, chef. Cuchillos Tsukiyo, afilados.', face: { happy: true }, hold: .1 },
   { t: 205.6, who: 'teo', mood: 'tecnico', txt: 'Roners a sesenta y dos y medio.', face: {}, hold: .1 },
   { t: 208.0, who: 'teo', mood: 'tecnico', txt: 'Binchotan al rojo.', face: {}, hold: .7 },
@@ -4108,6 +4244,8 @@ function scene2Events() {
   let last = null; for (let t = 61.5; t < 115; t += 1 / 60) { const B = t < S2.B ? teoCalle(t) : teoCafe(t); if (!B || B.hide || !B.run) { last = null; continue; } const st = Math.floor(t / (STEP / 1.15)); if (last !== null && st !== last) E.push([t, at => clogClack(at, .45)]); last = st; }
   const tj = S2.A + (PUD_JUMP - 160 - S2.X0) / S2.V, tl = S2.A + (PUD_JUMP + 160 - S2.X0) / S2.V; E.push([tj, at => { splash(at, .6); tone(300, at, .25, .04, 'square', 900); }]); E.push([tl, at => splash(at, 1)]);
   E.push([S2.A + (GRATE.x - S2.X0) / S2.V - .6, at => steamHiss(at, 2.2, 1.2)]);
+  /* el tráfico: un barrido cada vez que un coche cruza el centro del encuadre, y el autobús más grave */
+  { const cx0 = CAM.x; for (const Ln of LANES) for (const C of Ln.cars) { let prev = null; for (let t = 61.6; t < 86.4; t += 1 / 30) { CAM.x = camCalle(t).x; const d = vehicleAt(Ln, C, t).x - CAM.x; if (prev !== null && Math.sign(d) !== Math.sign(prev) && Math.abs(d - prev) < 400) { const big = C[0] === 'bus' || C[0] === 'van'; E.push([t - .3, at => { whoosh(at, .9, big ? .55 : .35, big ? 180 : 300, big ? 900 : 1600); noiseHit(at, .9, { type: 'lowpass', f: big ? 160 : 260, vol: big ? .1 : .05, atk: .35, brown: true }); }]); } prev = d; } } CAM.x = cx0; }
   E.push([68.4, at => horn(at)]); E.push([81.2, at => horn(at)]); E.push([73.0, at => { tone(2800, at, .4, .025, 'sine'); tone(2800, at + .16, .5, .025, 'sine'); }]);
   /* cafetería: puerta y campanilla, derrape, molinillo, vapor, vaso, servilletas */
   for (const t0 of CAFE.door) { E.push([t0, at => { bellDing(at); whoosh(at, .4, .6, 400, 1800); }]); E.push([t0 + 1.75, at => thump(at, .25, 110)]); }

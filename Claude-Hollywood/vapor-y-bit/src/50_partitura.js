@@ -98,6 +98,8 @@ function scene2Events() {
   let last = null; for (let t = 61.5; t < 115; t += 1 / 60) { const B = t < S2.B ? teoCalle(t) : teoCafe(t); if (!B || B.hide || !B.run) { last = null; continue; } const st = Math.floor(t / (STEP / 1.15)); if (last !== null && st !== last) E.push([t, at => clogClack(at, .45)]); last = st; }
   const tj = S2.A + (PUD_JUMP - 160 - S2.X0) / S2.V, tl = S2.A + (PUD_JUMP + 160 - S2.X0) / S2.V; E.push([tj, at => { splash(at, .6); tone(300, at, .25, .04, 'square', 900); }]); E.push([tl, at => splash(at, 1)]);
   E.push([S2.A + (GRATE.x - S2.X0) / S2.V - .6, at => steamHiss(at, 2.2, 1.2)]);
+  /* el tráfico: un barrido cada vez que un coche cruza el centro del encuadre, y el autobús más grave */
+  { const cx0 = CAM.x; for (const Ln of LANES) for (const C of Ln.cars) { let prev = null; for (let t = 61.6; t < 86.4; t += 1 / 30) { CAM.x = camCalle(t).x; const d = vehicleAt(Ln, C, t).x - CAM.x; if (prev !== null && Math.sign(d) !== Math.sign(prev) && Math.abs(d - prev) < 400) { const big = C[0] === 'bus' || C[0] === 'van'; E.push([t - .3, at => { whoosh(at, .9, big ? .55 : .35, big ? 180 : 300, big ? 900 : 1600); noiseHit(at, .9, { type: 'lowpass', f: big ? 160 : 260, vol: big ? .1 : .05, atk: .35, brown: true }); }]); } prev = d; } } CAM.x = cx0; }
   E.push([68.4, at => horn(at)]); E.push([81.2, at => horn(at)]); E.push([73.0, at => { tone(2800, at, .4, .025, 'sine'); tone(2800, at + .16, .5, .025, 'sine'); }]);
   /* cafetería: puerta y campanilla, derrape, molinillo, vapor, vaso, servilletas */
   for (const t0 of CAFE.door) { E.push([t0, at => { bellDing(at); whoosh(at, .4, .6, 400, 1800); }]); E.push([t0 + 1.75, at => thump(at, .25, 110)]); }

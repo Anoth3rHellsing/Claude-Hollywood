@@ -55,7 +55,7 @@ function paintPassFront() { const T = matSteel(800, 95, { seed: 107, vert: true,
     x += w + 8 + r() * 14; }
   g.fillStyle = 'rgb(110,114,122)'; g.fillRect(0, 78, 800, 17); g.fillStyle = 'rgba(0,0,0,.3)'; g.fillRect(0, 78, 800, 2);
   return T; }
-function paintShelf(W_ = 600, seed = 111) { const S = spr([0, -70, W_, 4], 3), g = S.g, r = mulberry32(seed);
+function paintKitchenShelf(W_ = 600, seed = 111) { const S = spr([0, -70, W_, 4], 3), g = S.g, r = mulberry32(seed);
   g.fillStyle = 'rgb(170,174,182)'; g.fillRect(0, -2, W_, 5); g.fillStyle = 'rgba(255,255,255,.8)'; g.fillRect(0, -2, W_, 1);
   for (let x = 6; x < W_ - 60;) { const k = r(); if (k < .35) { const w = 30, h = 26 + r() * 20; g.fillStyle = 'rgba(220,232,236,.75)'; g.fillRect(x, -h, w, h); g.fillStyle = cssc([[200, 150, 60], [120, 70, 40], [220, 210, 180], [60, 110, 50]][r() * 4 | 0]); g.fillRect(x + 2, -h * .7, w - 4, h * .7 - 1); g.fillStyle = 'rgb(30,30,34)'; g.fillRect(x, -h - 4, w, 4); g.fillStyle = 'rgb(250,250,246)'; g.fillRect(x + 6, -h * .5, 18, 6); x += w + 4; }
     else if (k < .6) { for (let j = 0; j < 9; j++) { g.fillStyle = `rgb(${240 - j % 2 * 16},${240 - j % 2 * 16},${238 - j % 2 * 14})`; g.fillRect(x, -3 - j * 3, 44, 2.6); } x += 50; }
@@ -84,7 +84,7 @@ function cocinaPaint() {
   KIX.wallL = matSubway(750, 330, { seed: 94 }); KIX.wallR = matSubway(750, 330, { seed: 95 });
   KIX.rangeF = paintRangeFront(); KIX.rangeTop = matSteel(800, 180, { seed: 104, c: [120, 124, 130], bands: [[.3, .1, .3]] });
   KIX.hoodF = paintHoodFront(); KIX.hoodB = matSteel(800, 260, { seed: 105, c: [150, 154, 160] });
-  KIX.passTop = matSteel(800, 140, { seed: 106, bands: [[.25, .06, .55], [.7, .04, .35]] }); KIX.passF = paintPassFront(); KIX.shelf = paintShelf(160, 111); KIX.dining = paintDining(); KIX.printer = paintPrinter(); KIX.tickets = [0, 1, 2, 3, 4, 5].map(k => paintTicket(120 + k)); KIX.passItems = paintPassItems();
+  KIX.passTop = matSteel(800, 140, { seed: 106, bands: [[.25, .06, .55], [.7, .04, .35]] }); KIX.passF = paintPassFront(); KIX.shelf = paintKitchenShelf(160, 111); KIX.dining = paintDining(); KIX.printer = paintPrinter(); KIX.tickets = [0, 1, 2, 3, 4, 5].map(k => paintTicket(120 + k)); KIX.passItems = paintPassItems();
   KIX.side = matSteel(200, 200, { seed: 108, c: [160, 164, 170] }); KIX.counter = matSteel(200, 120, { seed: 109 });
   KIX.pans = [[0, 26, 1], [1, 20, 0], [2, 32, 1], [3, 16, 0], [4, 24, 1], [5, 18, 0], [6, 28, 1]].map(([s, r, l]) => paintCopperPan(300 + s, r, l));
   KIX.knives = paintKnifeBar(); KIX.ladles = [paintLadle(70), paintLadle(84), paintLadle(64)]; KIX.roner = paintRoner(); KIX.lamp = paintPassLamp(); KIX.door = paintSwingDoor(); KIX.clock = paintWallClock();

@@ -216,17 +216,21 @@ function drawCafe(t, o = {}) {
   /* vitrina curva con dulces, vidrio empañado en las esquinas de abajo */
   put(C.z0 + 1, () => drawVitrine(t));
   put(745, () => drawMachine(t, o));
-  put(744, () => { bill(MOX.grinder, 320, C.top, 730); steamCols(t, { x: 64, y: C.top - 20, z: 742 }, { n: 5, h: 230, w: 3, a: o.wand ? o.wand(t) : .08, sway: 10, spread: 6, drift: .1 }); steamCols(t, { x: 285, y: C.top - 20, z: 742 }, { n: 3, h: 200, w: 2.5, a: .07, sway: 8, spread: 4 }); });
+  put(744, () => { bill(MOX.grinder, 320, C.top, 730); steamCols(t, { x: 64, y: C.top - 20, z: 742 }, { n: 5, h: 230, w: 3, a: o.wand ? o.wand(t) : .08, sway: 10, spread: 6, drift: .1 }); });
   /* bombillas Edison */
   for (let x = -560; x <= 700; x += 150) { put(850, () => edison(x, 850, 90 + (x / 150 % 3 + 3) % 3 * 20, t)); put(640, () => edison(x + 75, 640, 120 + (x / 150 % 2 + 2) % 2 * 25, t, .8)); }
   /* mesas y clientes con portátiles */
-  const custo = [[-470, 470, 0, true], [600, 830, 1, false], [520, 300, 2, true]];
-  for (const [x, z, k, lap] of custo) put(z, () => {
+  const custo = [[-470, 470, 0, true, 'mateo'], [600, 830, 1, false, 'ines'], [520, 300, 2, true], [-200, 380, 1, false, 'anselmo']];
+  const startle = (t > 86.7 && t < 89.8) || (t > 114.3 && t < 116);   // la puerta, el derrape y la salida de Teo
+  for (const [x, z, k, lap, npc] of custo) put(z, () => {
     const P = MOX.people[k], tb = z < 400 ? MOX.tableB : MOX.table;
-    bill(P, x, 0, z + 30); bill(tb, x, 0, z);
+    if (npc) pxDraw(npc, { wide: startle, blink: !startle && (t * .3 + x) % 1 < .05, happy: !startle && (t * .17 + x * .01) % 1 < .3 }, x + (lap ? -6 : 0), 52 + (startle ? 3 : 0), z + 24, { flip: x > 0 }); else bill(P, x, 0, z + 30);
+    bill(tb, x, 0, z);
     if (lap) { const L = z < 400 ? MOX.laptopB : MOX.laptop; bill(L, x + 4, -76, z - 8); const g0 = PJ(x + 4, -96, z - 8); const near = z < 400 ? .35 : 1; LGT(g0[0], g0[1], 170 * PS(z) * near, '110,160,255', .8 * near); LGF(g0[0], g0[1], 30 * PS(z) * near, '170,210,255', .4 * near); }
     else { const c = PJ(x, -80, z); ctx.fillStyle = 'rgb(240,236,226)'; ctx.fillRect(c[0] - 4 * PS(z), c[1] - 6 * PS(z), 8 * PS(z), 6 * PS(z)); }
   });
+  /* Iván hace cola para su café (mira a Teo cuando derrapa a su lado) */
+  put(612, () => { const st = startle || (t > 88.4 && t < 90.5); pxShadow('ivan', 470, 612, 0, { a: .25 }); pxDraw('ivan', { wide: st, blink: !st && (t * .27) % 1 < .05 }, 470, st ? 4 : 0, 612, { flip: true }); });
   /* servilletas */
   if (o.napkins) for (let i = 0; i < 3; i++) { const N = napkinAt(i, t, o.napkins, [-470, -76, 470]); put(N.z - 1, () => drawNapkin(N)); }
   put(D.z0 + .5, () => drawBell(t, o.opens || []));

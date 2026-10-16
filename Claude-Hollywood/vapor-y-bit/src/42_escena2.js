@@ -22,7 +22,7 @@ const gustGrate = t => { const tx = S2.A + (GRATE.x - S2.X0) / S2.V, d = t - tx;
 function drawCalleScene(t) {
   const B = teoCalle(t);
   drawCalle(t, {
-    gust: gustGrate,
+    gust: gustGrate, teoX: () => B.x,
     refl: () => { if (!B.hide && B.y < 30) pxReflect('teo', B.f, B.x, B.y, B.z, t, { a: .45, flip: B.flip }); },
     items: put_ => put_(B.z - .5, () => { pxShadow('teo', B.x, B.z, B.y); pxDraw('teo', B.f, B.x, B.y, B.z, { flip: B.flip }); if (B.skid !== undefined) { const [fx, fy] = pxFoot(B.x, 0, B.z); pxBurst(fx - 10 * pxCell('teo', B.z), fy, pxCell('teo', B.z), B.skid, 10, 4, [[200, 200, 196], [150, 150, 150]], 10, 8, .6); } }),
     fx: t2 => { const tj = S2.A + (PUD_JUMP - 160 - S2.X0) / S2.V, tl = S2.A + (PUD_JUMP + 160 - S2.X0) / S2.V; for (const [ts, xx] of [[tj, PUD_JUMP - 150], [tl, PUD_JUMP + 150]]) { const a = t2 - ts; if (a > 0 && a < .8) { const [fx, fy] = pxFoot(xx, 0, CA.ZT), c = pxCell('teo', CA.ZT); pxBurst(fx, fy, c, a, 14, 9, [[200, 220, 236], [160, 184, 204], [240, 248, 252]], 12, 14, .8); } } },

@@ -220,6 +220,41 @@ ELENCO.aguada = {
   frame(o = {}) { const g = gridOf(this.base); gridEyes(g, this.eyes, 'O', o); return gridPad(g, 4); },
 };
 
+/* =====================================================================
+   TRANSEÚNTES · vecinos de Almagre (fondo vivo: caminan, esperan, miran pasar a Teo). Se generan por forma:
+   una lista de [medio ancho, carácter] por fila; el contorno, los ojos, las mejillas, la sombra lateral y las
+   piernas salen igual para todos, así encajan con el resto del elenco.
+   ===================================================================== */
+function npcFrame(spec, o = {}, extra) {
+  const W = 20, cx = 10, B = spec.length, H_ = B + 6, g = Array.from({ length: H_ }, () => Array(W).fill('.'));
+  spec.forEach(([hw, ch], r) => { for (let c = cx - hw; c < cx + hw; c++) g[r + 1][c] = ch; if (hw > 2) g[r + 1][cx + hw - 1] = ch === ch.toUpperCase() ? ch.toLowerCase() : ch; });
+  const legR = B + 1, lens = [3 - (o.legL ? 2 : 0), 3 - (o.legR ? 2 : 0)];
+  [[cx - 3, lens[0]], [cx + 1, lens[1]]].forEach(([c0, L]) => { for (let k = 0; k < L; k++) { g[legR + k][c0] = 'j'; g[legR + k][c0 + 1] = 'j'; } });
+  if (extra) extra(g, cx, o);
+  const ey = o.eyeRow;   // ojos 2×2 con brillo, mejillas y boca
+  for (const ex of [cx - 4, cx + 2]) { if (o.blink) { g[ey + 1][ex] = 'K'; g[ey + 1][ex + 1] = 'K'; } else { g[ey][ex] = 'K'; g[ey][ex + 1] = o.wide ? 'T' : 'K'; g[ey + 1][ex] = 'K'; g[ey + 1][ex + 1] = 'K'; if (o.wide) { g[ey - 1][ex] = 'K'; g[ey - 1][ex + 1] = 'K'; } } }
+  g[ey + 2][cx - 5] = 'E'; g[ey + 2][cx + 4] = 'E'; if (o.happy) { g[ey + 2][cx - 1] = 'K'; g[ey + 2][cx] = 'K'; } else g[ey + 3][cx - 1] = 'K';
+  const out = g.map(r => r.slice());   // contorno: todo vacío que toca algo pintado
+  for (let y = 0; y < H_; y++) for (let x = 0; x < W; x++) if (g[y][x] === '.' && [[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dy]) => g[y + dy] && g[y + dy][x + dx] && g[y + dy][x + dx] !== '.' && g[y + dy][x + dx] !== 'K')) out[y][x] = 'K';
+  return out;
+}
+const NPC_PAL = { K: PXK, T: [255, 255, 255], E: [244, 142, 128], j: [60, 56, 64] };
+const npcDef = (id, nombre, rol, pal, spec, eyeRow, voz, extra) => { ELENCO[id] = { nombre, rol, pelicula: 'Entre el Vapor y el Bit', npc: true, voz, pal: { ...NPC_PAL, ...pal }, cell: 3.3, foot: 10, frame(o = {}) { return npcFrame(spec, { ...o, eyeRow }, extra); } }; };
+const MUG = [[6, 'w'], [6, 'W'], [6, 'W'], [6, 'B'], [6, 'B'], [6, 'W'], [6, 'W'], [6, 'W'], [6, 'W'], [6, 'W'], [6, 'W'], [6, 'W'], [5, 'W']];
+const mugHandle = (g, cx) => { for (let r = 4; r <= 9; r++) g[r][cx + 8] = 'K'; g[4][cx + 7] = 'K'; g[9][cx + 7] = 'K'; };
+npcDef('mateo', 'Mateo Quiroga', 'Taza de oficina; siempre llega tarde a la parada', { W: [244, 244, 240], w: [200, 200, 204], B: [70, 110, 170], b: [50, 84, 140] }, MUG, 7, { base: 330, onda: 'square' }, mugHandle);
+npcDef('ines', 'Inés Barragán', 'Taza de cerámica verde; abre la floristería', { W: [150, 196, 160], w: [110, 150, 120], B: [240, 236, 220], b: [200, 196, 180] }, MUG, 7, { base: 520, onda: 'triangle' }, mugHandle);
+npcDef('lucia', 'Lucía Benavente', 'Tostada; estudiante con prisa', { C: [176, 110, 54], c: [140, 84, 40], P: [240, 206, 140], p: [214, 176, 112] },
+  [[4, 'C'], [6, 'C'], [7, 'P'], [7, 'P'], [7, 'P'], [7, 'P'], [7, 'P'], [7, 'P'], [7, 'P'], [7, 'P'], [7, 'P'], [7, 'C']], 5, { base: 600, onda: 'square' });
+npcDef('anselmo', 'Anselmo Requena', 'Lata de conservas; jubilado que pasea al alba', { S: [190, 194, 200], s: [140, 146, 154], R: [196, 54, 48], r: [150, 36, 34], Y: [240, 200, 80], y: [200, 160, 60] },
+  [[5, 'S'], [5, 'S'], [5, 'R'], [5, 'R'], [5, 'Y'], [5, 'R'], [5, 'R'], [5, 'R'], [5, 'R'], [5, 'R'], [5, 'S'], [5, 'S']], 5, { base: 260, onda: 'triangle' });
+npcDef('carmen', 'Carmen Olaizola', 'Cebolla morada; vende flores en la esquina', { G: [96, 160, 70], g: [70, 120, 50], P: [156, 70, 140], p: [120, 50, 108] },
+  [[1, 'G'], [1, 'G'], [3, 'P'], [5, 'P'], [6, 'P'], [7, 'P'], [7, 'P'], [7, 'P'], [7, 'P'], [6, 'P'], [5, 'P'], [3, 'P']], 6, { base: 440, onda: 'triangle' });
+npcDef('ivan', 'Iván Salcedo', 'Botella de leche; repartidor madrugador', { R: [200, 60, 50], r: [160, 40, 34], M: [246, 246, 240], m: [206, 210, 214], L: [90, 150, 210], l: [70, 120, 180] },
+  [[2, 'R'], [2, 'M'], [2, 'M'], [3, 'M'], [4, 'M'], [5, 'M'], [5, 'L'], [5, 'L'], [5, 'M'], [5, 'M'], [5, 'M'], [5, 'M'], [5, 'M']], 8, { base: 380, onda: 'square' });
+npcDef('nora', 'Nora Echeverría', 'Lata de té con flores; maestra de primaria', { S: [230, 214, 170], s: [190, 172, 130], R: [90, 140, 120], r: [64, 110, 92], Y: [240, 150, 160], y: [200, 120, 130] },
+  [[5, 'S'], [5, 'R'], [5, 'R'], [5, 'Y'], [5, 'R'], [5, 'R'], [5, 'R'], [5, 'Y'], [5, 'R'], [5, 'R'], [5, 'S']], 4, { base: 560, onda: 'triangle' });
+const NPCS = ['mateo', 'ines', 'lucia', 'anselmo', 'carmen', 'ivan', 'nora'];
 /* ---------- cuadro → lienzo (con caché) ---------- */
 const PX_CACHE = new Map();
 function elencoCanvas(id, o = {}) {

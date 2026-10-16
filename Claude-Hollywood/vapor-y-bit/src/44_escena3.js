@@ -48,7 +48,8 @@ function drawParque(t, o = {}) {
       for (let i = 0; i < 3; i++) { const D = DUCK(t, i); pxReflect('ramiro', D.f, D.x, 0, D.z, t, { a: .4, flip: D.flip, amp: 1 }); } if (N) moonReflect(t); } });
   /* el invernadero: bóveda, pabellón central, muro de vidrio */
   if (CAM.x > GH.x0 - 3000) {
-    ghRoof(t, GH.x0, GH.cx0, -GH.h, GH.z, 520); ghRoof(t, GH.cx1, GH.x1, -GH.h, GH.z, 520); ghRoof(t, GH.cx0, GH.cx1, -GH.ch, GH.z, 380);
+    const can = { T: PKX.ghCan, ux0: GH.x0, ux1: GH.x1 };
+    ghRoof(t, GH.x0, GH.cx0, -GH.h, GH.z, 520, can); ghRoof(t, GH.cx1, GH.x1, -GH.h, GH.z, 520, can); ghEnds(t); ghRoof(t, GH.cx0, GH.cx1, -GH.ch, GH.z, 380, { ...can, vk: .85 });
     vplane(PKX.gh, [GH.x0, GH.z], [GH.x1, GH.z], -GH.ch, 0);
     const wallP = [[GH.x0, -GH.h, GH.z], [GH.cx0, -GH.h, GH.z], [GH.cx0, -GH.ch, GH.z], [GH.cx1, -GH.ch, GH.z], [GH.cx1, -GH.h, GH.z], [GH.x1, -GH.h, GH.z], [GH.x1, -60, GH.z], [GH.x0, -60, GH.z]];
     ctx.save(); if (clip3(wallP)) {

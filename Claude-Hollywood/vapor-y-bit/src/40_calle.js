@@ -2,11 +2,13 @@
    ESCENA 2a · LA CALLE ALMAGRE (07:35): travelling lateral rápido con cuatro planos de profundidad
    1 · primer plano fuera de foco en el bordillo (z ≈ 320): parquímetros, bocas de incendio, postes con cables
    2 · Teo corriendo por la acera de concreto agrietada (z = 560), charcos que reflejan el cielo y las fachadas
+   2b · la calzada (z 760…1180) con taxis, coches, furgonetas de reparto y el autobús; alcantarillas que humean;
+        la acera de enfrente con vecinos que caminan
    3 · fachadas de ladrillo con escaleras de incendio que humean por las calderas de la mañana (z = 1400)
    4 · la ciudad lejana en la neblina fría (z = 9000)
    Tonos fríos cian y gris; al final, la fachada cálida de Molienda Reserva.
    ===================================================================== */
-const CA = { ZF: 1400, ZT: 560, ZC: 300, END: 9640, X0: -1600, X1: 11600 };
+const CA = { ZF: 1400, ZT: 560, ZC: 300, R0: 760, R1: 1180, LA: 900, LB: 1060, END: 9640, X0: -1600, X1: 11600 };
 const CAX = {};
 const COOL = [132, 150, 172];
 /* ---------- un edificio (sprite en cm, base en y = 0) ---------- */
@@ -77,9 +79,65 @@ function paintMoliendaFront() {
   g.fillStyle = 'rgb(30,26,26)'; g.fillRect(w * .2, -600, w * .6, 110);
   marcaLogo(g, 'molienda', w * .2 + 30, -585, 80, { dark: true });
   wcTex(g, S.c.width, S.c.height, .25, .2);
+  /* la puerta de vidrio con marco de acero negro, tirador y campanilla */
+  { const dx = 620, dw = 120; g.fillStyle = 'rgb(22,20,22)'; g.fillRect(dx - 8, -340, dw + 16, 340); const dg = g.createLinearGradient(0, -330, 0, 0); dg.addColorStop(0, 'rgb(255,196,120)'); dg.addColorStop(1, 'rgb(170,96,50)'); g.fillStyle = dg; g.fillRect(dx, -330, dw, 322);
+    g.fillStyle = 'rgba(70,36,24,.7)'; g.beginPath(); g.ellipse(dx + 70, -180, 22, 26, 0, 0, TAU); g.fill(); g.fillRect(dx + 44, -158, 52, 150);   // alguien dentro, en la barra
+    g.fillStyle = 'rgba(255,255,255,.16)'; g.beginPath(); g.moveTo(dx + 10, -8); g.lineTo(dx + 60, -330); g.lineTo(dx + 84, -330); g.lineTo(dx + 34, -8); g.fill();
+    g.fillStyle = 'rgb(190,170,120)'; g.fillRect(dx + 14, -200, 6, 90); g.fillStyle = 'rgb(240,232,214)'; g.fillRect(dx + 34, -120, 54, 18); g.fillStyle = 'rgb(40,30,26)'; g.font = '700 11px "Space Mono", monospace'; g.fillText('ABIERTO', dx + 37, -107);
+    g.fillStyle = 'rgb(200,170,90)'; g.beginPath(); g.arc(dx + dw - 10, -326, 7, 0, PI); g.fill(); g.fillStyle = 'rgb(60,56,52)'; g.fillRect(dx - 14, -2, dw + 28, 8); }   // campanilla y umbral
   S.door = { x: 620, w: 120 };
   return S;
 }
+/* ---------- vehículos (de perfil, mirando a la izquierda; las ruedas se dibujan vivas) ---------- */
+function paintVehicle(kind, col, seed, brand, right) {   /* right: mira a la derecha (la carrocería se refleja; los rótulos no) */
+  const L = kind === 'bus' ? 1100 : kind === 'van' ? 520 : 450, Ht = kind === 'bus' ? 300 : kind === 'van' ? 220 : 150, S = spr([-10, -Ht - 30, L + 10, 4], 1.4), g = S.g, r = mulberry32(seed), c = col;
+  if (right) { g.translate(L, 0); g.scale(-1, 1); }
+  const unflip = (cx, f) => { g.save(); if (right) { g.translate(cx, 0); g.scale(-1, 1); g.translate(-cx, 0); } f(); g.restore(); };
+  const body = g.createLinearGradient(0, -Ht, 0, -20); body.addColorStop(0, cssc(shc(c, .25))); body.addColorStop(.45, cssc(c)); body.addColorStop(1, cssc(shc(c, -.3)));
+  g.fillStyle = body; g.beginPath();
+  if (kind === 'sedan' || kind === 'taxi') { g.moveTo(6, -36); g.lineTo(4, -78); g.quadraticCurveTo(8, -94, 40, -98); g.lineTo(130, -102); g.quadraticCurveTo(160, -104, 190, -146); g.quadraticCurveTo(205, -152, 300, -150); g.quadraticCurveTo(345, -146, 380, -104); g.lineTo(440, -98); g.quadraticCurveTo(452, -92, 450, -60); g.lineTo(446, -36); g.closePath(); }
+  else if (kind === 'van') { g.moveTo(6, -36); g.lineTo(4, -90); g.quadraticCurveTo(10, -104, 50, -112); g.lineTo(110, -200); g.quadraticCurveTo(120, -214, 150, -214); g.lineTo(510, -214); g.quadraticCurveTo(520, -212, 520, -196); g.lineTo(518, -36); g.closePath(); }
+  else { g.moveTo(4, -40); g.lineTo(2, -270); g.quadraticCurveTo(4, -296, 40, -298); g.lineTo(1080, -298); g.quadraticCurveTo(1098, -296, 1098, -276); g.lineTo(1096, -40); g.closePath(); }
+  g.fill(); g.strokeStyle = 'rgba(20,20,26,.8)'; g.lineWidth = 2.5; g.stroke();
+  const glass = (pts) => { const gg = g.createLinearGradient(0, -300, 0, -90); gg.addColorStop(0, 'rgb(170,196,214)'); gg.addColorStop(.6, 'rgb(90,110,130)'); gg.addColorStop(1, 'rgb(60,70,86)'); g.fillStyle = gg; g.beginPath(); pts.forEach(([x, y], i) => i ? g.lineTo(x, y) : g.moveTo(x, y)); g.closePath(); g.fill(); g.fillStyle = 'rgba(255,255,255,.3)'; g.beginPath(); g.moveTo(pts[0][0] + 20, pts[0][1]); g.lineTo(pts[1][0] + 10, pts[1][1]); g.lineTo(pts[1][0] + 30, pts[1][1]); g.lineTo(pts[0][0] + 40, pts[0][1]); g.fill(); };
+  if (kind === 'sedan' || kind === 'taxi') { glass([[150, -104], [196, -142], [262, -144], [262, -104]]); glass([[272, -104], [272, -144], [300, -144], [356, -104]]); g.fillStyle = cssc(shc(c, -.4)); g.fillRect(262, -146, 10, 44);
+    g.strokeStyle = 'rgba(20,20,26,.5)'; g.lineWidth = 1.5; g.beginPath(); g.moveTo(268, -100); g.lineTo(268, -40); g.moveTo(150, -100); g.lineTo(150, -44); g.moveTo(376, -100); g.lineTo(380, -44); g.stroke(); g.fillStyle = 'rgba(30,30,34,.8)'; g.fillRect(212, -86, 20, 4); g.fillRect(320, -86, 20, 4); g.fillRect(138, -116, 14, 10); }
+  else if (kind === 'van') { glass([[60, -110], [114, -196], [150, -200], [150, -110]]); g.fillStyle = cssc(shc(c, -.15)); g.fillRect(170, -196, 330, 140); g.strokeStyle = 'rgba(20,20,26,.4)'; g.lineWidth = 1.5; g.strokeRect(170, -196, 330, 140); }
+  else { for (let k = 0; k < 8; k++) glass([[60 + k * 125, -190], [60 + k * 125, -270], [170 + k * 125, -270], [170 + k * 125, -190]]); g.fillStyle = 'rgb(30,30,34)'; g.fillRect(10, -270, 40, 230); g.fillStyle = cssc(shc(c, -.25)); g.fillRect(60, -170, 1000, 110); }
+  if (kind === 'taxi') { g.fillStyle = 'rgb(30,30,34)'; for (let k = 0; k < 24; k++) if (k % 2) g.fillRect(40 + k * 16, -76, 16, 8); else g.fillRect(40 + k * 16, -68, 16, 8); g.fillStyle = 'rgb(250,246,230)'; g.fillRect(222, -166, 64, 16); unflip(254, () => { g.fillStyle = 'rgb(30,30,34)'; g.font = '700 14px "Josefin Sans", sans-serif'; g.fillText('TAXI', 234, -153); }); unflip(205, () => { g.font = '700 10px "Josefin Sans", sans-serif'; g.fillStyle = 'rgb(30,30,34)'; g.fillText('ALMAGRE · 24 h', 160, -50); }); }
+  if (brand) { const bx = kind === 'bus' ? 120 : 196, by = kind === 'bus' ? -158 : -184, bh = kind === 'bus' ? 80 : 100; const pw = kind === 'bus' ? 860 : 290; g.fillStyle = 'rgba(250,248,240,.95)'; g.fillRect(bx - 10, by - 6, pw, bh + 12); unflip(bx - 10 + pw / 2, () => marcaLogo(g, brand, bx, by, bh)); }
+  g.fillStyle = 'rgb(250,240,200)'; g.fillRect(4, kind === 'bus' ? -110 : -84, 10, 14); g.fillStyle = 'rgb(200,40,36)'; g.fillRect(L - 10, kind === 'bus' ? -110 : -84, 8, 16);   // faro y piloto
+  g.fillStyle = 'rgb(40,40,46)'; g.fillRect(0, -42, L, 10);   // parachoques/estribo
+  const wr = kind === 'bus' ? 46 : 34, wx = kind === 'bus' ? [170, 900] : kind === 'van' ? [92, 420] : [86, 366];
+  for (const x of wx) { g.fillStyle = 'rgb(24,24,28)'; g.beginPath(); g.arc(x, -wr, wr + 8, PI, TAU); g.fill(); }   // pasos de rueda
+  wcTex(g, S.c.width, S.c.height, .15, .15);
+  S.L = L; S.wr = wr; S.wx = right ? wx.map(x => L - x) : wx; return S;
+}
+const LANES = [
+  { z: CA.LA, dir: 1, cars: [['sedan', [176, 46, 40], 0, 1180], ['taxi', [246, 196, 40], 1500, 1260], ['van', [236, 230, 218], 3100, 1000, 'molienda'], ['sedan', [170, 176, 184], 4600, 1150]] },
+  { z: CA.LB, dir: -1, cars: [['bus', [60, 110, 150], 400, 820, 'kronotek'], ['taxi', [246, 196, 40], 2300, 1150], ['sedan', [52, 70, 104], 3500, 1080], ['van', [214, 220, 226], 4900, 960, 'nimbo']] },
+];
+function vehiclesPaint() { let k = 0; for (const Ln of LANES) for (const C of Ln.cars) C.S = paintVehicle(C[0], C[1], 600 + k++, C[4], Ln.dir > 0); for (const Ln of LANES) for (const C of Ln.cars) texShadeKeep(C.S, COOL, .22); }
+const WRAP = 7200;
+function vehicleAt(Ln, C, t) { const w0 = CAM.x - 3200, raw = C[2] + Ln.dir * C[3] * (t - 61.5); return { x: w0 + ((raw - w0) % WRAP + WRAP) % WRAP, z: Ln.z }; }
+function vehicleDraw(Ln, C, t) {
+  const S = C.S, P = vehicleAt(Ln, C, t), x0 = P.x - S.L / 2, flip = Ln.dir > 0, bob = Math.sin(t * 9 + C[2]) * .8;
+  const sh = poly3([[P.x - S.L / 2, 14.5, P.z - 20], [P.x + S.L / 2, 14.5, P.z - 20], [P.x + S.L / 2 + 30, 14.5, P.z + 50], [P.x - S.L / 2 + 30, 14.5, P.z + 50]]); if (sh) { ctx.fillStyle = 'rgba(30,32,40,.4)'; ctx.fill(sh); }
+  bill(S, x0, 15 + bob, P.z);
+  const s = PS(P.z), rot = -Ln.dir * (t * C[3] / S.wr);
+  for (const wx of S.wx) { const cxw = x0 + wx, c = PJ(cxw, 15 - S.wr, P.z), R_ = S.wr * s; ctx.fillStyle = 'rgb(28,28,32)'; ctx.beginPath(); ctx.arc(c[0], c[1], R_, 0, TAU); ctx.fill(); ctx.fillStyle = 'rgb(150,154,162)'; ctx.beginPath(); ctx.arc(c[0], c[1], R_ * .55, 0, TAU); ctx.fill(); ctx.strokeStyle = 'rgb(80,84,92)'; ctx.lineWidth = Math.max(1, R_ * .12); for (let k = 0; k < 5; k++) { const a = rot + k * TAU / 5; ctx.beginPath(); ctx.moveTo(c[0], c[1]); ctx.lineTo(c[0] + Math.cos(a) * R_ * .5, c[1] + Math.sin(a) * R_ * .5); ctx.stroke(); } }
+  /* estela de velocidad tenue detrás */
+  ctx.strokeStyle = 'rgba(220,226,232,.25)'; ctx.lineWidth = Math.max(1, 2 * s); for (let k = 0; k < 3; k++) { const yy = -40 - k * 30, a = PJ(flip ? x0 : x0 + S.L, yy, P.z), b = PJ(flip ? x0 - 160 : x0 + S.L + 160, yy, P.z); ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.stroke(); }
+}
+/* ---------- alcantarillas (el único vapor de la calle) ---------- */
+const MANHOLES = [{ x: 2300, z: 930, y: 14.5 }, { x: 7600, z: 1080, y: 14.5 }, { x: 6000, z: 590, y: -.4, walk: true }];
+function manholeDraw(M) { const P = poly3(ellP(M.x, M.z, 38, 30, 22).map(([x, z]) => [x, M.y, z])); if (!P) return; ctx.fillStyle = 'rgb(52,50,50)'; ctx.fill(P); ctx.strokeStyle = 'rgb(110,106,100)'; ctx.lineWidth = Math.max(1, 2 * PS(M.z)); ctx.stroke(P);
+  for (let k = -2; k <= 2; k++) { const a = PJ(M.x - 26, M.y - .2, M.z + k * 9), b = PJ(M.x + 26, M.y - .2, M.z + k * 9); ctx.strokeStyle = 'rgba(130,126,120,.7)'; ctx.lineWidth = Math.max(.6, PS(M.z)); ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.stroke(); } }
+/* ---------- vecinos: caminan por la acera de enfrente; algunos esperan en la nuestra y miran pasar a Teo ---------- */
+const WALKERS = Array.from({ length: 22 }, (_, i) => ({ id: NPCS[i % NPCS.length], x0: -1200 + i * 520 + hsh(i, 1) * 300, z: 1240 + hsh(i, 2) * 110, dir: hsh(i, 3) < .5 ? 1 : -1, v: 80 + hsh(i, 4) * 60 }));
+const STANDERS = [{ id: 'carmen', x: 1900, z: 700 }, { id: 'mateo', x: 2050, z: 715 }, { id: 'anselmo', x: 4500, z: 705 }, { id: 'nora', x: 7000, z: 700 }, { id: 'ivan', x: 7150, z: 712 }, { id: 'lucia', x: 8450, z: 705 }];
+function npcWalkDraw(N, t) { const x = N.x0 + N.dir * N.v * (t - 61.5); if (Math.abs(x - CAM.x) > 2600) return; const st = Math.floor(t / (.36 - N.v / 1000)) + N.x0; pxDraw(N.id, { legL: st % 2, legR: (st + 1) % 2, blink: (t * .4 + N.x0) % 1 < .05 }, x, Math.abs(Math.sin(t * 8 + N.x0)) * 1.5, N.z, { flip: N.dir < 0 }); }
+function npcStandDraw(N, t, teoX) { if (Math.abs(N.x - CAM.x) > 2600) return; const d = teoX - N.x, near = Math.abs(d) < 260; pxShadow(N.id, N.x, N.z, 0, { a: .22 }); pxDraw(N.id, { wide: near, blink: !near && (t * .3 + N.x) % 1 < .05, happy: !near && d < -260 && d > -900 }, N.x, near ? 4 : 0, N.z, { flip: d < 0 }); }
 /* ---------- objetos del bordillo (se desenfocan una vez) ---------- */
 function paintMeter() { const S = spr([-20, -135, 20, 2], 3), g = S.g; g.fillStyle = 'rgb(60,64,70)'; g.fillRect(-3, -90, 6, 90); g.fillStyle = 'rgb(70,90,110)'; g.beginPath(); g.ellipse(0, -110, 14, 22, 0, 0, TAU); g.fill(); g.fillStyle = 'rgb(200,220,230)'; g.beginPath(); g.ellipse(0, -114, 9, 10, 0, 0, TAU); g.fill(); g.fillStyle = 'rgb(220,60,40)'; g.fillRect(-4, -116, 8, 3); marcaLogo(g, 'almagre', -5, -98, 10, { layout: 'emblema' }); return S; }
 function paintHydrant() { const S = spr([-26, -80, 26, 2], 3), g = S.g, c = [196, 50, 40]; wcWash(g, [[-14, 0], [14, 0], [12, -52], [16, -56], [10, -66], [-10, -66], [-16, -56], [-12, -52]], c, .98, { reserve: false, mode: 'source-over', amt: .4, seed: 3, step: 6 }); g.fillStyle = cssc(shc(c, -.2)); g.fillRect(-22, -46, 44, 12); g.beginPath(); g.ellipse(0, -66, 10, 8, 0, PI, TAU); g.fill(); g.fillStyle = 'rgba(255,255,255,.3)'; g.fillRect(-9, -50, 4, 46); return S; }
@@ -99,14 +157,15 @@ function callePaint() {
   CAX.brickTile = matBrick(300, 240, { seed: 71, soot: 0, wash: .4, whitewash: false, d: .9 });
   CAX.sky = paintSkyCool(); CAX.skyline = paintSkyline();
   CAX.walk = matConcrete(1200, 1100, { seed: 31, c: [164, 168, 172] }); CAX.curb = matWash(1200, 18, [150, 152, 156], { seed: 4 });
-  CAX.road = matAsphalt(1200, 300, { seed: 41, lineY: 60 });
+  CAX.road = matAsphalt(1200, 420, { seed: 41, lineY: 205 }); CAX.curbF = matWash(1200, 18, [176, 178, 180], { seed: 5 });
   CAX.blds = []; const r = mulberry32(5); let x = CA.X0;
   const shops = ['bodega', 'laundry', 'door', 'shutter', 'bodega', 'door', 'laundry', 'shutter'];
   for (let i = 0; x < CA.END - 500; i++) { const w = 640 + r() * 300, h = 1100 + r() * 450, S = paintBuilding(100 + i, w, h, { shop: shops[i % shops.length] }); CAX.blds.push({ x, S }); x += w + (r() < .2 ? 40 : 0); }
   CAX.molienda = { x: CA.END - 680, S: paintMoliendaFront() };
   x = CA.END - 680 + 900; for (let i = 0; x < CA.X1; i++) { const w = 700, S = paintBuilding(300 + i, w, 1300); CAX.blds.push({ x, S }); x += w; }
   CAX.meter = sprBlur(paintMeter(), 6); CAX.hydrant = sprBlur(paintHydrant(), 6); CAX.pole = sprBlur(paintPole(), 2);
-  for (const k of ['walk', 'curb', 'road']) texShade(CAX[k], COOL, .22);
+  for (const k of ['walk', 'curb', 'road', 'curbF']) texShade(CAX[k], COOL, .22);
+  vehiclesPaint();
   for (const B of CAX.blds) texShadeKeep(B.S, COOL, .3);
 }
 /* ---------- charcos (en la acera, por donde corre Teo) ---------- */
@@ -137,16 +196,20 @@ function drawCalle(t, o = {}) {
   bill(CAX.molienda.S, CAX.molienda.x, 0, CA.ZF);
   /* luz cálida del escaparate de Molienda sobre la acera */
   const mg = PJ(CAX.molienda.x + 450, -150, CA.ZF); LGT(mg[0], mg[1], 520 * PS(CA.ZF), '255,190,110', .55);
-  /* vapor de las calderas (rejillas de las escaleras y azoteas) */
-  for (const B of CAX.blds) { const c = PJ(B.x + B.S.w / 2, 0, CA.ZF); if (c[0] < -SW / 2 - 600 || c[0] > SW / 2 + 600) continue; for (const [vx, vy] of B.S.vents) steamCols(t, { x: B.x + vx, y: vy, z: CA.ZF - 10 }, { n: 5, h: 380, w: 11, a: .5, sway: 34, drift: .3, spread: 24 }); }
   /* suelo: asfalto (delante), bordillo, acera */
-  for (let k = Math.floor((CAM.x - 4000) / 1200); k * 1200 < CAM.x + 4000; k++) { hplane(CAX.road, k * 1200, (k + 1) * 1200, 0, CA.ZC, 15); hplane(CAX.walk, k * 1200, (k + 1) * 1200, CA.ZC, CA.ZF, 0); vplane(CAX.curb, [k * 1200, CA.ZC], [(k + 1) * 1200, CA.ZC], 0, 15); }
+  for (let k = Math.floor((CAM.x - 4000) / 1200); k * 1200 < CAM.x + 4000; k++) { const a = k * 1200, b = a + 1200; hplane(CAX.walk, a, b, CA.R1, CA.ZF, 0); hplane(CAX.road, a, b, CA.R0, CA.R1, 15); vplane(CAX.curbF, [a, CA.R1], [b, CA.R1], 0, 15); hplane(CAX.walk, a, b, 20, CA.R0, 0); }
+  for (const M of MANHOLES) if (!M.walk) manholeDraw(M);
   callePuddles(t, o.refl);
-  /* rejilla de vapor en la acera */
-  { const q = poly3([[GRATE.x - 60, -.5, GRATE.z - 25], [GRATE.x + 60, -.5, GRATE.z - 25], [GRATE.x + 60, -.5, GRATE.z + 25], [GRATE.x - 60, -.5, GRATE.z + 25]]); if (q) { ctx.fillStyle = 'rgb(46,48,52)'; ctx.fill(q); ctx.strokeStyle = 'rgb(110,114,120)'; ctx.lineWidth = 1; for (let k = -50; k <= 50; k += 10) { const a = PJ(GRATE.x + k, 0, GRATE.z - 25), b = PJ(GRATE.x + k, 0, GRATE.z + 25); ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.stroke(); } } }
+  /* la tapa de registro de la acera (de ahí sale el vapor que cruza Teo) */
+  manholeDraw(MANHOLES[2]);
   if (o.floorFx) o.floorFx(t);
   if (o.items) o.items(put, t);
-  put(GRATE.z - 1, () => steamCols(t, { x: GRATE.x, y: 0, z: GRATE.z }, { n: 7, h: 260, w: 8, a: .4, sway: 26, spread: 70, drift: o.gust ? o.gust(t) : 0 }));
+  put(GRATE.z - 1, () => steamCols(t, { x: GRATE.x, y: 0, z: GRATE.z }, { n: 7, h: 260, w: 8, a: .4, sway: 26, spread: 30, drift: o.gust ? o.gust(t) : 0 }));
+  for (const M of MANHOLES) if (!M.walk && Math.abs(M.x - CAM.x) < 3000) put(M.z - 1, () => steamCols(t, { x: M.x, y: M.y, z: M.z }, { n: 6, h: 300, w: 9, a: .38, sway: 30, spread: 26, drift: .25 }));
+  /* tráfico y vecinos */
+  for (const Ln of LANES) for (const C of Ln.cars) { const P = vehicleAt(Ln, C, t); if (Math.abs(P.x - CAM.x) < 2800) put(P.z + (Ln.dir > 0 ? .1 : .2), () => vehicleDraw(Ln, C, t)); }
+  for (const N of WALKERS) put(N.z, () => npcWalkDraw(N, t));
+  const tx = o.teoX ? o.teoX(t) : -1e5; for (const N of STANDERS) put(N.z, () => npcStandDraw(N, t, tx));
   /* primer plano del bordillo: parquímetros, bocas de incendio, postes y cables */
   for (let k = Math.floor((CAM.x - 1500) / 380); k * 380 < CAM.x + 1500; k++) { const x = k * 380 + 200; put(250, () => bill(hsh(k, 9) < .25 ? CAX.hydrant : CAX.meter, x, 0, 250)); }
   for (let k = Math.floor((CAM.x - 3000) / 1300); k * 1300 < CAM.x + 3000; k++) { const x = k * 1300 + 900; put(420, () => { bill(CAX.pole, x, 0, 420); }); }

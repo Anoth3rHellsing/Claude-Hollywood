@@ -421,3 +421,12 @@ Prueba de 3:00 con todo lo nuevo: el rig, la magia de tinta y fondos con mucho d
 - **La tela se hornea otra vez para cada gesto:** la caída en la cama es una sábana nueva (reposo sobre el colchón, una esfera que baja y un empujón hacia arriba de los bordes lejanos), así se ve que se infla y se asienta.
 - **La noche suena más baja a propósito** (−17 a −19 LUFS frente a −14/−16 del día), pero no menos: grillos, respiración, la nana. Por debajo de −20 se pierde.
 
+## Entre el Vapor y el Bit · correcciones tras el estreno (notas de Nico)
+- **Otra vez un nombre repetido:** `paintShelf` de la cocina pisó al del estudio y la estantería de libros salió con frascos y platos. Antes de declarar una función, buscar el nombre en todos los módulos (`grep -n "function nombre"`). El build no avisa porque es JavaScript válido.
+- **Suelo en trozos = triángulos vacíos:** cada tira de `hplane` es un paralelogramo; si su ancho sale del borde lejano, el cercano se queda corto y entre trozos contiguos aparece un triángulo. Ahora el ancho sale del borde **cercano** (el más largo): los trozos se solapan un poco en vez de abrirse.
+- **Una estructura de vidrio necesita sus caras de cierre:** sin testeros en los extremos de las bóvedas ni laterales en el pabellón que sobresale, se ve hueca. Detrás del vidrio va siempre algo: follaje continuo en el techo, con claros que se abren poco a poco y nunca de golpe.
+- **Una calle necesita vida, no solo fachadas:** calzada con tráfico (taxis, coches, furgonetas y autobús con marcas del mundo), vecinos que caminan y otros que esperan y miran pasar al protagonista. El vapor solo sale de donde tiene sentido: alcantarillas y registros, no de las fachadas.
+- **Un sprite reflejado refleja también sus rótulos** («IXAT»). Los vehículos que miran a la derecha se pintan ya reflejados, con los textos y logos devueltos a su sentido.
+- **Toda tienda que se usa necesita su puerta** (y si se entra por ella, que se vea dónde está).
+- **La caja de diálogo admite tres líneas:** si el texto es más largo, sube como en los RPG. Aun así, mejor partir las frases largas en dos cajas.
+

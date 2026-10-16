@@ -91,7 +91,34 @@ function parquePaint() {
   PKX.sky = paintParkSky(); PKX.path = matGravel(1200, 200, { seed: 71 }); PKX.grass = matGrass(1200, 300, { seed: 81 }); PKX.bank = matGrass(1200, 140, { seed: 82, c: [100, 140, 70] }); PKX.far = matGrass(2000, 200, { seed: 83, c: [110, 150, 76] });
   PKX.willows = [paintWillow(11), paintWillow(12), paintWillow(13)]; PKX.trees = [paintParkTree(21), paintParkTree(22, { autumn: true }), paintParkTree(23), paintParkTree(24, { w: 900 })];
   PKX.canopy = [paintCanopy(31), paintCanopy(32)]; PKX.fg = [paintPlantsFG(41), paintPlantsFG(42), paintPlantsFG(43)]; PKX.bench = paintBench(); PKX.lamp = paintLampPark();
-  PKX.gh = paintGreenhouseWall();
+  PKX.gh = paintGreenhouseWall(); PKX.ghCan = paintGhCanopy();
+}
+/* el follaje que se ve a través del techo: copas, frondas de palmera y enredaderas pegadas al vidrio, con huecos
+   de cielo que se abren poco a poco hacia arriba (nunca un salto brusco de «hay plantas» a «no hay nada») */
+function paintGhCanopy() {
+  const w = PK.GH.x1 - PK.GH.x0, h = 640, T = tex(w, h, .35), g = T.g, r = mulberry32(311);
+  const gr = g.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, 'rgb(150,186,170)'); gr.addColorStop(.35, 'rgb(96,142,100)'); gr.addColorStop(1, 'rgb(44,82,50)'); g.fillStyle = gr; g.fillRect(0, 0, w, h);
+  for (let i = 0; i < 70; i++) { const x = r() * w, y = 60 + r() * 300, rr = 60 + r() * 90; g.fillStyle = `rgba(206,226,224,${.25 + r() * .3})`; g.beginPath(); g.ellipse(x, y * .7, rr, rr * .5, 0, 0, TAU); g.fill(); }   // claros de cielo, suaves
+  for (let i = 0; i < 260; i++) { const x = r() * w, y = 80 + Math.pow(r(), .7) * (h - 60), rr = 30 + r() * 70, c = pick3(r, [[40, 84, 46], [58, 108, 58], [76, 128, 64], [34, 70, 40], [92, 140, 72]]); g.fillStyle = cssc(c, .9); for (let k = 0; k < 6; k++) { g.beginPath(); g.ellipse(x + (r() - .5) * rr, y + (r() - .5) * rr * .6, rr * (.4 + r() * .4), rr * (.25 + r() * .25), r() * 3, 0, TAU); g.fill(); } }   // copas
+  for (let i = 0; i < 46; i++) { const x = r() * w, y = h - r() * 260, c = pick3(r, [[38, 80, 44], [52, 100, 52]]); for (let k = 0; k < 9; k++) { const a = -PI / 2 + (k - 4) * .34, L = 120 + r() * 120, ex = x + Math.cos(a) * L, ey = y + Math.sin(a) * L; g.strokeStyle = cssc(c, .9); g.lineWidth = 5; g.beginPath(); g.moveTo(x, y); g.quadraticCurveTo((x + ex) / 2, ey - 30, ex, ey); g.stroke(); for (let q = 1; q < 10; q++) { const u = q / 10, px = lerp(x, ex, u), py = lerp(y, ey, u) - Math.sin(u * PI) * 30; g.lineWidth = 2.5; g.beginPath(); g.moveTo(px, py); g.lineTo(px + Math.cos(a + 1.2) * 22, py + Math.sin(a + 1.2) * 22); g.moveTo(px, py); g.lineTo(px + Math.cos(a - 1.2) * 22, py + Math.sin(a - 1.2) * 22); g.stroke(); } } }   // frondas
+  for (let i = 0; i < 90; i++) { const x = r() * w, y = r() * h, s = 18 + r() * 34; g.save(); g.translate(x, y); g.rotate(r() * TAU); g.fillStyle = cssc(pick3(r, [[30, 70, 36], [46, 96, 46], [64, 116, 52]]), .95); g.beginPath(); g.moveTo(-s, 0); g.quadraticCurveTo(0, -s * .7, s, 0); g.quadraticCurveTo(0, s * .7, -s, 0); g.fill(); g.restore(); }   // hojas pegadas al vidrio
+  return T; }
+/* testeros y laterales de vidrio: el arco cerrado (con plantas detrás) para que la estructura no quede hueca */
+function ghFace(x, pts, t, seed) {
+  const P = poly3(pts.map(([y, z]) => [x, y, z])); if (!P) return; const yTop = Math.min(...pts.map(p => p[0])), zs = pts.map(p => p[1]), z0 = Math.min(...zs), z1 = Math.max(...zs);
+  ctx.save(); ctx.clip(P); const a = PJ(x, yTop, z0), b = PJ(x, 0, z0), gr = ctx.createLinearGradient(0, a[1], 0, b[1]); gr.addColorStop(0, 'rgb(150,184,170)'); gr.addColorStop(.4, 'rgb(84,130,90)'); gr.addColorStop(1, 'rgb(40,74,46)'); ctx.fillStyle = gr; ctx.fill(P);
+  for (let i = 0; i < 40; i++) { const y = lerp(yTop * .95, -40, hsh(i, seed)), z = lerp(z0, z1, hsh(i, seed + 1)), c = PJ(x, y, z), rr = (30 + hsh(i, seed + 2) * 60) * PS(z); ctx.fillStyle = `rgba(${40 + hsh(i, 3) * 40 | 0},${84 + hsh(i, 4) * 50 | 0},${44 + hsh(i, 5) * 24 | 0},.85)`; ctx.beginPath(); ctx.ellipse(c[0], c[1], rr, rr * .6, hsh(i, 6) * 3, 0, TAU); ctx.fill(); }
+  ctx.fillStyle = 'rgba(214,230,236,.18)'; ctx.fill(P);
+  ctx.strokeStyle = 'rgb(36,48,46)'; for (let z = z0; z <= z1; z += 60) { const p = PJ(x, 0, z), q = PJ(x, yTop - 40, z); ctx.lineWidth = Math.max(.6, 2 * PS(z)); ctx.beginPath(); ctx.moveTo(p[0], p[1]); ctx.lineTo(q[0], q[1]); ctx.stroke(); }
+  for (let y = -66; y > yTop; y -= 66) { const p = PJ(x, y, z0), q = PJ(x, y, z1); ctx.lineWidth = Math.max(.6, 1.6 * PS(z0)); ctx.beginPath(); ctx.moveTo(p[0], p[1]); ctx.lineTo(q[0], q[1]); ctx.stroke(); }
+  ctx.restore(); ctx.strokeStyle = 'rgb(36,48,46)'; ctx.lineWidth = Math.max(1, 4 * PS(z0)); ctx.stroke(P);
+}
+function ghEnds(t) {
+  const GH = PK.GH, z0 = GH.z, arch = (yb, R, a0, a1, n = 10) => { const o = []; for (let k = 0; k <= n; k++) { const a = lerp(a0, a1, k / n); o.push([yb - R * Math.sin(a), z0 + R * (1 - Math.cos(a)) * 1.4]); } return o; };
+  const lo = arch(-GH.h, 520, 0, 1.25), zb = lo[lo.length - 1][1], end = [[0, z0]].concat(lo, [[lo[lo.length - 1][0], zb], [0, zb]]);
+  ghFace(GH.x0, end, t, 11); ghFace(GH.x1, end, t, 21);
+  const hi = arch(-GH.ch, 380, 0, 1.25), zp = hi[hi.length - 1][1], aMeet = Math.acos(1 - (zp - z0) / (1.4 * 520)), side = [[-GH.h, z0]].concat(hi, [[-GH.h - 520 * Math.sin(aMeet), zp]], arch(-GH.h, 520, aMeet, 0, 8));
+  ghFace(GH.cx0, side, t, 31); ghFace(GH.cx1, side, t, 41);
 }
 /* la bóveda curva: filas de paneles en 3D que se van hacia atrás */
 function ghRoof(t, x0, x1, yb, z0, R, o = {}) {
@@ -99,7 +126,9 @@ function ghRoof(t, x0, x1, yb, z0, R, o = {}) {
   for (let i = 0; i < rows; i++) { const a0 = i / rows * 1.25, a1 = (i + 1) / rows * 1.25, Y = a => yb - R * Math.sin(a), Z = a => z0 + R * (1 - Math.cos(a)) * 1.4;
     for (let x = x0; x < x1; x += PW) { const q = [[x, Y(a1), Z(a1)], [x + PW, Y(a1), Z(a1)], [x + PW, Y(a0), Z(a0)], [x, Y(a0), Z(a0)]], P = poly3(q); if (!P) continue;
       const h = hsh(x * .01, i), ty = h < .14 ? 1 : h < .3 ? 2 : 0, sky = mixc([190, 214, 232], [250, 244, 226], i / rows);
-      ctx.fillStyle = cssc(ty === 1 ? shc(sky, .12) : ty === 2 ? mixc(sky, [240, 244, 240], .5) : mixc(sky, [120, 160, 120], .35), .92); ctx.fill(P);
+      if (o.T) { const u0 = (x - o.ux0) / (o.ux1 - o.ux0), u1 = (x + PW - o.ux0) / (o.ux1 - o.ux0), v = k => 1 - (k / rows) * (o.vk ?? 1); texStrip(o.T, u0, u1, v(i + 1), v(i), PJ(x, Y(a1), Z(a1)), PJ(x + PW, Y(a1), Z(a1)), PJ(x, Y(a0), Z(a0)), .8);
+        ctx.fillStyle = cssc(ty === 1 ? shc(sky, .12) : ty === 2 ? [244, 248, 246] : sky, ty === 2 ? .45 : ty === 1 ? .22 : .14); ctx.fill(P); }
+      else { ctx.fillStyle = cssc(ty === 1 ? shc(sky, .12) : ty === 2 ? mixc(sky, [240, 244, 240], .5) : mixc(sky, [120, 160, 120], .35), .92); ctx.fill(P); }
       const glint = Math.max(0, Math.sin((x - CAM.x) * .004 + i * .7 - t * .6)); if (glint > .92) { ctx.fillStyle = `rgba(255,255,240,${(glint - .92) * 8})`; ctx.fill(P); }
       ctx.strokeStyle = 'rgb(36,48,46)'; ctx.lineWidth = Math.max(.6, 2.4 * PS(Z(a0))); ctx.stroke(P); } }
 }

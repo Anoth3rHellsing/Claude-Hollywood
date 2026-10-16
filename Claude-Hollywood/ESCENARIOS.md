@@ -65,7 +65,9 @@ dlgDraw(DLG, t, { anchor: d => yEnPantallaDelQueHabla });   // la caja sube arri
 | sueno | 11 | ×0,66 | triángulo | bajada |
 | agotado | 7 | ×0,58 | triángulo | pausas largas (la vuelta a casa) |
 
-La voz base de cada personaje está en su ficha (`ELENCO[id].voz`).
+La voz base de cada personaje está en su ficha (`ELENCO[id].voz`). La caja admite tres líneas; si el texto sigue, sube como en los RPG.
+
+**Transeúntes:** `personajes/src/elenco.js` genera vecinos por forma (`npcDef`: lista de [medio ancho, carácter] por fila) con contorno, ojos, mejillas y piernas iguales para todos. Sirven para llenar calles y locales sin dibujar cada uno a mano.
 
 ## Rendimiento (lo que se aprendió)
 
@@ -74,6 +76,6 @@ La voz base de cada personaje está en su ficha (`ELENCO[id].voz`).
 - **La luz del sol trabaja solo en el rectángulo donde cae.** Componer un búfer a pantalla completa por receptor costaba más de 100 ms en CPU; con el rectángulo, unos 60.
 - **Sombra ambiente horneada**, no multiplicada cada cuadro.
 - **Papel, grano, viñeta y tono** en un solo lienzo que se arma al cambiar el tamaño.
-- **Las tiras del suelo se estiran:** son paralelogramos y el borde del lado cercano se queda corto; se estiran hasta cubrir la pantalla.
+- **Las tiras del suelo se estiran:** son paralelogramos; el ancho sale del borde cercano (el más largo), así cubren la pantalla y dos trozos contiguos se solapan en vez de dejar triángulos vacíos.
 - **Luces aditivas y zoom:** el radio de `LGT` va en unidades de mundo; en un primer plano una luz cubre toda la pantalla. Bájale el alfa o el radio en los planos cerrados.
 - Sin GPU las cifras solo sirven para comparar. Planos cerrados: 3–16 ms; abiertos con sol y polvo: ~60 ms.

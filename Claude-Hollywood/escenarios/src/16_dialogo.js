@@ -91,9 +91,11 @@ function dlgDraw(D, t, o = {}) {
   if (d.face !== false && ELENCO[d.who]) { const f = elencoFace(d.who, d.face || {}), fs = Math.max(1, Math.round(p * 1.7)), fw = f.width * fs, fh = f.height * fs; g.imageSmoothingEnabled = false; g.drawImage(f, bx + 7 * p, by + Math.round((bh - fh) / 2), fw, fh); tx = bx + 7 * p + fw + 7 * p; }
   const cpl = Math.floor((bx + bw - 8 * p - tx) / (6 * p)) - 2, lines = dlgWrap(d.txt, cpl);
   const shown = d.rev.filter(r => t - d.t >= r).length, M = MOODS[d.mood || 'normal'];
-  let left = shown;
-  pxText(g, '*', tx, by + 9 * p, p, '#fff');
-  lines.forEach((L, i) => { if (left <= 0) return; const s = L.slice(0, left); left -= L.length + 1; pxText(g, s, tx + 12 * p, by + 9 * p + i * 13 * p, p, o.col || '#fff', { shake: M.shake && shown < d.txt.length + 8 ? Math.floor(t * 14) : 0 }); });
+  /* caben tres líneas: si el texto es más largo, sube como en los RPG (se ven las tres últimas que se están escribiendo) */
+  const parts = []; let left = shown; for (const L of lines) { if (left <= 0) break; parts.push(L.slice(0, left)); left -= L.length + 1; }
+  const first = Math.max(0, parts.length - 3);
+  pxText(g, '*', tx, by + 9 * p, p, first ? '#888' : '#fff');
+  parts.slice(first).forEach((s, i) => pxText(g, s, tx + 12 * p, by + 9 * p + i * 13 * p, p, o.col || '#fff', { shake: M.shake && shown < d.txt.length + 8 ? Math.floor(t * 14) : 0 }));
   g.restore(); T0();
 }
 /* rótulo de hora (arriba a la izquierda): «07:15 AM» grande y el lugar debajo; aparece letra a letra */

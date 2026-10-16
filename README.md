@@ -12,6 +12,10 @@
   <a href="LICENSE"><img alt="Licencia GPL-3.0" src="https://img.shields.io/badge/licencia-GPL--3.0-blue"></a>
 </p>
 
+<p align="center">
+  <b>Español</b> | <a href="README.en.md">English</a>
+</p>
+
 ---
 
 **Claude Hollywood** es un skill para Claude que convierte una idea en una película animada de 1 a 10 minutos.

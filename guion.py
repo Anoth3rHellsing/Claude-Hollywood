@@ -13,7 +13,7 @@ L=[
 ("B4","1:50","El mundo reacciona","L11","Si piso un charco, el agua se mueve. Y si agarro esta piedra y la lanzo…"),
 ("B4","1:50","El mundo reacciona","L12","…Uy. Eso no estaba en el guion."),
 ("B4","1:50","El mundo reacciona","L13","Pero fíjense: cada vidrio cae por su cuenta. La física también es código."),
-("B5","2:25","El sonido","L14","¿Y el sonido? La lluvia, el viento y la música también los fabrica el código, nota por nota."),
+("B5","2:25","El sonido","L14","¿Y el sonido? Las hojas, el viento y la música también los fabrica el código, nota por nota."),
 ("B5","2:25","El sonido","L15","Lo único que viene de afuera es mi voz, gracias a ElevenLabs."),
 ("B6","2:45","Tu turno","L16","¿Quieres hacer la tuya? Llena el tiquete: la idea, los personajes y lo que no se puede tocar."),
 ("B6","2:45","Tu turno","L17","Elige un modo: control, auto o asistido. Y Claude se pone a pintar."),

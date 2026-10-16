@@ -7,7 +7,7 @@
 Corto de ~3 min donde un personaje 8 bits (la tacita de Nico) explica, en español y con voz de ElevenLabs, cómo funciona la skill `sumi-e-canvas-film`. Este archivo basta para seguir en Claude Code sin el chat original.
 
 ## Estado (16 oct 2026)
-- **Modo asistido.** Plan discutido y preguntas respondidas. **Falta:** que Nico apruebe el guion (`guion.json`). Después: voz → construcción → revisión.
+- **Modo asistido.** Plan discutido y preguntas respondidas. **Guion aprobado** (`guion.json`, L14 cambiada a «Las hojas, el viento…» porque el corto es de día). Siguiente: voz → construcción → revisión.
 - **No se ha gastado ningún carácter de ElevenLabs.**
 
 ## Archivos de esta carpeta
@@ -24,7 +24,7 @@ Corto de ~3 min donde un personaje 8 bits (la tacita de Nico) explica, en españ
 | `Claude-Hollywood/` | Colección del motor, películas anteriores (`peliculas/`), escenas, lecciones y la skill (`sumi-e-canvas-film`). |
 
 ## Decisiones tomadas
-1. **Protagonista:** la tacita de agua de Nico, con manilla y boina de artista (diseño propio de Nico). No se usa la mascota de Claude Code; tampoco su nombre. Nombre de la tacita: **por decidir** (en el guion habla de sí misma como «una tacita con boina»).
+1. **Protagonista:** la tacita de agua de Nico, con manilla y boina de artista (diseño propio de Nico). No se usa la mascota de Claude Code; tampoco su nombre. Nombre de la tacita: **Aguada** (técnica de acuarela). En el guion se presenta como «una tacita con boina»; el nombre puede ir en pantalla.
 2. **Duración:** ~3 min.
 3. **Voz:** Fruna – «Playful, mischievous, sweet», `voice_id = 2CGcaXd1E04jesxY7nfq` (biblioteca de ElevenLabs, español latino, neutra/joven).
 4. **Ejemplos:** fotogramas reales de las películas anteriores proyectados en paneles de cristal.
@@ -85,7 +85,7 @@ Capturarlos con las herramientas de siempre (`shot.py`) de las películas en `D:
 - Subtítulos en español sincronizados, en la capa DOM, con legibilidad de día (variante oscura sobre fondos claros).
 
 ## Pasos siguientes
-1. Nico aprueba o corrige `guion.json` y decide el nombre de la tacita. Cambiar una línea cambia el conteo: recalcular.
+1. ~~Nico aprueba `guion.json` y decide el nombre de la tacita.~~ Hecho: guion aprobado, tacita = Aguada. Cambiar una línea cambia el conteo: recalcular con `guion.py`.
 2. ElevenLabs:
    - crear el flow;
    - `estimate_only` de todo;

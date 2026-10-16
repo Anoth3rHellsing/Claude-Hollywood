@@ -1,0 +1,39 @@
+{
+ "id": "tmva5ums2",
+ "titulo": "Claude Hollywood 101",
+ "modo": "asistido",
+ "estilo": "acuarela",
+ "duracion": "3",
+ "universo": "Claude Clawd-verse (renombrar: no se usa la mascota)",
+ "estado": "borrador",
+ "idioma": "Español",
+ "textos": "subtitulos",
+ "sonido": "completo",
+ "logline": "Un video donde Clawd, la mascota de Claude Code, Trata de explicar mediante subtitulos y audio de la conexion que tiene con Eleven Labs, explicando en Español como funciona la skill que hace posible estos videos.",
+ "tono": "Emocion, Intriga, Curiosidad, Maravilla, Como si estuviese en una clase al inicio",
+ "personajes": [
+  {
+   "nombre": "(original pedía Clawd; sustituido por la tacita de Nico)",
+   "silueta": "Tacita de agua en pixel art: cuerpo celeste, franja blanca arriba, dos ojos cuadrados negros con brillo, manilla a la derecha, dos patas gruesas, boina de artista marrón. Ver sprite_original.png",
+   "pelo": "N/A",
+   "magia": "N/A",
+   "quien": "Personaje 8 bits que muestra que, sin un modelo de imagen o video, Claude puede sacar su lado artístico con ejemplos de videos ya creados."
+  }
+ ],
+ "lugares": [
+  {
+   "nombre": "Invernadero Victoriano",
+   "cuando": "De dia, soleado, por otoño",
+   "como": "Hierro oxidado, cientos de paneles agrietados, raices que rompieron el suelo, flores y plantas.",
+   "reacciona": "El mundo reacciona al personaje. El personaje no se adapta al mundo ya que es 2D de 8 bits, pero puede caminar e interactuar con el mundo. Demostración pasiva: camina por charcos para agarrar una piedra, tira la piedra y se cae un poste oxidado, haciendo caer completamente una seccion de las paredes del invernadero."
+  }
+ ],
+ "refs": "Hojas cayendo en el fondo con vista a arboles de colores de autumn, amarillos rojos y naranjas",
+ "notas": "Divertido pero que introduzca cómo funciona. ElevenLabs: 10.000 caracteres/mes; primero el script y con eso se planea el gasto; usar solo lo necesario.",
+ "respuestas_de_nico": {
+  "protagonista": "Su propia tacita de agua con manilla y gorrito de artista en pixel art",
+  "duracion": "3 min",
+  "voz": "Fruna",
+  "ejemplos": "Fotogramas reales"
+ }
+}

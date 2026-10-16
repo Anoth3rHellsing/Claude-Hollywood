@@ -1,0 +1,171 @@
+{
+ "voz": {
+  "nombre": "Fruna - Playful, mischievous, sweet",
+  "voice_id": "2CGcaXd1E04jesxY7nfq"
+ },
+ "total_chars": 1517,
+ "lineas": [
+  {
+   "bloque": "B0",
+   "desde": "0:00",
+   "titulo": "Apertura",
+   "id": "L01",
+   "texto": "¡Hola! Bienvenidos a Claude Hollywood ciento uno. Antes de empezar, un secreto: nada de lo que ven es un video.",
+   "chars": 111,
+   "seg_aprox": 7.7
+  },
+  {
+   "bloque": "B0",
+   "desde": "0:00",
+   "titulo": "Apertura",
+   "id": "L02",
+   "texto": "No hay cámara, ni actores, ni dibujos guardados. Solo código… y una tacita con boina.",
+   "chars": 85,
+   "seg_aprox": 5.9
+  },
+  {
+   "bloque": "B1",
+   "desde": "0:20",
+   "titulo": "Todo es código",
+   "id": "L03",
+   "texto": "Miren. Si congelo el mundo, aparece su esqueleto: una cámara en tres dimensiones, hecha con matemáticas.",
+   "chars": 104,
+   "seg_aprox": 7.2
+  },
+  {
+   "bloque": "B1",
+   "desde": "0:20",
+   "titulo": "Todo es código",
+   "id": "L04",
+   "texto": "Sesenta veces por segundo, Claude calcula dónde va cada columna, cada hoja y cada charco… y lo vuelve a pintar desde cero.",
+   "chars": 122,
+   "seg_aprox": 8.4
+  },
+  {
+   "bloque": "B2",
+   "desde": "0:50",
+   "titulo": "La acuarela",
+   "id": "L05",
+   "texto": "¿Y la acuarela? Empieza como una figura simple. Claude la deforma un poquito, una y otra vez.",
+   "chars": 93,
+   "seg_aprox": 6.4
+  },
+  {
+   "bloque": "B2",
+   "desde": "0:50",
+   "titulo": "La acuarela",
+   "id": "L06",
+   "texto": "Luego apila veinte capas casi transparentes, como un pintor de verdad. Así salen los bordes húmedos y el papel que respira.",
+   "chars": 123,
+   "seg_aprox": 8.5
+  },
+  {
+   "bloque": "B2",
+   "desde": "0:50",
+   "titulo": "La acuarela",
+   "id": "L07",
+   "texto": "Ninguna imagen viene de otro programa. Todo esto lo pinta el código.",
+   "chars": 68,
+   "seg_aprox": 4.7
+  },
+  {
+   "bloque": "B3",
+   "desde": "1:20",
+   "titulo": "Lo que ya hicimos",
+   "id": "L08",
+   "texto": "Y no es la primera vez. En estos cristales guardo algunas películas que ya hicimos.",
+   "chars": 83,
+   "seg_aprox": 5.7
+  },
+  {
+   "bloque": "B3",
+   "desde": "1:20",
+   "titulo": "Lo que ya hicimos",
+   "id": "L09",
+   "texto": "Un samurái bajo la lluvia. Tres magos y un juramento roto. Y este mismo invernadero… pero de noche, en pleno duelo.",
+   "chars": 115,
+   "seg_aprox": 7.9
+  },
+  {
+   "bloque": "B4",
+   "desde": "1:50",
+   "titulo": "El mundo reacciona",
+   "id": "L10",
+   "texto": "Yo no me adapto al mundo: soy de píxeles. Pero el mundo sí reacciona a mí.",
+   "chars": 74,
+   "seg_aprox": 5.1
+  },
+  {
+   "bloque": "B4",
+   "desde": "1:50",
+   "titulo": "El mundo reacciona",
+   "id": "L11",
+   "texto": "Si piso un charco, el agua se mueve. Y si agarro esta piedra y la lanzo…",
+   "chars": 72,
+   "seg_aprox": 5.0
+  },
+  {
+   "bloque": "B4",
+   "desde": "1:50",
+   "titulo": "El mundo reacciona",
+   "id": "L12",
+   "texto": "…Uy. Eso no estaba en el guion.",
+   "chars": 31,
+   "seg_aprox": 2.1
+  },
+  {
+   "bloque": "B4",
+   "desde": "1:50",
+   "titulo": "El mundo reacciona",
+   "id": "L13",
+   "texto": "Pero fíjense: cada vidrio cae por su cuenta. La física también es código.",
+   "chars": 73,
+   "seg_aprox": 5.0
+  },
+  {
+   "bloque": "B5",
+   "desde": "2:25",
+   "titulo": "El sonido",
+   "id": "L14",
+   "texto": "¿Y el sonido? La lluvia, el viento y la música también los fabrica el código, nota por nota.",
+   "chars": 92,
+   "seg_aprox": 6.3
+  },
+  {
+   "bloque": "B5",
+   "desde": "2:25",
+   "titulo": "El sonido",
+   "id": "L15",
+   "texto": "Lo único que viene de afuera es mi voz, gracias a ElevenLabs.",
+   "chars": 61,
+   "seg_aprox": 4.2
+  },
+  {
+   "bloque": "B6",
+   "desde": "2:45",
+   "titulo": "Tu turno",
+   "id": "L16",
+   "texto": "¿Quieres hacer la tuya? Llena el tiquete: la idea, los personajes y lo que no se puede tocar.",
+   "chars": 93,
+   "seg_aprox": 6.4
+  },
+  {
+   "bloque": "B6",
+   "desde": "2:45",
+   "titulo": "Tu turno",
+   "id": "L17",
+   "texto": "Elige un modo: control, auto o asistido. Y Claude se pone a pintar.",
+   "chars": 67,
+   "seg_aprox": 4.6
+  },
+  {
+   "bloque": "B6",
+   "desde": "2:45",
+   "titulo": "Tu turno",
+   "id": "L18",
+   "texto": "Fin de la primera clase. ¡Nos vemos en la próxima!",
+   "chars": 50,
+   "seg_aprox": 3.4
+  }
+ ]
+}

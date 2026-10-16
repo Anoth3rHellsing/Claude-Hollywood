@@ -130,3 +130,62 @@ function matWash(w, h, c, o = {}) { const T = tex(w, h, o.d ?? 1.2), g = T.g; wc
    UNA vez en la textura en vez de pintarse en cada cuadro ---------- */
 function texShade(T, col, a) { const c = T.c, g = c.getContext('2d'); g.save(); g.setTransform(1, 0, 0, 1, 0, 0); g.globalCompositeOperation = 'multiply'; g.globalAlpha = a; g.fillStyle = cssc(col); g.fillRect(0, 0, c.width, c.height); g.restore(); return T; }
 function texShadeKeep(T, col, a) { const c = T.c, g = c.getContext('2d'); g.save(); g.setTransform(1, 0, 0, 1, 0, 0); g.globalCompositeOperation = 'source-atop'; g.globalAlpha = a; g.fillStyle = cssc(col); g.globalCompositeOperation = 'multiply'; g.fillRect(0, 0, c.width, c.height); g.globalCompositeOperation = 'destination-in'; g.globalAlpha = 1; g.drawImage(c, 0, 0); g.restore(); return T; }
+/* ---------- concreto de acera: losas con juntas, grietas, manchas, chicles y hierba en las rendijas ---------- */
+function matConcrete(w, h, o = {}) {
+  const T = tex(w, h, o.d ?? 1.1), g = T.g, r = mulberry32(o.seed ?? 31), S = o.slab ?? 120, base = o.c ?? [168, 170, 172];
+  for (let y = 0; y < h; y += S) for (let x = 0; x < w; x += S) { const c = shc(base, (r() - .5) * .1); wcWash(g, rectP(x + 1, y + 1, S - 2, S - 2), c, .97, { reserve: false, mode: 'source-over', amt: .6, seed: x * .1 + y, edge: false, step: 30, bloom: r() < .3 ? shc(c, -.12) : null }); }
+  for (let i = 0; i < w * h / 14; i++) { g.fillStyle = `rgba(${r() < .5 ? '60,62,66' : '230,232,234'},${r() * .22})`; g.fillRect(r() * w, r() * h, .8, .8); }   // árido
+  g.strokeStyle = 'rgba(60,62,66,.65)'; g.lineWidth = 1.4; for (let y = 0; y <= h; y += S) { g.beginPath(); g.moveTo(0, y); g.lineTo(w, y); g.stroke(); } for (let x = 0; x <= w; x += S) { g.beginPath(); g.moveTo(x, 0); g.lineTo(x, h); g.stroke(); }
+  /* grietas con hierba */
+  for (let i = 0; i < (o.cracks ?? w * h / 26000); i++) { let x = r() * w, y = r() * h; const pts = [[x, y]]; const a0 = r() * TAU; for (let k = 0; k < 10 + r() * 14; k++) { x += Math.cos(a0 + (r() - .5) * 1.4) * 6; y += Math.sin(a0 + (r() - .5) * 1.4) * 6; pts.push([x, y]); } wcInk(g, pts, .8 + r() * .7, .6, i, .1, [50, 52, 56]);
+    if (r() < .4) for (let k = 0; k < 4; k++) { const p = pts[(r() * pts.length) | 0]; g.strokeStyle = `rgba(${90 + r() * 40},${120 + r() * 30},60,.8)`; g.lineWidth = .6; g.beginPath(); g.moveTo(p[0], p[1]); g.quadraticCurveTo(p[0] + (r() - .5) * 4, p[1] - 3, p[0] + (r() - .5) * 6, p[1] - 4 - r() * 4); g.stroke(); } }
+  for (let i = 0; i < w * h / 6000; i++) { const x = r() * w, y = r() * h, rr = 2 + r() * 14; g.fillStyle = `rgba(40,42,48,${.06 + r() * .1})`; g.beginPath(); g.ellipse(x, y, rr, rr * (.5 + r() * .5), r() * 3, 0, TAU); g.fill(); }   // manchas
+  for (let i = 0; i < w * h / 9000; i++) { g.fillStyle = 'rgba(220,220,214,.55)'; g.beginPath(); g.arc(r() * w, r() * h, .8 + r() * 1.2, 0, TAU); g.fill(); }   // chicles
+  wcTex(g, T.c.width, T.c.height, .3, .3);
+  return T;
+}
+/* ---------- asfalto con parches y la línea pintada ---------- */
+function matAsphalt(w, h, o = {}) {
+  const T = tex(w, h, o.d ?? 1), g = T.g, r = mulberry32(o.seed ?? 41);
+  g.fillStyle = cssc(o.c ?? [74, 76, 82]); g.fillRect(0, 0, w, h);
+  for (let i = 0; i < w * h / 6; i++) { g.fillStyle = `rgba(${r() < .5 ? '30,30,34' : '170,172,176'},${r() * .3})`; g.fillRect(r() * w, r() * h, .9, .9); }
+  for (let i = 0; i < 8; i++) { const x = r() * w, y = r() * h, pw = 60 + r() * 160, ph = 40 + r() * 80; g.fillStyle = `rgba(${r() < .5 ? '50,52,58' : '96,98,104'},.6)`; g.fill(pPolys([wob(rectP(x, y, pw, ph), 4, i, .05)])); }
+  if (o.line !== false) { const y = o.lineY ?? h * .5; for (let x = 0; x < w; x += 300) { g.fillStyle = 'rgba(236,230,214,.85)'; g.fill(pPolys([wob(rectP(x, y, 160, 10), .8, x, .2)])); } }
+  wcTex(g, T.c.width, T.c.height, .3, .35);
+  return T;
+}
+/* ---------- baldosa hidráulica (roseta de 8 puntas, 20 × 20 cm) ---------- */
+function matHydraulic(w, h, o = {}) {
+  const T = tex(w, h, o.d ?? 1.4), g = T.g, r = mulberry32(o.seed ?? 51), S = o.tile ?? 20, P = o.pal ?? [[234, 224, 204], [62, 82, 104], [176, 84, 60], [204, 176, 120]];
+  const tile = document.createElement('canvas'), d = T.d; tile.width = tile.height = Math.ceil(S * d * 2); const tg = tile.getContext('2d'); tg.scale(d * 2, d * 2);
+  tg.fillStyle = cssc(P[0]); tg.fillRect(0, 0, S, S);
+  /* cuartos de círculo en las esquinas (al juntar 4 baldosas forman un círculo) y la roseta central */
+  tg.fillStyle = cssc(P[1]); for (const [cx, cy] of [[0, 0], [S, 0], [0, S], [S, S]]) { tg.beginPath(); tg.arc(cx, cy, S * .3, 0, TAU); tg.fill(); }
+  tg.fillStyle = cssc(P[0]); for (const [cx, cy] of [[0, 0], [S, 0], [0, S], [S, S]]) { tg.beginPath(); tg.arc(cx, cy, S * .18, 0, TAU); tg.fill(); }
+  tg.fillStyle = cssc(P[3]); for (const [cx, cy] of [[0, 0], [S, 0], [0, S], [S, S]]) { tg.beginPath(); tg.arc(cx, cy, S * .08, 0, TAU); tg.fill(); }
+  tg.save(); tg.translate(S / 2, S / 2); tg.fillStyle = cssc(P[2]); for (let k = 0; k < 8; k++) { tg.rotate(PI / 4); tg.beginPath(); tg.moveTo(0, 0); tg.quadraticCurveTo(S * .1, -S * .12, 0, -S * .3); tg.quadraticCurveTo(-S * .1, -S * .12, 0, 0); tg.fill(); }
+  tg.fillStyle = cssc(P[1]); tg.beginPath(); tg.arc(0, 0, S * .06, 0, TAU); tg.fill(); tg.restore();
+  tg.strokeStyle = cssc(P[1], .6); tg.lineWidth = .4; tg.strokeRect(S * .04, S * .04, S * .92, S * .92);
+  for (let y = 0; y < h; y += S) for (let x = 0; x < w; x += S) {
+    g.drawImage(tile, x, y, S, S);
+    if (r() < .5) { g.fillStyle = `rgba(${r() < .5 ? '40,30,30' : '255,250,240'},${r() * .12})`; g.fillRect(x, y, S, S); }   // desgaste desigual
+    if (r() < .08) { g.fillStyle = cssc(P[0], .9); g.beginPath(); g.arc(x + r() * S, y + (r() < .5 ? 0 : S), 1 + r() * 2, 0, TAU); g.fill(); }   // descascarado
+  }
+  g.strokeStyle = 'rgba(90,80,70,.55)'; g.lineWidth = .5; for (let y = 0; y <= h; y += S) { g.beginPath(); g.moveTo(0, y); g.lineTo(w, y); g.stroke(); } for (let x = 0; x <= w; x += S) { g.beginPath(); g.moveTo(x, 0); g.lineTo(x, h); g.stroke(); }
+  wcTex(g, T.c.width, T.c.height, .25, .22);
+  return T;
+}
+/* ---------- mármol veteado (vetas grises y doradas deformadas por ruido) ---------- */
+function matMarble(w, h, o = {}) {
+  const T = tex(w, h, o.d ?? 1.6), g = T.g, r = mulberry32(o.seed ?? 61), c = o.c ?? [238, 234, 226];
+  const gr = g.createLinearGradient(0, 0, w, h); gr.addColorStop(0, cssc(shc(c, .04))); gr.addColorStop(1, cssc(shc(c, -.06))); g.fillStyle = gr; g.fillRect(0, 0, w, h);
+  for (let i = 0; i < (o.veins ?? 14); i++) {
+    let x = r() * w, y = r() * h; const a = r() * TAU, pts = [[x, y]], L = 40 + r() * 160;
+    for (let k = 0; k < L / 3; k++) { const n = N2(x * .02 + i, y * .02) * 1.6; x += Math.cos(a + n) * 3; y += Math.sin(a + n) * 3; pts.push([x, y]); }
+    const gold = r() < .25; g.strokeStyle = gold ? 'rgba(196,160,96,.5)' : `rgba(110,110,118,${.18 + r() * .25})`; g.lineWidth = .4 + r() * 1.4; g.beginPath(); pts.forEach((p, k) => k ? g.lineTo(p[0], p[1]) : g.moveTo(p[0], p[1])); g.stroke();
+    g.strokeStyle = 'rgba(140,140,150,.08)'; g.lineWidth = 4 + r() * 6; g.stroke();
+  }
+  return T;
+}
+/* copia desenfocada de un sprite (primer plano fuera de foco); se hace una vez */
+function sprBlur(S, px) { const c = mk(S.c.width + px * 4, S.c.height + px * 4), g = c.getContext('2d'); g.filter = `blur(${px}px)`; g.drawImage(S.c, px * 2, px * 2); const k = 2 * px / S.d; return { c, g, box: [S.box[0] - k, S.box[1] - k, S.box[2] + k, S.box[3] + k], d: S.d }; }

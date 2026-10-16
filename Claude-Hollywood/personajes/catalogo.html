@@ -93,8 +93,8 @@ ELENCO.teo = {
     if (o.mouthO) { g[16][12] = 'O'; g[16][15] = 'O'; g[16][13] = 'K'; g[16][14] = 'K'; g[17][12] = 'K'; g[17][13] = 'B'; g[17][14] = 'B'; g[17][15] = 'K'; g[18][13] = 'K'; g[18][14] = 'K'; }
     if (o.flat) { g[16][12] = 'O'; g[16][15] = 'O'; g[17][12] = 'K'; g[17][13] = 'K'; g[17][14] = 'K'; g[17][15] = 'K'; }
     if (o.sweat) gridPut(g, 21, 6, ['L.', 'LL', '.L']);
-    const P = gridPad(g, 6);
-    if (o.top === 'cuaderno') gridPut(P, 6, 1, ['KKKKKKKKKKKKK', 'KNNNNNNNNNNNK', 'KNnnNNNnNNnNK', 'KKKKKKKKKKKKK', '...KrK.......']);
+    const P = gridPad(g, 6); for (const r of P) r.push('.', '.', '.', '.');
+    if (o.top === 'cuaderno') gridPut(P, 6, 2, ['KKKKKKKKKKKKK', 'KNNNNNNNNNNNK', 'KNnnNNNnNNnNK', 'KKKKKKKKKKKKK']);
     if (o.cup) gridPut(P, 20, 15, ['.KKKK', 'KCCCCK', 'KCCCCK', 'KccccK', 'KCCCCK', '.KCCK.', '.KKKK.']);
     return P;
   },
@@ -134,6 +134,46 @@ ELENCO.rosa = {
     if (o.legL) gridLift(g, 5, 7, o.legL, 16); if (o.legR) gridLift(g, 14, 16, o.legR, 16);
     gridEyes(g, this.eyes, 'B', o);
     if (o.clogs) for (const [a] of this.legs) for (let x = a; x <= a + 2; x++) if (g[17][x] === 'o') g[17][x] = 'k';
+    return gridPad(g, 6);
+  },
+};
+/* =====================================================================
+   VALERIA OCAMPO · jarrita de leche de acero con delantal de Molienda; barista de la Molienda Reserva de la
+   calle Almagre. Trabaja de pie sobre el mostrador, junto a la Vaporetta. Rápida, burlona, cariñosa.
+   ===================================================================== */
+ELENCO.valeria = {
+  nombre: 'Valeria Ocampo', rol: 'Barista de Molienda Reserva', pelicula: 'Entre el Vapor y el Bit',
+  voz: { base: 698, paso: 1.05, onda: 'triangle' },
+  pal: { K: PXK, W: [250, 248, 240], M: [196, 146, 98], S: [196, 202, 210], s: [128, 134, 148], T: [255, 255, 255], E: [244, 142, 128], R: [128, 38, 52], r: [201, 163, 90], k: [40, 40, 46], H: [236, 240, 246] },
+  cell: 3.2, foot: 13,
+  base: [
+    '.......KKKKKKKKKK.....',
+    '......KWWWWWWWWWWKK...',
+    '......KWMWWMMWWWWWWK..',
+    '......KKKKKKKKKKKKKKK.',
+    '.KKK..KHSSSSSSSSsK....',
+    'KK.KK.KHSSSSSSSSsK....',
+    'K...KKKHKKTSSSKKTsK...',
+    'K....KKSKKKSSSKKKsK...',
+    'K...KKKSEESSKSSEEsK...',
+    'KK.KK.KRRRRRRRRRRRK...',
+    '.KKK..KRRRRrRRRRRRK...',
+    '......KRRRRRRRRRRRK...',
+    '......KRRRRRRRRRRRK...',
+    '......KSRRRRRRRRRsK...',
+    '.......KSSSSSSSSsK....',
+    '.......KKKKKKKKKKK....',
+    '.........KsK..KsK.....',
+    '.........KsK..KsK.....',
+    '.........KKK..KKK.....'],
+  eyes: [[8, 6], [14, 6]],
+  frame(o = {}) {
+    const g = gridOf(this.base);
+    if (o.legL) gridLift(g, 9, 11, o.legL, 16); if (o.legR) gridLift(g, 14, 16, o.legR, 16);
+    gridEyes(g, this.eyes, 'S', o);
+    if (o.mouthO) { g[8][12] = 'K'; g[8][11] = 'K'; }
+    if (o.wink) { g[6][14] = 'S'; g[6][15] = 'S'; g[6][16] = 'S'; g[7][14] = 'K'; g[7][15] = 'K'; g[7][16] = 'S'; }
+    if (o.tilt) for (let y = 0; y < 3; y++) { g[y].push(g[y].shift()); }
     return gridPad(g, 6);
   },
 };
@@ -192,6 +232,7 @@ function elencoFace(id, o = {}) {
 }
 
 const FR = { teo: [['quieto', {}], ['parpadeo', { blink: true }], ['dormido', { sleep: true }], ['sorpresa', { wide: true, mouthO: true }], ['feliz', { happy: true }], ['agotado', { tired: true, flat: true }], ['corre', { legL: 2 }], ['zuecos', { clogs: true, legR: 1 }], ['cuaderno', { top: 'cuaderno', clogs: true }], ['café', { cup: true, clogs: true }]],
+  valeria: [['quieta', {}], ['guiño', { wink: true }], ['feliz', { happy: true }], ['sorpresa', { wide: true, mouthO: true }]],
   rosa: [['quieta', {}], ['parpadeo', { blink: true }], ['feliz', { happy: true }], ['camina', { legL: 1 }]],
   brote: [['quieto', {}], ['feliz', { happy: true }]], tetera: [['quieta', {}], ['parpadeo', { blink: true }]], aguada: [['quieta', {}], ['parpadeo', { blink: true }]] };
 const G = document.getElementById('g');

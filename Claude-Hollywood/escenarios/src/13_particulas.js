@@ -42,3 +42,23 @@ function dustPut(motes, o = {}) {
     ctx.restore(); T0();
   });
 }
+/* vapor en columnas estrechas (no en manchas redondas): cada columna es un trazo que sube y se abre;
+   las ondulaciones viajan hacia arriba con el tiempo. src = {x, y, z}; o = {n, h, w, col, a, drift, mode} */
+function steamCols(t, src, o = {}) {
+  if (src.z - CAM.z < 20) return;
+  const n = o.n ?? 4, H = o.h ?? 120, w0 = o.w ?? 2, s = PS(src.z), col = o.col || [246, 246, 244], A = (o.a ?? .3) * (o.k ?? 1);
+  if (A < .01) return;
+  ctx.save(); ctx.globalCompositeOperation = o.mode || 'source-over'; ctx.lineCap = 'round';
+  for (let i = 0; i < n; i++) {
+    const ph = hsh(i, src.x * .01 + 3) * 9, sp = .7 + hsh(i, 5) * .6, dx0 = (hsh(i, 7) - .5) * (o.spread ?? 6);
+    for (let seg = 0; seg < 3; seg++) {   /* tres pasadas: cuerpo ancho y tenue, medio, hilo brillante */
+      const ww = [3.2, 1.8, .7][seg], aa = [.25, .45, .8][seg];
+      ctx.beginPath();
+      for (let k = 0; k <= 14; k++) { const u = k / 14, y = src.y - u * H, wob = Math.sin(u * 6 + ph - t * 3 * sp) * u * (o.sway ?? 14) + N2(u * 2 - t * .8 * sp, i * 3) * u * 18 + (o.drift ?? 0) * u * u * H, x = src.x + dx0 + wob, p = PJ(x, y, src.z); k ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1]); }
+      const top = PJ(src.x, src.y - H, src.z), bot = PJ(src.x, src.y, src.z), gr = ctx.createLinearGradient(0, bot[1], 0, top[1]);
+      gr.addColorStop(0, cssc(col, A * aa)); gr.addColorStop(.35, cssc(col, A * aa * .8)); gr.addColorStop(1, cssc(col, 0));
+      ctx.strokeStyle = gr; ctx.lineWidth = Math.max(.6, w0 * ww * s * (1 + .3 * i % 2)); ctx.stroke();
+    }
+  }
+  ctx.restore();
+}

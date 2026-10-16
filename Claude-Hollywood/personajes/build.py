@@ -23,6 +23,7 @@ canvas { image-rendering:pixelated; display:block; background:repeating-conic-gr
 <script>
 ''' + js + r'''
 const FR = { teo: [['quieto', {}], ['parpadeo', { blink: true }], ['dormido', { sleep: true }], ['sorpresa', { wide: true, mouthO: true }], ['feliz', { happy: true }], ['agotado', { tired: true, flat: true }], ['corre', { legL: 2 }], ['zuecos', { clogs: true, legR: 1 }], ['cuaderno', { top: 'cuaderno', clogs: true }], ['café', { cup: true, clogs: true }]],
+  valeria: [['quieta', {}], ['guiño', { wink: true }], ['feliz', { happy: true }], ['sorpresa', { wide: true, mouthO: true }]],
   rosa: [['quieta', {}], ['parpadeo', { blink: true }], ['feliz', { happy: true }], ['camina', { legL: 1 }]],
   brote: [['quieto', {}], ['feliz', { happy: true }]], tetera: [['quieta', {}], ['parpadeo', { blink: true }]], aguada: [['quieta', {}], ['parpadeo', { blink: true }]] };
 const G = document.getElementById('g');

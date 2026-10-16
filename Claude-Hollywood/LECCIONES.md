@@ -383,3 +383,12 @@ Prueba de 3:00 con todo lo nuevo: el rig, la magia de tinta y fondos con mucho d
 - **Cámara lenta con tiempo físico:** `phys(t)` estira un tramo; tela, polvo y salto usan el tiempo físico y el resto (diálogos, cámara, música) el real.
 - **Audio:** la primera mezcla salió a −31 LUFS. Con el volumen general en 2,0 y un compresor firme (umbral −20, razón 8) queda en −15,8 LUFS. La caja de música de la intro ya llena sola los medios: bajarla.
 - **Marcas y elenco compartidos:** `marcas/` y `personajes/` se meten en cada película desde `build.py`; los nombres de personajes nuevos son realistas y al azar.
+
+## Entre el Vapor y el Bit · fase 2 (la calle y Molienda)
+- **`ctx.filter` por cuadro es veneno:** un `blur(1.5px)` en unos cables subió la calle de 26 a 300 ms por cuadro (CPU). Todo desenfoque se hornea en la carga (`sprBlur`).
+- **Travelling en cuatro planos con el mismo motor:** no hacen falta tiras repetidas. Basta poner las cosas a su profundidad (bordillo z 250, Teo 560, fachadas 1400, ciudad 9000) y mover la cámara en x. El paralaje sale solo.
+- **Para ver las escaleras de incendio y su vapor** hubo que bajar el zoom (0,86) y empujar la imagen hacia abajo (`ty` = 150). Los cables cuelgan bajo (comba de 2–3 m) para entrar en cuadro.
+- **El cromo no es vidrio:** un reflejo con colores saturados (ventanas cian, siluetas) se lee como vitrina. Funciona desaturar la placa, multiplicar un degradado gris con bandas, sumar 5–7 franjas especulares y repintar encima el logo y los manómetros.
+- **Ladrillo a distancia:** una baldosa de ladrillo como patrón multiplicado y teñida por edificio. Pintar ladrillo a ladrillo cada fachada lejana costaría segundos de carga.
+- **Personajes del mundo con su tema:** Valeria (barista) tiene un tema corto a 96 BPM con swing (pulso 12 %, bajo caminante en triángulo, acordes de caja de música, escobillas). Es liviano: unos 30 eventos por compás.
+- **La caja de diálogo sabe quién habla:** el ancla busca al hablante del diálogo activo (Teo en su escena o Valeria) para decidir si va arriba o abajo.

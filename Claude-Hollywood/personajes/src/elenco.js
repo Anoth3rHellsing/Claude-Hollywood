@@ -119,6 +119,46 @@ ELENCO.rosa = {
   },
 };
 /* =====================================================================
+   VALERIA OCAMPO · jarrita de leche de acero con delantal de Molienda; barista de la Molienda Reserva de la
+   calle Almagre. Trabaja de pie sobre el mostrador, junto a la Vaporetta. Rápida, burlona, cariñosa.
+   ===================================================================== */
+ELENCO.valeria = {
+  nombre: 'Valeria Ocampo', rol: 'Barista de Molienda Reserva', pelicula: 'Entre el Vapor y el Bit',
+  voz: { base: 698, paso: 1.05, onda: 'triangle' },
+  pal: { K: PXK, W: [250, 248, 240], M: [196, 146, 98], S: [196, 202, 210], s: [128, 134, 148], T: [255, 255, 255], E: [244, 142, 128], R: [128, 38, 52], r: [201, 163, 90], k: [40, 40, 46], H: [236, 240, 246] },
+  cell: 3.2, foot: 13,
+  base: [
+    '.......KKKKKKKKKK.....',
+    '......KWWWWWWWWWWKK...',
+    '......KWMWWMMWWWWWWK..',
+    '......KKKKKKKKKKKKKKK.',
+    '.KKK..KHSSSSSSSSsK....',
+    'KK.KK.KHSSSSSSSSsK....',
+    'K...KKKHKKTSSSKKTsK...',
+    'K....KKSKKKSSSKKKsK...',
+    'K...KKKSEESSKSSEEsK...',
+    'KK.KK.KRRRRRRRRRRRK...',
+    '.KKK..KRRRRrRRRRRRK...',
+    '......KRRRRRRRRRRRK...',
+    '......KRRRRRRRRRRRK...',
+    '......KSRRRRRRRRRsK...',
+    '.......KSSSSSSSSsK....',
+    '.......KKKKKKKKKKK....',
+    '.........KsK..KsK.....',
+    '.........KsK..KsK.....',
+    '.........KKK..KKK.....'],
+  eyes: [[8, 6], [14, 6]],
+  frame(o = {}) {
+    const g = gridOf(this.base);
+    if (o.legL) gridLift(g, 9, 11, o.legL, 16); if (o.legR) gridLift(g, 14, 16, o.legR, 16);
+    gridEyes(g, this.eyes, 'S', o);
+    if (o.mouthO) { g[8][12] = 'K'; g[8][11] = 'K'; }
+    if (o.wink) { g[6][14] = 'S'; g[6][15] = 'S'; g[6][16] = 'S'; g[7][14] = 'K'; g[7][15] = 'K'; g[7][16] = 'S'; }
+    if (o.tilt) for (let y = 0; y < 3; y++) { g[y].push(g[y].shift()); }
+    return gridPad(g, 6);
+  },
+};
+/* =====================================================================
    PERSONAJES ANTERIORES (para mantener la familia consistente)
    ===================================================================== */
 ELENCO.brote = {

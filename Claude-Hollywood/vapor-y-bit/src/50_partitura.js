@@ -72,16 +72,65 @@ function filmEvents() {
   for (let k = 0; k < 6; k++) E.push([40.5 + k * .16, at => clogClack(at, .5 - k * .07)]);
   E.push([46.0, at => whoosh(at, .5, 1, 800, 3000)]); E.push([47.5, at => tone(300, at, .2, .04, 'square', 900)]); E.push([47.85, at => clogClack(at, 1)]);
   E.push([49.6, at => whoosh(at, .5, 1, 800, 3000)]);
+  return E.concat(scene2Events());
+}
+/* ---------- escena 2 ---------- */
+function bellDing(at, v = 1) { for (const [f, d, a] of [[2637, 1.4, .05], [3951, .9, .025], [5274, .5, .012]]) tone(f, at, d, a * v, 'sine', f * .998); }
+function squeak(at) { const ac = AU.ac, o = ac.createOscillator(), g = ac.createGain(), l = ac.createOscillator(), lg = ac.createGain(); o.type = 'sine'; o.frequency.setValueAtTime(1500, at); o.frequency.exponentialRampToValueAtTime(820, at + .8); l.frequency.value = 23; lg.gain.value = 60; l.connect(lg); lg.connect(o.frequency); g.gain.setValueAtTime(0, at); g.gain.linearRampToValueAtTime(.04, at + .03); g.gain.setTargetAtTime(0, at + .7, .08); o.connect(g); g.connect(AU.bS); o.start(at); l.start(at); o.stop(at + 1.1); l.stop(at + 1.1); noiseHit(at, .8, { type: 'bandpass', f: 2400, f2: 900, q: 1.5, vol: .05 }); }
+function grinder(at, dur) { const ac = AU.ac, o = ac.createOscillator(), g = ac.createGain(), f = ac.createBiquadFilter(); o.type = 'sawtooth'; o.frequency.setValueAtTime(90, at); o.frequency.linearRampToValueAtTime(130, at + .3); f.type = 'bandpass'; f.frequency.value = 700; f.Q.value = 1.2; g.gain.setValueAtTime(0, at); g.gain.linearRampToValueAtTime(.05, at + .2); g.gain.setValueAtTime(.05, at + dur - .3); g.gain.linearRampToValueAtTime(0, at + dur); o.connect(f); f.connect(g); g.connect(AU.bS); o.start(at); o.stop(at + dur + .05); noiseHit(at, dur, { type: 'bandpass', f: 3000, q: .8, vol: .03, atk: .2 }); }
+function steamHiss(at, dur, v = 1) { noiseHit(at, dur, { type: 'highpass', f: 2800, vol: .07 * v, atk: .15 }); noiseHit(at, dur * .8, { type: 'bandpass', f: 600, q: 2, vol: .03 * v, atk: .2 }); }
+function cupSlide(at, dur) { noiseHit(at, dur, { type: 'bandpass', f: 900, f2: 1300, q: 3, vol: .05, atk: .05 }); }
+function splash(at, v = 1) { for (let k = 0; k < 6; k++) noiseHit(at + k * .03, .12, { type: 'bandpass', f: 1200 + Math.random() * 2000, q: 2, vol: .05 * v }); tone(500, at, .12, .03 * v, 'sine', 900); }
+function horn(at) { tone(330, at, .5, .03, 'sawtooth', 320, AU.bA); tone(415, at, .5, .02, 'sawtooth', 405, AU.bA); }
+const VBPM = 96, VB = 60 / VBPM, VSW = VB * .5 * .34;   // tema de Valeria: 96 BPM con swing
+const VMEL = [[0, 69, .5], [.5, 72, .5], [1, 77, 1], [2, 76, .5], [2.5, 74, .5], [3, 72, 1], [4, 70, .5], [4.5, 72, .5], [5, 74, 1.5], [6.5, 72, .5], [7, 69, 1], [8, 69, .5], [8.5, 72, .5], [9, 77, 1], [10, 79, .5], [10.5, 77, .5], [11, 76, 1], [12, 74, .5], [12.5, 76, .5], [13, 72, 2.5]];
+const VBASS = [[41, 45, 48, 45], [46, 50, 53, 50], [48, 52, 55, 52], [41, 48, 45, 48]], VCH = [[57, 60, 64], [58, 62, 65], [55, 60, 64], [57, 60, 65]];
+function scene2Events() {
+  const E = [];
+  /* calle: la prisa de Teo otra vez (arpegio en corcheas para aliviar), un tono más arriba a la mitad */
+  for (let bar = 0; bar < 15; bar++) { const t0 = 61.6 + bar * BEAT2 * 4, ch = CH[bar % 4], up = bar >= 8 ? 2 : 0; if (t0 > 85) break;
+    for (let s = 0; s < 16; s += 2) { const at0 = t0 + s * S16; if (at0 >= 85.0) break;
+      if (s % 4 === 0) E.push([at0, at => nkick(at, s === 0 ? 1 : .7)]); if (s === 4 || s === 12) E.push([at0, at => nsnare(at)]); E.push([at0, at => nhat(at, s % 4 ? .6 : 1)]);
+      E.push([at0, at => tri(ch[0] + up + (s % 4 === 2 ? 12 : 0), at, S16 * 1.8)]); E.push([at0, at => lead(ch[1][(s / 2) % 3] + 12 + up, at, S16 * 1.4, .3, 'pulse12')]); }
+    if (bar >= 1) for (const [sx, n, d] of MEL) { if ((sx >> 4) !== bar % 2) continue; const at0 = t0 + (sx % 16) * S16; if (at0 < 85.0) E.push([at0, at => lead(n + up, at, d * S16 * .95, .9)]); } }
+  E.push([85.0, at => { squeak(at); lead(86, at, .12, .7); lead(81, at + .12, .12, .6); lead(74, at + .24, .3, .6); }]);
+  /* pasos de zuecos en la calle y el café, charco, rejilla, bocinas */
+  let last = null; for (let t = 61.5; t < 115; t += 1 / 60) { const B = t < S2.B ? teoCalle(t) : teoCafe(t); if (!B || B.hide || !B.run) { last = null; continue; } const st = Math.floor(t / (STEP / 1.15)); if (last !== null && st !== last) E.push([t, at => clogClack(at, .45)]); last = st; }
+  const tj = S2.A + (PUD_JUMP - 160 - S2.X0) / S2.V, tl = S2.A + (PUD_JUMP + 160 - S2.X0) / S2.V; E.push([tj, at => { splash(at, .6); tone(300, at, .25, .04, 'square', 900); }]); E.push([tl, at => splash(at, 1)]);
+  E.push([S2.A + (GRATE.x - S2.X0) / S2.V - .6, at => steamHiss(at, 2.2, 1.2)]);
+  E.push([68.4, at => horn(at)]); E.push([81.2, at => horn(at)]); E.push([73.0, at => { tone(2800, at, .4, .025, 'sine'); tone(2800, at + .16, .5, .025, 'sine'); }]);
+  /* cafetería: puerta y campanilla, derrape, molinillo, vapor, vaso, servilletas */
+  for (const t0 of CAFE.door) { E.push([t0, at => { bellDing(at); whoosh(at, .4, .6, 400, 1800); }]); E.push([t0 + 1.75, at => thump(at, .25, 110)]); }
+  E.push([88.4, at => squeak(at)]);
+  E.push([93.9, at => grinder(at, 1.9)]); E.push([96.9, at => steamHiss(at, 4.0, 1)]); E.push([101.4, at => { for (let k = 0; k < 8; k++) tone(900 + Math.random() * 400, at + k * .09, .05, .006, 'sine', 600); }]);
+  E.push([109.2, at => tone(300, at, .25, .04, 'square', 900)]); E.push([109.7, at => clogClack(at, 1)]);
+  E.push([CAFE.cup0, at => cupSlide(at, .55)]); E.push([CAFE.cup1, at => ceramic(at, 1.2)]);
+  E.push([112.0, at => tone(300, at, .2, .035, 'square', 700)]); E.push([112.5, at => clogClack(at, 1)]);
+  for (let k = 0; k < 3; k++) E.push([CAFE.nap + k * .12, at => paperFlip(at, .8)]);
+  for (let t = 88; t < 121; t += 1.8 + hsh(t, 7) * 2.6) E.push([t, at => ceramic(at, .35)]);   // tazas y cucharitas al fondo
+  for (let t = 104; t < 109; t += .16 + hsh(t, 3) * .2) E.push([t, at => noiseHit(at, .015, { type: 'bandpass', f: 3500, q: 6, vol: .015 })]);   // teclados
+  /* el tema de Valeria: 14 compases de 4 tiempos con swing */
+  const v0 = 87.0;
+  for (let bar = 0; bar < 14; bar++) { const t0 = v0 + bar * VB * 4, b4 = bar % 4, sw = x => x + ((x / (VB * .5)) % 2 >= 1 ? VSW : 0); if (t0 > 121.6) break;
+    for (let q = 0; q < 4; q++) E.push([t0 + q * VB, at => tri(VBASS[b4][q], at, VB * .9, .9)]);
+    E.push([t0, at => { for (const n of VCH[b4]) mbox(n + 12, at, .35); }]);
+    for (let q = 0; q < 8; q++) E.push([t0 + q * VB * .5 + (q % 2 ? VSW : 0), at => nhat(at, q % 4 === 2 ? .7 : .35)]);
+    if (bar >= 1 && bar < 13) for (const [b, n, d] of VMEL) { if (Math.floor(b / 4) !== b4) continue; const bb = b - b4 * 4, at0 = t0 + bb * VB + ((bb * 2) % 2 === 1 ? VSW : 0); E.push([at0, at => lead(n + 12, at, d * VB * .9, .55, 'pulse12')]); } }
+  E.push([v0 + 13 * VB * 4, at => { for (const n of [65, 69, 72, 76]) mbox(n + 12, at, .5); }]);
   return E;
 }
 /* ---------- lechos ---------- */
 function filmAudioInit() {
   auBed('room', AU.brown, 'lowpass', 180, .5); auBed('city', AU.brown, 'bandpass', 420, .7); auBed('hiss', AU.white, 'highpass', 7000, .5); auBed('hall', AU.brown, 'lowpass', 300, .6);
+  auBed('traffic', AU.brown, 'lowpass', 260, .6); auBed('wind', AU.white, 'bandpass', 900, .5); auBed('murmur', AU.white, 'bandpass', 620, 2.4); auBed('cafe', AU.brown, 'lowpass', 400, .6);
 }
 function filmBeds(t, n) {
-  bedSet('room', .05, n); bedSet('hiss', .004, n);
-  bedSet('city', .028 * (1 - slowK(t) * .7), n);
-  bedSet('hall', t > 40 ? .03 : 0, n);
-  /* cámara lenta: todo se apaga un poco y se oscurece */
-  const k = slowK(t); AU.master && AU.sfx.gain.setTargetAtTime(1 - .4 * k, n, .1);
+  const s1 = t < S1END + .5, s2a = t >= S1END && t < S2.B, s2b = t >= S2.B;
+  bedSet('room', s1 ? .05 : 0, n); bedSet('hiss', .004, n);
+  bedSet('city', s1 ? .028 * (1 - slowK(t) * .7) : 0, n);
+  bedSet('hall', s1 && t > 40 ? .03 : 0, n);
+  bedSet('traffic', s2a ? .07 : s2b ? .015 : 0, n); bedSet('wind', s2a ? .012 : 0, n);
+  bedSet('murmur', s2b ? .016 : 0, n); bedSet('cafe', s2b ? .04 : 0, n);
+  if (AU.bedL.murmur) AU.bedL.murmur.fl.frequency.setTargetAtTime(560 + 140 * Math.sin(t * .7), n, .3);
+  const k = slowK(t); AU.sfx.gain.setTargetAtTime(1 - .4 * k, n, .1);
 }

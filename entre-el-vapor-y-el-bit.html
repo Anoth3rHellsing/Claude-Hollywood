@@ -2,7 +2,7 @@
 <meta name="description" content="Teo Cazorla, un cazo de cobre que es jefe de partida en un restaurante de dos estrellas, vive un día entero: del despertar con prisa al colapso de medianoche. Dibujo y sonido hechos solo con código.">
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Josefin+Sans:wght@400;600;700&family=Pacifico&family=Playfair+Display:wght@400;700&family=Space+Mono:wght@400;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Caveat:wght@600;700&family=Josefin+Sans:wght@400;600;700&family=Pacifico&family=Playfair+Display:wght@400;700&family=Space+Mono:wght@400;700&display=swap">
 <style>
 :root { color-scheme: dark; --bg: #141113; --fg: #f3ead6; --ink: #1c1418; --accent: #d4572a; }
 html, body { height: 100%; background: var(--bg); color: var(--fg); margin: 0; overflow: hidden; }
@@ -631,6 +631,65 @@ function matWash(w, h, c, o = {}) { const T = tex(w, h, o.d ?? 1.2), g = T.g; wc
    UNA vez en la textura en vez de pintarse en cada cuadro ---------- */
 function texShade(T, col, a) { const c = T.c, g = c.getContext('2d'); g.save(); g.setTransform(1, 0, 0, 1, 0, 0); g.globalCompositeOperation = 'multiply'; g.globalAlpha = a; g.fillStyle = cssc(col); g.fillRect(0, 0, c.width, c.height); g.restore(); return T; }
 function texShadeKeep(T, col, a) { const c = T.c, g = c.getContext('2d'); g.save(); g.setTransform(1, 0, 0, 1, 0, 0); g.globalCompositeOperation = 'source-atop'; g.globalAlpha = a; g.fillStyle = cssc(col); g.globalCompositeOperation = 'multiply'; g.fillRect(0, 0, c.width, c.height); g.globalCompositeOperation = 'destination-in'; g.globalAlpha = 1; g.drawImage(c, 0, 0); g.restore(); return T; }
+/* ---------- concreto de acera: losas con juntas, grietas, manchas, chicles y hierba en las rendijas ---------- */
+function matConcrete(w, h, o = {}) {
+  const T = tex(w, h, o.d ?? 1.1), g = T.g, r = mulberry32(o.seed ?? 31), S = o.slab ?? 120, base = o.c ?? [168, 170, 172];
+  for (let y = 0; y < h; y += S) for (let x = 0; x < w; x += S) { const c = shc(base, (r() - .5) * .1); wcWash(g, rectP(x + 1, y + 1, S - 2, S - 2), c, .97, { reserve: false, mode: 'source-over', amt: .6, seed: x * .1 + y, edge: false, step: 30, bloom: r() < .3 ? shc(c, -.12) : null }); }
+  for (let i = 0; i < w * h / 14; i++) { g.fillStyle = `rgba(${r() < .5 ? '60,62,66' : '230,232,234'},${r() * .22})`; g.fillRect(r() * w, r() * h, .8, .8); }   // árido
+  g.strokeStyle = 'rgba(60,62,66,.65)'; g.lineWidth = 1.4; for (let y = 0; y <= h; y += S) { g.beginPath(); g.moveTo(0, y); g.lineTo(w, y); g.stroke(); } for (let x = 0; x <= w; x += S) { g.beginPath(); g.moveTo(x, 0); g.lineTo(x, h); g.stroke(); }
+  /* grietas con hierba */
+  for (let i = 0; i < (o.cracks ?? w * h / 26000); i++) { let x = r() * w, y = r() * h; const pts = [[x, y]]; const a0 = r() * TAU; for (let k = 0; k < 10 + r() * 14; k++) { x += Math.cos(a0 + (r() - .5) * 1.4) * 6; y += Math.sin(a0 + (r() - .5) * 1.4) * 6; pts.push([x, y]); } wcInk(g, pts, .8 + r() * .7, .6, i, .1, [50, 52, 56]);
+    if (r() < .4) for (let k = 0; k < 4; k++) { const p = pts[(r() * pts.length) | 0]; g.strokeStyle = `rgba(${90 + r() * 40},${120 + r() * 30},60,.8)`; g.lineWidth = .6; g.beginPath(); g.moveTo(p[0], p[1]); g.quadraticCurveTo(p[0] + (r() - .5) * 4, p[1] - 3, p[0] + (r() - .5) * 6, p[1] - 4 - r() * 4); g.stroke(); } }
+  for (let i = 0; i < w * h / 6000; i++) { const x = r() * w, y = r() * h, rr = 2 + r() * 14; g.fillStyle = `rgba(40,42,48,${.06 + r() * .1})`; g.beginPath(); g.ellipse(x, y, rr, rr * (.5 + r() * .5), r() * 3, 0, TAU); g.fill(); }   // manchas
+  for (let i = 0; i < w * h / 9000; i++) { g.fillStyle = 'rgba(220,220,214,.55)'; g.beginPath(); g.arc(r() * w, r() * h, .8 + r() * 1.2, 0, TAU); g.fill(); }   // chicles
+  wcTex(g, T.c.width, T.c.height, .3, .3);
+  return T;
+}
+/* ---------- asfalto con parches y la línea pintada ---------- */
+function matAsphalt(w, h, o = {}) {
+  const T = tex(w, h, o.d ?? 1), g = T.g, r = mulberry32(o.seed ?? 41);
+  g.fillStyle = cssc(o.c ?? [74, 76, 82]); g.fillRect(0, 0, w, h);
+  for (let i = 0; i < w * h / 6; i++) { g.fillStyle = `rgba(${r() < .5 ? '30,30,34' : '170,172,176'},${r() * .3})`; g.fillRect(r() * w, r() * h, .9, .9); }
+  for (let i = 0; i < 8; i++) { const x = r() * w, y = r() * h, pw = 60 + r() * 160, ph = 40 + r() * 80; g.fillStyle = `rgba(${r() < .5 ? '50,52,58' : '96,98,104'},.6)`; g.fill(pPolys([wob(rectP(x, y, pw, ph), 4, i, .05)])); }
+  if (o.line !== false) { const y = o.lineY ?? h * .5; for (let x = 0; x < w; x += 300) { g.fillStyle = 'rgba(236,230,214,.85)'; g.fill(pPolys([wob(rectP(x, y, 160, 10), .8, x, .2)])); } }
+  wcTex(g, T.c.width, T.c.height, .3, .35);
+  return T;
+}
+/* ---------- baldosa hidráulica (roseta de 8 puntas, 20 × 20 cm) ---------- */
+function matHydraulic(w, h, o = {}) {
+  const T = tex(w, h, o.d ?? 1.4), g = T.g, r = mulberry32(o.seed ?? 51), S = o.tile ?? 20, P = o.pal ?? [[234, 224, 204], [62, 82, 104], [176, 84, 60], [204, 176, 120]];
+  const tile = document.createElement('canvas'), d = T.d; tile.width = tile.height = Math.ceil(S * d * 2); const tg = tile.getContext('2d'); tg.scale(d * 2, d * 2);
+  tg.fillStyle = cssc(P[0]); tg.fillRect(0, 0, S, S);
+  /* cuartos de círculo en las esquinas (al juntar 4 baldosas forman un círculo) y la roseta central */
+  tg.fillStyle = cssc(P[1]); for (const [cx, cy] of [[0, 0], [S, 0], [0, S], [S, S]]) { tg.beginPath(); tg.arc(cx, cy, S * .3, 0, TAU); tg.fill(); }
+  tg.fillStyle = cssc(P[0]); for (const [cx, cy] of [[0, 0], [S, 0], [0, S], [S, S]]) { tg.beginPath(); tg.arc(cx, cy, S * .18, 0, TAU); tg.fill(); }
+  tg.fillStyle = cssc(P[3]); for (const [cx, cy] of [[0, 0], [S, 0], [0, S], [S, S]]) { tg.beginPath(); tg.arc(cx, cy, S * .08, 0, TAU); tg.fill(); }
+  tg.save(); tg.translate(S / 2, S / 2); tg.fillStyle = cssc(P[2]); for (let k = 0; k < 8; k++) { tg.rotate(PI / 4); tg.beginPath(); tg.moveTo(0, 0); tg.quadraticCurveTo(S * .1, -S * .12, 0, -S * .3); tg.quadraticCurveTo(-S * .1, -S * .12, 0, 0); tg.fill(); }
+  tg.fillStyle = cssc(P[1]); tg.beginPath(); tg.arc(0, 0, S * .06, 0, TAU); tg.fill(); tg.restore();
+  tg.strokeStyle = cssc(P[1], .6); tg.lineWidth = .4; tg.strokeRect(S * .04, S * .04, S * .92, S * .92);
+  for (let y = 0; y < h; y += S) for (let x = 0; x < w; x += S) {
+    g.drawImage(tile, x, y, S, S);
+    if (r() < .5) { g.fillStyle = `rgba(${r() < .5 ? '40,30,30' : '255,250,240'},${r() * .12})`; g.fillRect(x, y, S, S); }   // desgaste desigual
+    if (r() < .08) { g.fillStyle = cssc(P[0], .9); g.beginPath(); g.arc(x + r() * S, y + (r() < .5 ? 0 : S), 1 + r() * 2, 0, TAU); g.fill(); }   // descascarado
+  }
+  g.strokeStyle = 'rgba(90,80,70,.55)'; g.lineWidth = .5; for (let y = 0; y <= h; y += S) { g.beginPath(); g.moveTo(0, y); g.lineTo(w, y); g.stroke(); } for (let x = 0; x <= w; x += S) { g.beginPath(); g.moveTo(x, 0); g.lineTo(x, h); g.stroke(); }
+  wcTex(g, T.c.width, T.c.height, .25, .22);
+  return T;
+}
+/* ---------- mármol veteado (vetas grises y doradas deformadas por ruido) ---------- */
+function matMarble(w, h, o = {}) {
+  const T = tex(w, h, o.d ?? 1.6), g = T.g, r = mulberry32(o.seed ?? 61), c = o.c ?? [238, 234, 226];
+  const gr = g.createLinearGradient(0, 0, w, h); gr.addColorStop(0, cssc(shc(c, .04))); gr.addColorStop(1, cssc(shc(c, -.06))); g.fillStyle = gr; g.fillRect(0, 0, w, h);
+  for (let i = 0; i < (o.veins ?? 14); i++) {
+    let x = r() * w, y = r() * h; const a = r() * TAU, pts = [[x, y]], L = 40 + r() * 160;
+    for (let k = 0; k < L / 3; k++) { const n = N2(x * .02 + i, y * .02) * 1.6; x += Math.cos(a + n) * 3; y += Math.sin(a + n) * 3; pts.push([x, y]); }
+    const gold = r() < .25; g.strokeStyle = gold ? 'rgba(196,160,96,.5)' : `rgba(110,110,118,${.18 + r() * .25})`; g.lineWidth = .4 + r() * 1.4; g.beginPath(); pts.forEach((p, k) => k ? g.lineTo(p[0], p[1]) : g.moveTo(p[0], p[1])); g.stroke();
+    g.strokeStyle = 'rgba(140,140,150,.08)'; g.lineWidth = 4 + r() * 6; g.stroke();
+  }
+  return T;
+}
+/* copia desenfocada de un sprite (primer plano fuera de foco); se hace una vez */
+function sprBlur(S, px) { const c = mk(S.c.width + px * 4, S.c.height + px * 4), g = c.getContext('2d'); g.filter = `blur(${px}px)`; g.drawImage(S.c, px * 2, px * 2); const k = 2 * px / S.d; return { c, g, box: [S.box[0] - k, S.box[1] - k, S.box[2] + k, S.box[3] + k], d: S.d }; }
 
 /* =====================================================================
    ESCENARIOS · LUZ QUE ENTRA POR UNA VENTANA CON PERSIANA (sol de mañana, luna de noche)
@@ -783,6 +842,26 @@ function dustPut(motes, o = {}) {
       ctx.fillStyle = cssc(lit > .5 ? (o.col || SOL.col) : (o.dcol || [200, 190, 210]), clamp(al)); ctx.fillRect(p[0] - r, p[1] - r, r * 2, r * 2); }
     ctx.restore(); T0();
   });
+}
+/* vapor en columnas estrechas (no en manchas redondas): cada columna es un trazo que sube y se abre;
+   las ondulaciones viajan hacia arriba con el tiempo. src = {x, y, z}; o = {n, h, w, col, a, drift, mode} */
+function steamCols(t, src, o = {}) {
+  if (src.z - CAM.z < 20) return;
+  const n = o.n ?? 4, H = o.h ?? 120, w0 = o.w ?? 2, s = PS(src.z), col = o.col || [246, 246, 244], A = (o.a ?? .3) * (o.k ?? 1);
+  if (A < .01) return;
+  ctx.save(); ctx.globalCompositeOperation = o.mode || 'source-over'; ctx.lineCap = 'round';
+  for (let i = 0; i < n; i++) {
+    const ph = hsh(i, src.x * .01 + 3) * 9, sp = .7 + hsh(i, 5) * .6, dx0 = (hsh(i, 7) - .5) * (o.spread ?? 6);
+    for (let seg = 0; seg < 3; seg++) {   /* tres pasadas: cuerpo ancho y tenue, medio, hilo brillante */
+      const ww = [3.2, 1.8, .7][seg], aa = [.25, .45, .8][seg];
+      ctx.beginPath();
+      for (let k = 0; k <= 14; k++) { const u = k / 14, y = src.y - u * H, wob = Math.sin(u * 6 + ph - t * 3 * sp) * u * (o.sway ?? 14) + N2(u * 2 - t * .8 * sp, i * 3) * u * 18 + (o.drift ?? 0) * u * u * H, x = src.x + dx0 + wob, p = PJ(x, y, src.z); k ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1]); }
+      const top = PJ(src.x, src.y - H, src.z), bot = PJ(src.x, src.y, src.z), gr = ctx.createLinearGradient(0, bot[1], 0, top[1]);
+      gr.addColorStop(0, cssc(col, A * aa)); gr.addColorStop(.35, cssc(col, A * aa * .8)); gr.addColorStop(1, cssc(col, 0));
+      ctx.strokeStyle = gr; ctx.lineWidth = Math.max(.6, w0 * ww * s * (1 + .3 * i % 2)); ctx.stroke();
+    }
+  }
+  ctx.restore();
 }
 
 /* =====================================================================
@@ -1217,6 +1296,26 @@ window.__seek = (t, warm) => { FROZ = null; if (warm === undefined) warm = 30; f
 window.__perf = (t, n = 30) => { const a = []; for (let i = 0; i < n; i++) { const t0 = performance.now(); drawFrame(t + i / 60, 1); a.push(performance.now() - t0); } a.sort((x, y) => x - y); return { med: a[n >> 1], max: a[n - 1] }; };
 
 /* =====================================================================
+   ESCENARIOS · TRANSICIONES: mosaico pixel (cuadros que se encienden desde un borde con ruido, a juego con el 8 bits)
+   ===================================================================== */
+let TRA = null, TRB = null;
+function pxWipe(drawA, drawB, u, o = {}) {
+  if (!TRA || TRA.width !== W || TRA.height !== H) { TRA = mk(W, H); TRB = mk(W, H); }
+  /* cada escena se dibuja en el lienzo principal y se copia a su búfer */
+  const grab = (cnv, f) => { ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over'; T0(); f(); const g = cnv.getContext('2d'); g.setTransform(1, 0, 0, 1, 0, 0); g.drawImage(cv, 0, 0); };
+  grab(TRA, drawA); grab(TRB, drawB);
+  ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.drawImage(TRA, 0, 0);
+  const cs = Math.max(8, Math.round(H / (o.cells ?? 18))), nx = Math.ceil(W / cs), ny = Math.ceil(H / cs);
+  for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++) {
+    const d = (o.dir === 'left' ? 1 - i / nx : o.dir === 'center' ? Math.hypot(i / nx - .5, (j / ny - .5) * .6) * 1.6 : i / nx) * .7 + hsh(i, j) * .3, k = clamp((u * 1.3 - d) * 6);
+    if (k <= 0) continue;
+    if (k >= 1) ctx.drawImage(TRB, i * cs, j * cs, cs, cs, i * cs, j * cs, cs, cs);
+    else { const m = Math.max(1, Math.round(cs * k)); ctx.drawImage(TRB, i * cs + (cs - m) / 2, j * cs + (cs - m) / 2, m, m, i * cs + (cs - m) / 2, j * cs + (cs - m) / 2, m, m); ctx.fillStyle = `rgba(255,255,255,${.25 * (1 - k)})`; ctx.fillRect(i * cs + (cs - m) / 2, j * cs + (cs - m) / 2, m, m); }
+  }
+  ctx.restore(); T0();
+}
+
+/* =====================================================================
    ELENCO · los personajes pixel del mundo Clawd (catálogo compartido entre películas)
    Regla de estilo: el mundo es acuarela en perspectiva; los personajes son 8 bits nítidos, contorno K,
    sin suavizado, y solo cambian de tamaño con la distancia (PS(z)), en píxeles enteros.
@@ -1333,6 +1432,46 @@ ELENCO.rosa = {
     if (o.legL) gridLift(g, 5, 7, o.legL, 16); if (o.legR) gridLift(g, 14, 16, o.legR, 16);
     gridEyes(g, this.eyes, 'B', o);
     if (o.clogs) for (const [a] of this.legs) for (let x = a; x <= a + 2; x++) if (g[17][x] === 'o') g[17][x] = 'k';
+    return gridPad(g, 6);
+  },
+};
+/* =====================================================================
+   VALERIA OCAMPO · jarrita de leche de acero con delantal de Molienda; barista de la Molienda Reserva de la
+   calle Almagre. Trabaja de pie sobre el mostrador, junto a la Vaporetta. Rápida, burlona, cariñosa.
+   ===================================================================== */
+ELENCO.valeria = {
+  nombre: 'Valeria Ocampo', rol: 'Barista de Molienda Reserva', pelicula: 'Entre el Vapor y el Bit',
+  voz: { base: 698, paso: 1.05, onda: 'triangle' },
+  pal: { K: PXK, W: [250, 248, 240], M: [196, 146, 98], S: [196, 202, 210], s: [128, 134, 148], T: [255, 255, 255], E: [244, 142, 128], R: [128, 38, 52], r: [201, 163, 90], k: [40, 40, 46], H: [236, 240, 246] },
+  cell: 3.2, foot: 13,
+  base: [
+    '.......KKKKKKKKKK.....',
+    '......KWWWWWWWWWWKK...',
+    '......KWMWWMMWWWWWWK..',
+    '......KKKKKKKKKKKKKKK.',
+    '.KKK..KHSSSSSSSSsK....',
+    'KK.KK.KHSSSSSSSSsK....',
+    'K...KKKHKKTSSSKKTsK...',
+    'K....KKSKKKSSSKKKsK...',
+    'K...KKKSEESSKSSEEsK...',
+    'KK.KK.KRRRRRRRRRRRK...',
+    '.KKK..KRRRRrRRRRRRK...',
+    '......KRRRRRRRRRRRK...',
+    '......KRRRRRRRRRRRK...',
+    '......KSRRRRRRRRRsK...',
+    '.......KSSSSSSSSsK....',
+    '.......KKKKKKKKKKK....',
+    '.........KsK..KsK.....',
+    '.........KsK..KsK.....',
+    '.........KKK..KKK.....'],
+  eyes: [[8, 6], [14, 6]],
+  frame(o = {}) {
+    const g = gridOf(this.base);
+    if (o.legL) gridLift(g, 9, 11, o.legL, 16); if (o.legR) gridLift(g, 14, 16, o.legR, 16);
+    gridEyes(g, this.eyes, 'S', o);
+    if (o.mouthO) { g[8][12] = 'K'; g[8][11] = 'K'; }
+    if (o.wink) { g[6][14] = 'S'; g[6][15] = 'S'; g[6][16] = 'S'; g[7][14] = 'K'; g[7][15] = 'K'; g[7][16] = 'S'; }
+    if (o.tilt) for (let y = 0; y < 3; y++) { g[y].push(g[y].shift()); }
     return gridPad(g, 6);
   },
 };
@@ -2114,6 +2253,511 @@ function drawEstudio(t) {
 const dustDens = p => p < TJ ? 0 : Math.exp(-(p - TJ - 1) * .25);
 
 /* =====================================================================
+   ESCENA 2a · LA CALLE ALMAGRE (07:35): travelling lateral rápido con cuatro planos de profundidad
+   1 · primer plano fuera de foco en el bordillo (z ≈ 320): parquímetros, bocas de incendio, postes con cables
+   2 · Teo corriendo por la acera de concreto agrietada (z = 560), charcos que reflejan el cielo y las fachadas
+   3 · fachadas de ladrillo con escaleras de incendio que humean por las calderas de la mañana (z = 1400)
+   4 · la ciudad lejana en la neblina fría (z = 9000)
+   Tonos fríos cian y gris; al final, la fachada cálida de Molienda Reserva.
+   ===================================================================== */
+const CA = { ZF: 1400, ZT: 560, ZC: 300, END: 9640, X0: -1600, X1: 11600 };
+const CAX = {};
+const COOL = [132, 150, 172];
+/* ---------- un edificio (sprite en cm, base en y = 0) ---------- */
+function paintBuilding(seed, w, h, o = {}) {
+  const r = mulberry32(seed), S = spr([-10, -h - 60, w + 10, 2], o.d ?? .9), g = S.g, kind = o.kind ?? (r() < .65 ? 'brick' : 'stucco');
+  const wall = kind === 'brick' ? pick3(r, [[150, 76, 60], [128, 70, 58], [170, 96, 72], [118, 64, 56]]) : pick3(r, [[196, 184, 160], [170, 176, 168], [186, 160, 138]]);
+  g.fillStyle = cssc(wall); g.fillRect(0, -h, w, h);
+  if (kind === 'brick') { g.save(); g.globalCompositeOperation = 'multiply'; g.fillStyle = g.createPattern(CAX.brickTile.c, 'repeat'); g.translate(r() * 100, r() * 100); g.fillRect(-200, -h - 200, w + 400, h + 400); g.restore(); g.save(); g.globalAlpha = .45; g.fillStyle = cssc(wall); g.fillRect(0, -h, w, h); g.restore(); }
+  else wcWash(g, rectP(0, -h, w, h), wall, .6, { reserve: false, amt: 2, seed, edge: false, step: 40, bloom: shc(wall, -.15) });
+  /* cornisa, impostas por piso */
+  const FL = 300, nf = Math.floor((h - 360) / FL);
+  g.fillStyle = cssc(shc(wall, -.3)); g.fillRect(-6, -h - 14, w + 12, 18); g.fillStyle = cssc(shc(wall, .15)); g.fillRect(-6, -h - 18, w + 12, 5);
+  for (let f = 0; f <= nf; f++) { g.fillStyle = cssc(shc(wall, -.18), .7); g.fillRect(0, -360 - f * FL, w, 6); }
+  /* ventanas */
+  const cols = Math.max(2, Math.floor(w / 190)), gap = w / cols;
+  for (let f = 0; f < nf; f++) for (let c = 0; c < cols; c++) {
+    const wx = gap * (c + .5) - 45, wy = -360 - f * FL - 220, lit = r() < .3, glass = lit ? [255, 214, 150] : [90, 110, 130];
+    g.fillStyle = cssc(shc(wall, .22)); g.fillRect(wx - 8, wy - 10, 106, 10); g.fillRect(wx - 8, wy + 160, 106, 8);   // dintel y alféizar
+    const gr = g.createLinearGradient(0, wy, 0, wy + 160); gr.addColorStop(0, cssc(shc(glass, .2))); gr.addColorStop(1, cssc(shc(glass, -.25))); g.fillStyle = gr; g.fillRect(wx, wy, 90, 160);
+    if (!lit) { g.fillStyle = 'rgba(200,220,236,.35)'; g.beginPath(); g.moveTo(wx + 8, wy + 150); g.lineTo(wx + 50, wy + 8); g.lineTo(wx + 70, wy + 8); g.lineTo(wx + 28, wy + 150); g.fill(); }
+    if (r() < .4) { g.fillStyle = cssc(pick3(r, [[200, 120, 120], [220, 210, 180], [120, 150, 170], [180, 160, 200]]), .8); g.fillRect(wx + (r() < .5 ? 0 : 55), wy, 35, 150); }   // cortinas
+    g.strokeStyle = 'rgba(240,236,226,.9)'; g.lineWidth = 4; g.strokeRect(wx, wy, 90, 160); g.beginPath(); g.moveTo(wx, wy + 80); g.lineTo(wx + 90, wy + 80); g.stroke();
+    if (r() < .18) { g.fillStyle = 'rgb(200,200,196)'; g.fillRect(wx + 15, wy + 95, 60, 40); g.fillStyle = 'rgba(80,80,86,.6)'; for (let k = 0; k < 6; k++) g.fillRect(wx + 18, wy + 100 + k * 6, 54, 2); }   // aire acondicionado
+    if (r() < .3) { g.fillStyle = 'rgb(120,74,50)'; g.fillRect(wx - 4, wy + 160, 98, 12); for (let k = 0; k < 7; k++) { g.fillStyle = cssc(pick3(r, [[200, 60, 50], [90, 140, 70], [240, 180, 60]])); g.beginPath(); g.arc(wx + 6 + k * 13, wy + 156, 7, 0, TAU); g.fill(); } }
+  }
+  /* planta baja: tienda (lavandería, colmado, cortina metálica) o portal con escalinata */
+  const shop = o.shop ?? ['laundry', 'bodega', 'shutter', 'door'][(r() * 4) | 0], sx = 30, sw = w - 60;
+  g.fillStyle = cssc(shc(wall, -.35)); g.fillRect(0, -360, w, 360);
+  if (shop === 'laundry') { g.fillStyle = 'rgb(214,226,232)'; g.fillRect(sx, -290, sw, 230); for (let k = 0; k < Math.floor(sw / 90); k++) { const cx = sx + 50 + k * 90, cy = -150; g.fillStyle = 'rgb(236,240,240)'; g.fillRect(cx - 38, cy - 50, 76, 100); g.fillStyle = 'rgb(70,90,110)'; g.beginPath(); g.arc(cx, cy, 28, 0, TAU); g.fill(); g.fillStyle = cssc(pick3(r, [[220, 80, 80], [80, 120, 200], [240, 220, 120]]), .8); g.beginPath(); g.arc(cx - 4, cy + 6, 18, 0, TAU); g.fill(); g.strokeStyle = 'rgb(180,186,190)'; g.lineWidth = 5; g.beginPath(); g.arc(cx, cy, 30, 0, TAU); g.stroke(); } g.fillStyle = 'rgb(40,110,160)'; g.fillRect(sx - 10, -350, sw + 20, 50); }
+  else if (shop === 'bodega') { g.fillStyle = 'rgb(236,214,160)'; g.fillRect(sx, -290, sw, 230); for (let k = 0; k < 12; k++) { g.fillStyle = cssc(pick3(r, [[200, 60, 50], [230, 160, 40], [110, 160, 70], [240, 220, 120]])); g.fillRect(sx + 10 + r() * (sw - 40), -150 + r() * 60, 26, 26); } for (let k = 0; k < 5; k++) { const bx = sx + 20 + k * (sw - 40) / 5; g.fillStyle = 'rgb(140,100,60)'; g.fillRect(bx, -60, 70, 40); for (let q = 0; q < 6; q++) { g.fillStyle = cssc(pick3(r, [[220, 60, 50], [240, 170, 40], [120, 170, 60]])); g.beginPath(); g.arc(bx + 10 + q * 10, -64, 7, 0, TAU); g.fill(); } } g.fillStyle = 'rgb(46,96,70)'; g.fillRect(sx - 10, -350, sw + 20, 50); }
+  else if (shop === 'shutter') { g.fillStyle = 'rgb(150,154,160)'; g.fillRect(sx, -300, sw, 300); for (let y = -300; y < 0; y += 9) { g.fillStyle = 'rgba(60,64,70,.5)'; g.fillRect(sx, y, sw, 2); } g.lineWidth = 9; g.lineCap = 'round'; for (let k = 0; k < 3; k++) { g.strokeStyle = cssc(pick3(r, [[220, 70, 120], [70, 180, 200], [240, 200, 60]]), .85); g.beginPath(); const x0 = sx + 40 + r() * (sw - 200); g.moveTo(x0, -120 - r() * 60); g.bezierCurveTo(x0 + 60, -260, x0 + 100, -40, x0 + 170, -180); g.stroke(); } }
+  else { g.fillStyle = 'rgb(70,46,36)'; g.fillRect(w / 2 - 55, -280, 110, 250); g.fillStyle = 'rgba(255,214,150,.5)'; g.fillRect(w / 2 - 45, -270, 90, 50); for (let k = 0; k < 3; k++) { g.fillStyle = cssc(shc(wall, .1 - k * .05)); g.fillRect(w / 2 - 90 - k * 12, -30 + k * 10, 180 + k * 24, 12); } }
+  /* escalera de incendios: plataformas, barandillas, escaleras en zigzag, escalera colgante */
+  if (o.escape !== false && nf >= 2) {
+    const ex = w * (.15 + r() * .2), ew = Math.min(w * .6, 420), iron = 'rgb(34,32,36)';
+    g.strokeStyle = iron; g.fillStyle = iron;
+    for (let f = 0; f < nf; f++) { const py = -360 - f * FL - 40;
+      g.fillRect(ex, py, ew, 7); for (let x = ex; x <= ex + ew; x += 14) g.fillRect(x, py, 2, 6);
+      g.lineWidth = 3; g.beginPath(); g.moveTo(ex, py - 90); g.lineTo(ex + ew, py - 90); g.moveTo(ex, py - 45); g.lineTo(ex + ew, py - 45); g.stroke();
+      g.lineWidth = 1.6; for (let x = ex; x <= ex + ew; x += 16) { g.beginPath(); g.moveTo(x, py); g.lineTo(x, py - 90); g.stroke(); }
+      if (f < nf - 1) { const lx0 = f % 2 ? ex + ew - 40 : ex + 40, lx1 = f % 2 ? ex + 60 : ex + ew - 60; g.lineWidth = 3; g.beginPath(); g.moveTo(lx0, py); g.lineTo(lx1, py - FL); g.moveTo(lx0 + 22, py); g.lineTo(lx1 + 22, py - FL); g.stroke(); g.lineWidth = 2; for (let k = 1; k < 14; k++) { const u = k / 14; g.beginPath(); g.moveTo(lerp(lx0, lx1, u), lerp(py, py - FL, u)); g.lineTo(lerp(lx0, lx1, u) + 22, lerp(py, py - FL, u)); g.stroke(); } } }
+    g.lineWidth = 3; const dl = ex + ew - 50; g.beginPath(); g.moveTo(dl, -400); g.lineTo(dl, -250); g.moveTo(dl + 26, -400); g.lineTo(dl + 26, -250); g.stroke(); for (let y = -400; y < -250; y += 14) { g.beginPath(); g.moveTo(dl, y); g.lineTo(dl + 26, y); g.stroke(); }
+    S.escape = { x: ex, w: ew };
+  }
+  /* bajantes y manchas de humedad */
+  g.fillStyle = 'rgba(60,60,66,.8)'; g.fillRect(w - 18, -h, 8, h);
+  g.globalCompositeOperation = 'multiply'; for (let k = 0; k < 5; k++) { const x = r() * w, ll = 100 + r() * 300, sg = g.createLinearGradient(0, -h, 0, -h + ll); sg.addColorStop(0, 'rgba(70,64,70,.35)'); sg.addColorStop(1, 'rgba(70,64,70,0)'); g.fillStyle = sg; g.fillRect(x, -h, 20 + r() * 40, ll); } g.globalCompositeOperation = 'source-over';
+  wcTex(g, S.c.width, S.c.height, .3, .25);
+  S.w = w; S.h = h; S.vents = [[w * (.2 + r() * .6), -h - 20], [S.escape ? S.escape.x + 30 : w * .3, -400 - FL * (r() * 2 | 0)], [w * (.55 + r() * .3), -360 - FL - 60]];
+  return S;
+}
+function pick3(r, a) { return a[(r() * a.length) | 0]; }
+/* ---------- la fachada de Molienda Reserva (cálida, al final de la calle) ---------- */
+function paintMoliendaFront() {
+  const w = 900, h = 1150, S = spr([-20, -h - 80, w + 20, 2], .9), g = S.g;
+  g.fillStyle = 'rgb(46,40,40)'; g.fillRect(0, -h, w, h);
+  g.save(); g.globalCompositeOperation = 'multiply'; g.fillStyle = g.createPattern(CAX.brickTile.c, 'repeat'); g.fillRect(0, -h, w, h); g.restore();
+  for (let f = 0; f < 2; f++) for (let c = 0; c < 4; c++) { const wx = 40 + c * 220, wy = -520 - f * 300 - 160; g.fillStyle = 'rgba(255,200,140,.6)'; g.fillRect(wx, wy, 120, 170); g.strokeStyle = 'rgb(30,28,30)'; g.lineWidth = 6; g.strokeRect(wx, wy, 120, 170); }
+  /* escaparate: interior ámbar, siluetas, bombillas Edison */
+  const gx = 30, gw = w - 60, gy = -380, gh = 340;
+  const amb = g.createLinearGradient(0, gy, 0, gy + gh); amb.addColorStop(0, 'rgb(255,190,110)'); amb.addColorStop(1, 'rgb(150,80,40)'); g.fillStyle = amb; g.fillRect(gx, gy, gw, gh);
+  for (let k = 0; k < 9; k++) { const bx = gx + 40 + k * (gw - 80) / 8; g.strokeStyle = 'rgba(40,30,20,.7)'; g.lineWidth = 2; g.beginPath(); g.moveTo(bx, gy); g.lineTo(bx, gy + 60 + (k % 3) * 18); g.stroke(); const rg = g.createRadialGradient(bx, gy + 66 + (k % 3) * 18, 1, bx, gy + 66 + (k % 3) * 18, 40); rg.addColorStop(0, 'rgba(255,240,200,1)'); rg.addColorStop(.2, 'rgba(255,200,120,.6)'); rg.addColorStop(1, 'rgba(255,200,120,0)'); g.fillStyle = rg; g.fillRect(bx - 40, gy + 26 + (k % 3) * 18, 80, 80); }
+  for (let k = 0; k < 5; k++) { const px = gx + 120 + k * 150, ph = 120 + (k % 2) * 30; g.fillStyle = 'rgba(70,36,24,.65)'; g.beginPath(); g.ellipse(px, gy + gh - ph, 26, 30, 0, 0, TAU); g.fill(); g.fillRect(px - 40, gy + gh - ph + 24, 80, ph - 24); }
+  g.fillStyle = 'rgba(110,60,40,.8)'; g.fillRect(gx, gy + gh - 90, gw, 14);
+  g.strokeStyle = 'rgb(24,22,24)'; g.lineWidth = 10; g.strokeRect(gx, gy, gw, gh); for (let k = 1; k < 4; k++) { g.beginPath(); g.moveTo(gx + k * gw / 4, gy); g.lineTo(gx + k * gw / 4, gy + gh); g.stroke(); }
+  g.fillStyle = 'rgba(255,255,255,.12)'; g.beginPath(); g.moveTo(gx + 20, gy + gh); g.lineTo(gx + 160, gy); g.lineTo(gx + 230, gy); g.lineTo(gx + 90, gy + gh); g.fill();
+  /* toldo y letrero */
+  for (let k = 0; k < 18; k++) { const x0 = -10 + k * (w + 20) / 18; g.fillStyle = k % 2 ? 'rgb(110,36,48)' : 'rgb(90,28,38)'; g.beginPath(); g.moveTo(x0, -470); g.lineTo(x0 + (w + 20) / 18, -470); g.lineTo(x0 + (w + 20) / 18 + 4, -400); g.quadraticCurveTo(x0 + (w + 20) / 36, -388, x0 - 2, -400); g.fill(); }
+  g.fillStyle = 'rgb(30,26,26)'; g.fillRect(w * .2, -600, w * .6, 110);
+  marcaLogo(g, 'molienda', w * .2 + 30, -585, 80, { dark: true });
+  wcTex(g, S.c.width, S.c.height, .25, .2);
+  S.door = { x: 620, w: 120 };
+  return S;
+}
+/* ---------- objetos del bordillo (se desenfocan una vez) ---------- */
+function paintMeter() { const S = spr([-20, -135, 20, 2], 3), g = S.g; g.fillStyle = 'rgb(60,64,70)'; g.fillRect(-3, -90, 6, 90); g.fillStyle = 'rgb(70,90,110)'; g.beginPath(); g.ellipse(0, -110, 14, 22, 0, 0, TAU); g.fill(); g.fillStyle = 'rgb(200,220,230)'; g.beginPath(); g.ellipse(0, -114, 9, 10, 0, 0, TAU); g.fill(); g.fillStyle = 'rgb(220,60,40)'; g.fillRect(-4, -116, 8, 3); marcaLogo(g, 'almagre', -5, -98, 10, { layout: 'emblema' }); return S; }
+function paintHydrant() { const S = spr([-26, -80, 26, 2], 3), g = S.g, c = [196, 50, 40]; wcWash(g, [[-14, 0], [14, 0], [12, -52], [16, -56], [10, -66], [-10, -66], [-16, -56], [-12, -52]], c, .98, { reserve: false, mode: 'source-over', amt: .4, seed: 3, step: 6 }); g.fillStyle = cssc(shc(c, -.2)); g.fillRect(-22, -46, 44, 12); g.beginPath(); g.ellipse(0, -66, 10, 8, 0, PI, TAU); g.fill(); g.fillStyle = 'rgba(255,255,255,.3)'; g.fillRect(-9, -50, 4, 46); return S; }
+function paintPole() { const S = spr([-60, -760, 60, 2], 1.2), g = S.g; const wd = g.createLinearGradient(-9, 0, 9, 0); wd.addColorStop(0, 'rgb(70,54,44)'); wd.addColorStop(.5, 'rgb(110,86,66)'); wd.addColorStop(1, 'rgb(60,46,38)'); g.fillStyle = wd; g.fillRect(-9, -740, 18, 740); g.fillStyle = 'rgb(50,44,40)'; g.fillRect(-55, -700, 110, 10); for (const x of [-45, -15, 15, 45]) { g.fillStyle = 'rgb(220,220,210)'; g.fillRect(x - 3, -712, 6, 12); } g.fillStyle = 'rgb(80,84,90)'; g.fillRect(-20, -620, 40, 50); return S; }
+function paintSkyline() {
+  const S = spr([-14000, -2600, 30000, 40], .1), g = S.g, r = mulberry32(17);
+  let x = -14000; while (x < 30000) { const w = 300 + r() * 700, h = 600 + r() * 1900, c = mixc([150, 168, 188], [196, 206, 214], r() * .6); g.fillStyle = cssc(c); g.fillRect(x, -h, w, h + 40); g.fillStyle = cssc(shc(c, .12)); for (let y = -h + 40; y < -40; y += 70) for (let k = x + 30; k < x + w - 40; k += 60) if (r() < .5) g.fillRect(k, y, 30, 34); if (r() < .2) { g.fillStyle = cssc(c); g.fillRect(x + w * .45, -h - 300, 20, 300); } x += w + r() * 80; }
+  return S;
+}
+function paintSkyCool() {
+  const c = mk(1400, 900), g = c.getContext('2d'), r = mulberry32(23), gr = g.createLinearGradient(0, 0, 0, 900); gr.addColorStop(0, 'rgb(120,150,176)'); gr.addColorStop(.6, 'rgb(196,210,218)'); gr.addColorStop(1, 'rgb(226,226,220)'); g.fillStyle = gr; g.fillRect(0, 0, 1400, 900);
+  for (let i = 0; i < 14; i++) wcWash(g, ellP(r() * 1400, 60 + r() * 400, 90 + r() * 200, 14 + r() * 20, 24), [236, 240, 244], .5, { reserve: false, mode: 'source-over', amt: 8, seed: i, edge: false });
+  for (let i = 0; i < 8; i++) wcWash(g, ellP(r() * 1400, 120 + r() * 300, 120 + r() * 200, 20 + r() * 20, 24), [150, 164, 182], .3, { reserve: false, mode: 'source-over', amt: 10, seed: i + 50, edge: false });
+  return { c };
+}
+function callePaint() {
+  CAX.brickTile = matBrick(300, 240, { seed: 71, soot: 0, wash: .4, whitewash: false, d: .9 });
+  CAX.sky = paintSkyCool(); CAX.skyline = paintSkyline();
+  CAX.walk = matConcrete(1200, 1100, { seed: 31, c: [164, 168, 172] }); CAX.curb = matWash(1200, 18, [150, 152, 156], { seed: 4 });
+  CAX.road = matAsphalt(1200, 300, { seed: 41, lineY: 60 });
+  CAX.blds = []; const r = mulberry32(5); let x = CA.X0;
+  const shops = ['bodega', 'laundry', 'door', 'shutter', 'bodega', 'door', 'laundry', 'shutter'];
+  for (let i = 0; x < CA.END - 500; i++) { const w = 640 + r() * 300, h = 1100 + r() * 450, S = paintBuilding(100 + i, w, h, { shop: shops[i % shops.length] }); CAX.blds.push({ x, S }); x += w + (r() < .2 ? 40 : 0); }
+  CAX.molienda = { x: CA.END - 680, S: paintMoliendaFront() };
+  x = CA.END - 680 + 900; for (let i = 0; x < CA.X1; i++) { const w = 700, S = paintBuilding(300 + i, w, 1300); CAX.blds.push({ x, S }); x += w; }
+  CAX.meter = sprBlur(paintMeter(), 6); CAX.hydrant = sprBlur(paintHydrant(), 6); CAX.pole = sprBlur(paintPole(), 2);
+  for (const k of ['walk', 'curb', 'road']) texShade(CAX[k], COOL, .22);
+  for (const B of CAX.blds) texShadeKeep(B.S, COOL, .3);
+}
+/* ---------- charcos (en la acera, por donde corre Teo) ---------- */
+const CPUD2 = []; { const add = (x, z, rx, rz) => CPUD2.push({ x, z, rx, rz, pts: wob(ellP(x, z, rx, rz, 26), Math.min(rx, rz) * .35, x * .1, .02, true, 12) }); add(1400, 640, 120, 26); add(3000, 570, 150, 34); add(4700, 650, 90, 20); add(7300, 600, 130, 30); add(8900, 640, 100, 24); }
+const GRATE = { x: 6000, z: 590 };
+function callePuddles(t, refl) {
+  const P = new Path2D(); let n = 0;
+  for (const D of CPUD2) { const c = PJ(D.x, 0, D.z); if (c[0] < -SW / 2 - 400 || c[0] > SW / 2 + 400) continue; const pts = D.pts.map(([x, z]) => PJ(x, 0, z)); P.moveTo(...pts[0]); for (const p of pts) P.lineTo(...p); P.closePath(); n++; }
+  if (!n) return;
+  ctx.save(); ctx.clip(P);
+  const top = PJ(0, 0, CA.ZF)[1], gr = ctx.createLinearGradient(0, top, 0, 500); gr.addColorStop(0, 'rgb(150,166,180)'); gr.addColorStop(1, 'rgb(206,216,222)'); ctx.fillStyle = gr; ctx.fillRect(-SW, -500, SW * 2, 1000);
+  for (const B of CAX.blds) billMirror(B.S, B.x, CA.ZF, .55);
+  billMirror(CAX.molienda.S, CAX.molienda.x, CA.ZF, .6);
+  if (refl) refl();
+  ctx.restore();
+  ctx.strokeStyle = 'rgba(60,64,70,.45)'; ctx.lineWidth = 1.6; ctx.stroke(P);
+}
+/* sprite reflejado en el suelo (bajo su base) */
+function billMirror(S, x, z, a = .5) { const s = PS(z), p = PJ(x, 0, z), b = S.box; if (p[0] + b[2] * s < -SW / 2 || p[0] + b[0] * s > SW / 2) return; ctx.save(); ctx.translate(p[0], p[1]); ctx.scale(1, -1); ctx.globalAlpha = a; ctx.drawImage(S.c, b[0] * s, b[1] * s, (b[2] - b[0]) * s, (b[3] - b[1]) * s); ctx.restore(); }
+/* ---------- la calle en t ---------- */
+function drawCalle(t, o = {}) {
+  lightsBegin(); T0();
+  /* cielo y ciudad lejana */
+  ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.drawImage(CAX.sky.c, (-CAM.x * .01 % 200) - 100, -40, W + 200, H * .8); ctx.restore(); T0();
+  ctx.fillStyle = 'rgb(214,220,222)'; ctx.fillRect(-SW, PJ(0, 0, 9000)[1] - 10, SW * 2, 600);
+  bill(CAX.skyline.S || CAX.skyline, 0, 0, 9000, { a: .85 });
+  const hz = PJ(0, -400, 6000)[1]; const mist = ctx.createLinearGradient(0, hz - 200, 0, hz + 120); mist.addColorStop(0, 'rgba(220,226,230,0)'); mist.addColorStop(1, 'rgba(220,226,230,.85)'); ctx.fillStyle = mist; ctx.fillRect(-SW, hz - 200, SW * 2, 400);
+  /* fachadas */
+  for (const B of CAX.blds) bill(B.S, B.x, 0, CA.ZF);
+  bill(CAX.molienda.S, CAX.molienda.x, 0, CA.ZF);
+  /* luz cálida del escaparate de Molienda sobre la acera */
+  const mg = PJ(CAX.molienda.x + 450, -150, CA.ZF); LGT(mg[0], mg[1], 520 * PS(CA.ZF), '255,190,110', .55);
+  /* vapor de las calderas (rejillas de las escaleras y azoteas) */
+  for (const B of CAX.blds) { const c = PJ(B.x + B.S.w / 2, 0, CA.ZF); if (c[0] < -SW / 2 - 600 || c[0] > SW / 2 + 600) continue; for (const [vx, vy] of B.S.vents) steamCols(t, { x: B.x + vx, y: vy, z: CA.ZF - 10 }, { n: 5, h: 380, w: 11, a: .5, sway: 34, drift: .3, spread: 24 }); }
+  /* suelo: asfalto (delante), bordillo, acera */
+  for (let k = Math.floor((CAM.x - 4000) / 1200); k * 1200 < CAM.x + 4000; k++) { hplane(CAX.road, k * 1200, (k + 1) * 1200, 0, CA.ZC, 15); hplane(CAX.walk, k * 1200, (k + 1) * 1200, CA.ZC, CA.ZF, 0); vplane(CAX.curb, [k * 1200, CA.ZC], [(k + 1) * 1200, CA.ZC], 0, 15); }
+  callePuddles(t, o.refl);
+  /* rejilla de vapor en la acera */
+  { const q = poly3([[GRATE.x - 60, -.5, GRATE.z - 25], [GRATE.x + 60, -.5, GRATE.z - 25], [GRATE.x + 60, -.5, GRATE.z + 25], [GRATE.x - 60, -.5, GRATE.z + 25]]); if (q) { ctx.fillStyle = 'rgb(46,48,52)'; ctx.fill(q); ctx.strokeStyle = 'rgb(110,114,120)'; ctx.lineWidth = 1; for (let k = -50; k <= 50; k += 10) { const a = PJ(GRATE.x + k, 0, GRATE.z - 25), b = PJ(GRATE.x + k, 0, GRATE.z + 25); ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.stroke(); } } }
+  if (o.floorFx) o.floorFx(t);
+  if (o.items) o.items(put, t);
+  put(GRATE.z - 1, () => steamCols(t, { x: GRATE.x, y: 0, z: GRATE.z }, { n: 7, h: 260, w: 8, a: .4, sway: 26, spread: 70, drift: o.gust ? o.gust(t) : 0 }));
+  /* primer plano del bordillo: parquímetros, bocas de incendio, postes y cables */
+  for (let k = Math.floor((CAM.x - 1500) / 380); k * 380 < CAM.x + 1500; k++) { const x = k * 380 + 200; put(250, () => bill(hsh(k, 9) < .25 ? CAX.hydrant : CAX.meter, x, 0, 250)); }
+  for (let k = Math.floor((CAM.x - 3000) / 1300); k * 1300 < CAM.x + 3000; k++) { const x = k * 1300 + 900; put(420, () => { bill(CAX.pole, x, 0, 420); }); }
+  put(410, () => { ctx.save(); ctx.lineCap = 'round'; for (let k = Math.floor((CAM.x - 3000) / 1300); k * 1300 < CAM.x + 3000; k++) { const x0 = k * 1300 + 900, x1 = x0 + 1300; for (const [dy, sag] of [[-470, 210], [-450, 250], [-420, 290], [-480, 170]]) { const pts = []; for (let i = 0; i <= 24; i++) { const u = i / 24; pts.push(PJ(lerp(x0 + 9, x1 + 9, u), dy + sag * 4 * u * (1 - u), 420)); } ctx.strokeStyle = 'rgba(28,28,34,.9)'; ctx.lineWidth = Math.max(1, 1.5 * PS(420)); ctx.beginPath(); pts.forEach((p, i) => i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1])); ctx.stroke(); } } ctx.restore(); });
+  flush();
+  if (o.fx) o.fx(t);
+  lightsComp(0);
+}
+
+/* =====================================================================
+   ESCENA 2b · MOLIENDA RESERVA (por dentro): ámbar, cálido y saturado frente al cian de la calle
+   Planta (cm): pared del fondo z = 1000 · pared izquierda x = -650 con ventanales y la puerta de vidrio (z 620…720)
+     mostrador x -320…470 (frente z = 640, alto 105, sobre de mármol) · vitrina x -300…-40 · Vaporetta x 60…290
+     molinillo x 300…350 · Valeria trabaja de pie sobre el mostrador · mesas: junto a la puerta (servilletas),
+     delante a la derecha (fuera de foco), al fondo a la derecha · bombillas Edison en dos filas · ductos de cobre
+   ===================================================================== */
+const MO = { ZB: 1000, X0: -650, X1: 750, Y0: -340, ZF: 150, CT: { x0: -320, x1: 470, z0: 640, z1: 760, top: -105 }, DOOR: { z0: 620, z1: 720, h: 220 } };
+const MOX = {};
+const AMBER = [255, 188, 110];
+/* ---------- texturas y sprites ---------- */
+function paintWainscot() { const T = matWood(1400, 110, { seed: 201, c: [92, 58, 38], plank: 110, gap: 1.6 }), g = T.g; for (let x = 0; x < 1400; x += 70) { g.fillStyle = 'rgba(30,16,10,.4)'; g.fillRect(x, 0, 2, 110); g.fillStyle = 'rgba(255,220,180,.12)'; g.fillRect(x + 6, 10, 58, 3); } g.fillStyle = 'rgb(176,140,70)'; g.fillRect(0, 0, 1400, 4); return T; }
+function paintChalk(lines, title, seed) {
+  const T = tex(240, 150, 4), g = T.g, r = mulberry32(seed);
+  g.fillStyle = 'rgb(40,44,42)'; g.fillRect(0, 0, 240, 150);
+  for (let i = 0; i < 40; i++) { g.fillStyle = `rgba(230,230,220,${r() * .06})`; g.beginPath(); g.ellipse(r() * 240, r() * 150, 10 + r() * 40, 4 + r() * 10, r() * 3, 0, TAU); g.fill(); }   // borrones
+  const pastel = [[250, 210, 220], [200, 236, 214], [250, 236, 180], [200, 220, 250], [255, 255, 250]];
+  g.textBaseline = 'alphabetic';
+  g.font = `700 20px "Caveat", ${MFONT.script}`; g.fillStyle = cssc(pastel[4]); g.fillText(title, 14, 26);
+  g.strokeStyle = cssc(pastel[2], .8); g.lineWidth = 1.2; g.beginPath(); g.moveTo(14, 31); g.quadraticCurveTo(70, 34, 130, 30); g.stroke();
+  lines.forEach((L, i) => { g.font = `600 13px "Caveat", ${MFONT.script}`; g.fillStyle = cssc(pastel[i % 4]); g.fillText(L, 16, 52 + i * 22); });
+  /* garabatos: taza con vapor y estrellita */
+  g.strokeStyle = cssc(pastel[4], .8); g.lineWidth = 1.4; g.strokeRect(196, 110, 22, 18); g.beginPath(); g.arc(220, 119, 5, -PI / 2, PI / 2); g.stroke(); for (let k = 0; k < 3; k++) { g.beginPath(); g.moveTo(201 + k * 6, 106); g.quadraticCurveTo(197 + k * 6, 98, 203 + k * 6, 92); g.stroke(); }
+  g.fillStyle = cssc(pastel[2]); mStar(g, 210, 22, 7, 3, 5); g.fill();
+  /* textura de tiza: el grano se come el trazo */
+  g.globalCompositeOperation = 'destination-out'; for (let i = 0; i < 2600; i++) { g.fillStyle = `rgba(0,0,0,${r() * .5})`; g.fillRect(r() * 240, r() * 150, .6, .6); } g.globalCompositeOperation = 'destination-over'; g.fillStyle = 'rgb(40,44,42)'; g.fillRect(0, 0, 240, 150); g.globalCompositeOperation = 'source-over';
+  g.strokeStyle = 'rgb(120,84,52)'; g.lineWidth = 6; g.strokeRect(0, 0, 240, 150);
+  return T;
+}
+function paintShelfItems() {   /* estantes de la pared del fondo: bolsas kraft, prensas francesas, jarabes (un sprite de 420 × 260) */
+  const S = spr([0, -260, 420, 4], 2.4), g = S.g, r = mulberry32(211);
+  for (const y of [-180, -90, 0]) { woodGrain(g, 0, y - 4, 420, 6, [110, 72, 46], r, { knots: false, gap: 1.4 }); g.fillStyle = 'rgba(20,10,6,.35)'; g.fillRect(0, y + 2, 420, 3); for (const x of [20, 400]) { g.fillStyle = 'rgb(30,26,26)'; g.fillRect(x - 2, y + 2, 4, 10); } }
+  /* balda alta: bolsas kraft con sello */
+  for (let k = 0; k < 8; k++) { const x = 14 + k * 50 + r() * 6, h = 54 + r() * 10, c = shc([186, 142, 96], (r() - .5) * .1); g.fillStyle = cssc(c); g.beginPath(); g.moveTo(x, -184); g.lineTo(x + 36, -184); g.lineTo(x + 34, -184 - h); g.lineTo(x + 28, -184 - h - 6); g.lineTo(x + 8, -184 - h - 6); g.lineTo(x + 2, -184 - h); g.closePath(); g.fill(); g.fillStyle = 'rgba(90,60,30,.3)'; g.fillRect(x + 24, -184 - h, 10, h); g.fillStyle = 'rgb(240,232,214)'; g.fillRect(x + 6, -184 - h * .62, 24, 20); marcaLogo(g, 'molienda', x + 12, -184 - h * .6, 11, { layout: 'emblema', mono: [110, 36, 48], monoBg: [240, 232, 214] }); }
+  /* balda media: prensas francesas de vidrio con café */
+  for (let k = 0; k < 5; k++) { const x = 20 + k * 80, h = 58; g.fillStyle = 'rgba(70,40,20,.85)'; g.fillRect(x + 4, -94 - h * .55, 30, h * .55); g.fillStyle = 'rgba(220,236,240,.28)'; g.fillRect(x, -94 - h, 38, h); g.strokeStyle = 'rgba(240,250,255,.7)'; g.lineWidth = 1.4; g.strokeRect(x, -94 - h, 38, h); g.fillStyle = 'rgb(40,40,44)'; g.fillRect(x - 2, -94 - h - 6, 42, 6); g.fillRect(x + 18, -94 - h - 22, 3, 18); g.beginPath(); g.arc(x + 19.5, -94 - h - 24, 5, 0, TAU); g.fill(); g.fillStyle = 'rgba(255,255,255,.6)'; g.fillRect(x + 4, -94 - h + 4, 3, h - 8); }
+  /* balda baja: jarabes (líquidos ámbar, rubí, verde) */
+  const syr = [[224, 140, 40], [180, 40, 50], [236, 180, 60], [120, 160, 50], [200, 100, 30], [240, 200, 120], [150, 60, 30]];
+  for (let k = 0; k < 9; k++) { const x = 14 + k * 45, c = syr[k % syr.length]; g.fillStyle = cssc(c, .9); g.beginPath(); g.moveTo(x, -4); g.lineTo(x + 30, -4); g.lineTo(x + 30, -56); g.quadraticCurveTo(x + 30, -66, x + 20, -68); g.lineTo(x + 20, -82); g.lineTo(x + 10, -82); g.lineTo(x + 10, -68); g.quadraticCurveTo(x, -66, x, -56); g.closePath(); g.fill();
+    g.fillStyle = 'rgb(30,26,26)'; g.fillRect(x + 8, -90, 14, 9); g.fillStyle = 'rgb(240,232,214)'; g.fillRect(x + 4, -40, 22, 18); g.fillStyle = cssc(c); g.fillRect(x + 8, -34, 14, 2); g.fillStyle = 'rgba(255,255,240,.55)'; g.fillRect(x + 4, -60, 3, 52); g.fillStyle = 'rgba(255,240,200,.35)'; g.beginPath(); g.ellipse(x + 15, -12, 10, 4, 0, 0, TAU); g.fill(); }
+  return S;
+}
+function paintPastries() {   /* el interior de la vitrina: croissants con almíbar, muffins, sándwiches en papel encerado (300 × 70) */
+  const S = spr([0, -72, 280, 2], 3.2), g = S.g, r = mulberry32(221);
+  for (const [y, n] of [[-40, 6], [0, 7]]) { g.fillStyle = 'rgba(236,236,240,.55)'; g.fillRect(0, y - 2, 280, 3);
+    for (let k = 0; k < n; k++) { const x = 14 + k * (260 / n) + r() * 6, kind = (k + (y ? 1 : 0)) % 3;
+      if (kind === 0) { /* croissant: medialuna dorada con brillo de almíbar */ g.save(); g.translate(x + 14, y - 8); for (let s = -3; s <= 3; s++) { g.fillStyle = cssc(shc([214, 150, 70], -Math.abs(s) * .05)); g.beginPath(); g.ellipse(s * 5, Math.abs(s) * 1.8, 6.5 - Math.abs(s) * .9, 7 - Math.abs(s), s * .25, 0, TAU); g.fill(); g.strokeStyle = 'rgba(120,60,20,.5)'; g.lineWidth = .6; g.stroke(); } g.fillStyle = 'rgba(255,250,220,.75)'; g.beginPath(); g.ellipse(-3, -4, 6, 1.6, -.3, 0, TAU); g.fill(); g.beginPath(); g.ellipse(6, -3, 3, 1, .3, 0, TAU); g.fill(); g.restore(); }
+      else if (kind === 1) { /* muffin con pepitas */ g.fillStyle = 'rgb(226,220,206)'; g.beginPath(); g.moveTo(x + 4, y); g.lineTo(x + 24, y); g.lineTo(x + 26, y - 12); g.lineTo(x + 2, y - 12); g.fill(); g.fillStyle = 'rgb(140,84,44)'; g.beginPath(); g.ellipse(x + 14, y - 15, 14, 9, 0, 0, TAU); g.fill(); g.fillStyle = 'rgb(60,34,20)'; for (let q = 0; q < 6; q++) { g.beginPath(); g.arc(x + 6 + r() * 16, y - 19 + r() * 8, 1.4, 0, TAU); g.fill(); } g.fillStyle = 'rgba(255,240,220,.4)'; g.beginPath(); g.ellipse(x + 9, y - 20, 5, 2, -.3, 0, TAU); g.fill(); }
+      else { /* sándwich envuelto en papel encerado con cordel */ g.fillStyle = 'rgb(236,226,196)'; g.beginPath(); g.moveTo(x, y); g.lineTo(x + 30, y); g.lineTo(x + 28, y - 14); g.lineTo(x + 2, y - 16); g.fill(); g.fillStyle = 'rgba(200,180,140,.5)'; g.beginPath(); g.moveTo(x + 2, y - 16); g.lineTo(x + 15, y - 8); g.lineTo(x + 28, y - 14); g.fill(); g.strokeStyle = 'rgb(150,90,60)'; g.lineWidth = .8; g.beginPath(); g.moveTo(x + 14, y); g.lineTo(x + 14, y - 15); g.stroke(); g.fillStyle = 'rgba(80,140,60,.8)'; g.fillRect(x + 2, y - 4, 26, 2); } } }
+  return S;
+}
+function paintMachine() {   /* la Vaporetta: cuerpo cromado, grupos, portafiltros, lancetas, bandeja (230 × 80 + tazas) */
+  const S = spr([-12, -112, 242, 2], 3), g = S.g;
+  const chrome = (x, y, w, h) => { const gr = g.createLinearGradient(x, 0, x + w, 0); gr.addColorStop(0, 'rgb(110,112,118)'); gr.addColorStop(.18, 'rgb(236,238,242)'); gr.addColorStop(.35, 'rgb(150,152,160)'); gr.addColorStop(.6, 'rgb(220,222,228)'); gr.addColorStop(.85, 'rgb(96,98,106)'); gr.addColorStop(1, 'rgb(190,192,200)'); g.fillStyle = gr; g.fillRect(x, y, w, h); };
+  chrome(0, -78, 230, 60);
+  g.fillStyle = 'rgb(179,36,31)'; g.fillRect(0, -82, 230, 6); g.fillRect(0, -20, 230, 5);
+  /* tazas calentándose arriba */
+  for (let k = 0; k < 7; k++) { const x = 14 + k * 30; g.fillStyle = 'rgb(240,236,228)'; g.beginPath(); g.moveTo(x, -82); g.lineTo(x + 20, -82); g.lineTo(x + 17, -100); g.lineTo(x + 3, -100); g.fill(); g.strokeStyle = 'rgba(100,90,90,.5)'; g.lineWidth = .8; g.stroke(); }
+  marcaLogo(g, 'vaporetta', 82, -60, 16, { mono: [179, 36, 31], monoBg: [220, 222, 228], sub: false });
+  /* manómetros */
+  for (const x of [30, 200]) { g.fillStyle = 'rgb(250,248,240)'; g.beginPath(); g.arc(x, -48, 9, 0, TAU); g.fill(); g.strokeStyle = 'rgb(60,60,66)'; g.lineWidth = 2; g.stroke(); g.lineWidth = 1; g.beginPath(); g.moveTo(x, -48); g.lineTo(x + 5, -53); g.stroke(); }
+  /* grupos y portafiltros con mango de madera */
+  for (const x of [70, 160]) { chrome(x - 14, -18, 28, 10); g.fillStyle = 'rgb(60,60,66)'; g.fillRect(x - 16, -9, 32, 6); g.fillStyle = 'rgb(110,70,46)'; g.beginPath(); g.moveTo(x + 14, -7); g.lineTo(x + 46, -2); g.lineTo(x + 46, 3); g.lineTo(x + 14, -2); g.fill(); g.fillStyle = 'rgb(240,236,228)'; g.fillRect(x - 9, 2, 18, 13); }
+  /* lancetas de vapor a los lados */
+  g.strokeStyle = 'rgb(200,204,210)'; g.lineWidth = 3.5; g.lineCap = 'round'; g.beginPath(); g.moveTo(8, -30); g.quadraticCurveTo(-6, -10, -4, 8); g.moveTo(222, -30); g.quadraticCurveTo(236, -10, 234, 8); g.stroke();
+  /* bandeja de goteo */
+  g.fillStyle = 'rgb(70,72,78)'; g.fillRect(10, 14, 210, -6); for (let x = 14; x < 218; x += 6) { g.fillStyle = 'rgb(140,144,150)'; g.fillRect(x, 9, 3, 4); }
+  S.panel = [6, -76, 218, 52];   // la zona cromada que refleja el local
+  return S;
+}
+function paintReflPlate() {   /* lo que ve la cafetera delante de ella: ventanales cian, bombillas, siluetas, mesas (se deforma en vivo) */
+  const c = mk(600, 160), g = c.getContext('2d'), r = mulberry32(231);
+  const gr = g.createLinearGradient(0, 0, 0, 160); gr.addColorStop(0, 'rgb(80,50,36)'); gr.addColorStop(.6, 'rgb(150,96,60)'); gr.addColorStop(1, 'rgb(70,46,34)'); g.fillStyle = gr; g.fillRect(0, 0, 600, 160);
+  for (let k = 0; k < 3; k++) { g.fillStyle = 'rgba(150,200,220,.8)'; g.fillRect(40 + k * 110, 30, 90, 80); g.fillStyle = 'rgba(60,70,80,.6)'; g.fillRect(40 + k * 110, 70, 90, 6); }
+  for (let k = 0; k < 14; k++) { const x = r() * 600, y = 10 + r() * 50, rg = g.createRadialGradient(x, y, 0, x, y, 16); rg.addColorStop(0, 'rgba(255,240,200,1)'); rg.addColorStop(.3, 'rgba(255,190,110,.6)'); rg.addColorStop(1, 'rgba(255,190,110,0)'); g.fillStyle = rg; g.fillRect(x - 16, y - 16, 32, 32); }
+  for (let k = 0; k < 6; k++) { const x = 60 + k * 95 + r() * 20; g.fillStyle = 'rgba(40,24,18,.85)'; g.beginPath(); g.ellipse(x, 96, 12, 14, 0, 0, TAU); g.fill(); g.fillRect(x - 20, 108, 40, 50); }
+  g.fillStyle = 'rgba(30,20,16,.7)'; g.fillRect(0, 140, 600, 20);
+  g.globalCompositeOperation = 'saturation'; g.fillStyle = 'rgb(128,128,128)'; g.globalAlpha = .55; g.fillRect(0, 0, 600, 160); g.globalAlpha = 1; g.globalCompositeOperation = 'source-over';
+  return c;
+}
+function paintGrinder() { const S = spr([-26, -86, 26, 2], 3), g = S.g; g.fillStyle = 'rgb(40,40,44)'; g.fillRect(-18, -36, 36, 36); g.fillStyle = 'rgb(200,204,210)'; g.fillRect(-12, -46, 24, 10); g.fillStyle = 'rgba(120,70,40,.85)'; g.beginPath(); g.moveTo(-16, -46); g.lineTo(16, -46); g.lineTo(20, -84); g.lineTo(-20, -84); g.fill(); g.fillStyle = 'rgba(230,240,250,.3)'; g.beginPath(); g.moveTo(-16, -46); g.lineTo(16, -46); g.lineTo(20, -84); g.lineTo(-20, -84); g.fill(); g.fillStyle = 'rgba(255,255,255,.5)'; g.fillRect(-14, -82, 4, 34); return S; }
+function paintPerson(seed, o = {}) {   /* silueta de cliente (desenfocada después): cabeza, hombros, brazos hacia el portátil */
+  const S = spr([-50, -150, 50, 2], 2), g = S.g, r = mulberry32(seed), c = o.c || pick3(r, [[70, 44, 34], [90, 60, 48], [56, 40, 40], [110, 70, 50]]);
+  g.fillStyle = cssc(c); g.beginPath(); g.ellipse(0, -128, 13, 16, 0, 0, TAU); g.fill();
+  g.beginPath(); g.moveTo(-34, 0); g.lineTo(-30, -84); g.quadraticCurveTo(0, -112, 30, -84); g.lineTo(34, 0); g.fill();
+  if (r() < .5) { g.fillStyle = cssc(shc(c, -.3)); g.beginPath(); g.ellipse(0, -138, 15, 10, 0, PI, TAU); g.fill(); }   // pelo o gorro
+  g.strokeStyle = cssc(c); g.lineWidth = 10; g.lineCap = 'round'; g.beginPath(); g.moveTo(-24, -76); g.lineTo(-20, -40); g.lineTo(0, -34); g.moveTo(24, -76); g.lineTo(20, -40); g.lineTo(4, -34); g.stroke();
+  return sprBlur(S, o.blur ?? 4);
+}
+function paintLaptop() { const S = spr([-24, -30, 24, 2], 4), g = S.g; g.fillStyle = 'rgb(200,204,210)'; g.beginPath(); g.moveTo(-20, 0); g.lineTo(20, 0); g.lineTo(18, -28); g.lineTo(-18, -28); g.fill(); g.fillStyle = 'rgb(150,154,160)'; g.fillRect(-22, 0, 44, 2.5); marcaLogo(g, 'nimbo', -6, -20, 12, { layout: 'emblema', mono: [170, 210, 255], monoBg: [200, 204, 210] }); return S; }
+function paintTable() { const S = spr([-46, -80, 46, 2], 2.4), g = S.g; const mt = g.createLinearGradient(-44, 0, 44, 0); mt.addColorStop(0, 'rgb(220,214,206)'); mt.addColorStop(.5, 'rgb(246,242,236)'); mt.addColorStop(1, 'rgb(200,194,186)'); g.fillStyle = mt; g.beginPath(); g.ellipse(0, -74, 44, 7, 0, 0, TAU); g.fill(); g.fillStyle = 'rgb(160,154,146)'; g.fillRect(-44, -74, 88, 4); g.fillStyle = 'rgb(30,28,30)'; g.fillRect(-3, -70, 6, 66); g.beginPath(); g.ellipse(0, -2, 24, 4, 0, 0, TAU); g.fill(); g.strokeStyle = 'rgba(150,150,160,.5)'; g.lineWidth = .7; g.beginPath(); g.moveTo(-30, -76); g.quadraticCurveTo(0, -70, 34, -75); g.stroke(); return S; }
+function paintGlassDoor() {   /* puerta de vidrio con marco de acero negro (100 × 220): el vidrio es casi transparente */
+  const T = tex(100, 220, 2), g = T.g;
+  g.fillStyle = 'rgba(170,210,226,.22)'; g.fillRect(0, 0, 100, 220);
+  g.fillStyle = 'rgba(255,255,255,.25)'; g.beginPath(); g.moveTo(14, 200); g.lineTo(60, 20); g.lineTo(76, 20); g.lineTo(30, 200); g.fill();
+  g.fillStyle = 'rgb(26,24,26)'; g.fillRect(0, 0, 100, 9); g.fillRect(0, 211, 100, 9); g.fillRect(0, 0, 8, 220); g.fillRect(92, 0, 8, 220); g.fillRect(0, 150, 100, 7);
+  g.fillStyle = 'rgb(176,140,70)'; g.fillRect(12, 96, 4, 44);
+  g.save(); g.translate(50, 60); g.scale(-1, 1); marcaLogo(g, 'molienda', -40, -12, 22, { mono: [214, 176, 96], monoBg: [0, 0, 0] }); g.restore();
+  return T;
+}
+function paintWindowView() {   /* la calle fría vista por los ventanales */
+  const T = tex(600, 260, 1), g = T.g, r = mulberry32(241), gr = g.createLinearGradient(0, 0, 0, 260); gr.addColorStop(0, 'rgb(170,196,212)'); gr.addColorStop(1, 'rgb(120,140,156)'); g.fillStyle = gr; g.fillRect(0, 0, 600, 260);
+  let x = 0; while (x < 600) { const w = 80 + r() * 100, h = 120 + r() * 140; g.fillStyle = cssc(mixc([120, 100, 100], [150, 170, 186], .5 + r() * .3)); g.fillRect(x, 260 - h, w, h); for (let y = 260 - h + 14; y < 230; y += 34) for (let k = x + 10; k < x + w - 20; k += 28) { g.fillStyle = 'rgba(200,220,236,.5)'; g.fillRect(k, y, 14, 20); } x += w + 6; }
+  g.filter = 'blur(2px)'; g.drawImage(T.c, 0, 0, T.c.width, T.c.height, 0, 0, 600, 260); g.filter = 'none';
+  return T;
+}
+function cafePaint() {
+  MOX.floor = matHydraulic(1400, 850, { seed: 51 });
+  MOX.wall = matPlaster(1400, 340, { seed: 61, c: [70, 92, 92], cracks: 2 }); MOX.wains = paintWainscot();
+  MOX.wallL = matPlaster(850, 340, { seed: 62, c: [84, 100, 100], cracks: 1 }); MOX.wallR = matBrick(850, 340, { seed: 63, wash: .3, soot: 3 });
+  MOX.ceil = matWood(1400, 850, { seed: 64, c: [70, 46, 34], plank: 22 });
+  MOX.marble = matMarble(790, 120, { seed: 65 }); MOX.marbleEdge = matMarble(790, 6, { seed: 66, veins: 4 });
+  MOX.walnut = matWood(790, 105, { seed: 67, c: [96, 60, 38], plank: 105, gap: 1.2 });
+  MOX.chalkA = paintChalk(['Etiopía · Yirgacheffe — floral, bergamota', 'Colombia · Huila — panela, cereza', 'Guatemala · Antigua — cacao, nuez', 'Kenia · Nyeri — grosella, pomelo'], 'ORÍGENES', 3);
+  MOX.chalkB = paintChalk(['Cortado .................. 2,40', 'Flat white ............. 3,10', 'V60 del día ........... 3,60', 'Cold brew .............. 3,20'], 'BEBIDAS', 7);
+  MOX.shelf = paintShelfItems(); MOX.pastry = paintPastries(); MOX.machine = paintMachine(); MOX.refl = paintReflPlate(); MOX.grinder = paintGrinder();
+  MOX.people = [paintPerson(1, { blur: 2.5 }), paintPerson(2, { c: [60, 44, 52], blur: 3 }), paintPerson(3, { blur: 6 }), paintPerson(4, { blur: 3 })]; MOX.laptop = paintLaptop(); MOX.laptopB = sprBlur(paintLaptop(), 4);
+  MOX.table = paintTable(); MOX.tableB = sprBlur(paintTable(), 5); MOX.door = paintGlassDoor(); MOX.view = paintWindowView();
+  const A = [150, 100, 70], k = .22; for (const T of [MOX.floor, MOX.wall, MOX.wains, MOX.wallR, MOX.ceil, MOX.walnut]) texShade(T, A, k); texShade(MOX.wallL, [110, 120, 140], .2); texShade(MOX.ceil, A, .3);
+}
+/* ---------- piezas vivas ---------- */
+/* bombillas Edison: cordón, ampolla con filamento y halo; la luz va a la capa LGT */
+function edison(x, z, len, t, k = 1) {
+  const top = PJ(x, MO.Y0, z), b = PJ(x, MO.Y0 + len, z), s = PS(z), sw = Math.sin(t * .8 + x) * .6;
+  ctx.strokeStyle = 'rgba(30,24,22,.9)'; ctx.lineWidth = Math.max(.5, s * .8); ctx.beginPath(); ctx.moveTo(top[0], top[1]); ctx.lineTo(b[0] + sw * s, b[1]); ctx.stroke();
+  ctx.fillStyle = 'rgb(60,50,40)'; ctx.fillRect(b[0] + sw * s - 3 * s, b[1], 6 * s, 6 * s);
+  const c = [b[0] + sw * s, b[1] + 13 * s], fl = .9 + .1 * Math.sin(t * 13 + x);
+  const gr = ctx.createRadialGradient(c[0], c[1], 0, c[0], c[1], 9 * s); gr.addColorStop(0, 'rgba(255,246,210,1)'); gr.addColorStop(.5, 'rgba(255,200,120,.85)'); gr.addColorStop(1, 'rgba(255,170,90,.3)'); ctx.fillStyle = gr; ctx.beginPath(); ctx.ellipse(c[0], c[1], 6 * s, 8 * s, 0, 0, TAU); ctx.fill();
+  ctx.strokeStyle = 'rgba(255,250,230,.95)'; ctx.lineWidth = Math.max(.4, .6 * s); ctx.beginPath(); ctx.moveTo(c[0] - 2 * s, c[1] + 3 * s); for (let i = 0; i < 6; i++) ctx.lineTo(c[0] - 2 * s + i * .8 * s, c[1] + (i % 2 ? -3 : 1) * s); ctx.stroke();
+  LGT(c[0], c[1], 190 * s * k, '255,180,100', .5 * fl * k); LGF(c[0], c[1], 22 * s, '255,230,180', .5 * fl * k);
+}
+/* ducto de cobre (cilindro horizontal a lo largo de x) */
+function duct(z, y, r, t) {
+  const a = PJ(MO.X0, y - r, z), b = PJ(MO.X1, y + r, z), gr = ctx.createLinearGradient(0, a[1], 0, b[1]);
+  gr.addColorStop(0, 'rgb(120,62,36)'); gr.addColorStop(.3, 'rgb(236,160,100)'); gr.addColorStop(.55, 'rgb(170,90,52)'); gr.addColorStop(1, 'rgb(70,36,24)');
+  ctx.fillStyle = gr; ctx.fillRect(a[0], a[1], b[0] - a[0], b[1] - a[1]);
+  for (let x = MO.X0 + 120; x < MO.X1; x += 240) { const p = PJ(x, y - r - 2, z), q = PJ(x + 8, y + r + 2, z); ctx.fillStyle = 'rgba(80,40,26,.9)'; ctx.fillRect(p[0], p[1], q[0] - p[0], q[1] - p[1]); }
+}
+/* la Vaporetta con su cromo que refleja (deformado) todo el local y lo que pasa delante */
+function drawMachine(t, o = {}) {
+  const x0 = 60, z = 742, S = MOX.machine, y0 = MO.CT.top;
+  bill(S, x0, y0, z);
+  const s = PS(z), p = PJ(x0, y0, z), [px, py, pw, ph] = S.panel, X = p[0] + px * s, Y = p[1] + py * s, Wd = pw * s, Ht = ph * s;
+  ctx.save(); ctx.beginPath(); ctx.rect(X, Y, Wd, Ht); ctx.clip();
+  /* reflejo: la placa del local en tiras con compresión cilíndrica (los bordes se aprietan) y un temblor de vapor */
+  const R = MOX.refl, n = 28, sh = (CAM.x - 175) * .4;
+  for (let i = 0; i < n; i++) { const u0 = i / n, u1 = (i + 1) / n, f = v => .5 + .5 * Math.sin((v - .5) * PI * .92) / Math.sin(PI * .46), sx = ((f(u0) * .7 + .15) * R.width + sh) % R.width, sw = (f(u1) - f(u0)) * .7 * R.width;
+    ctx.globalAlpha = 1; ctx.drawImage(R, Math.max(0, Math.min(R.width - 2, sx)), 0, Math.max(1, sw), R.height, X + u0 * Wd, Y + Math.sin(t * 2 + i * .5) * .4 * s, Wd / n + 1, Ht); }
+  if (o.refl) o.refl(X, Y, Wd, Ht, s);
+  ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'multiply'; const cg = ctx.createLinearGradient(X, 0, X + Wd, 0); cg.addColorStop(0, 'rgb(90,92,100)'); cg.addColorStop(.3, 'rgb(210,212,220)'); cg.addColorStop(.5, 'rgb(150,152,160)'); cg.addColorStop(.75, 'rgb(220,222,230)'); cg.addColorStop(1, 'rgb(80,82,90)'); ctx.fillStyle = cg; ctx.fillRect(X, Y, Wd, Ht);
+  ctx.globalCompositeOperation = 'source-over'; ctx.strokeStyle = 'rgba(40,40,46,.5)'; ctx.lineWidth = Math.max(1, s * 1.2); ctx.strokeRect(X, Y, Wd, Ht);
+  ctx.globalCompositeOperation = 'screen'; for (const [u, w, a] of [[.08, .02, .5], [.16, .04, .85], [.21, .012, 1], [.5, .03, .3], [.62, .06, .45], [.86, .025, .7], [.9, .01, .9]]) { ctx.fillStyle = `rgba(255,250,240,${a})`; ctx.fillRect(X + u * Wd, Y, w * Wd, Ht); }
+  ctx.restore();
+  /* el logo y los manómetros quedan encima del reflejo */
+  ctx.save(); const sb = S.box, sx0 = p[0] + sb[0] * s, sy0 = p[1] + sb[1] * s, sw = (sb[2] - sb[0]) * s, shh = (sb[3] - sb[1]) * s;
+  for (const [a, b, c, d] of [[80, -64, 100, 22], [18, -60, 24, 24], [188, -60, 24, 24]]) { ctx.save(); ctx.beginPath(); ctx.rect(p[0] + a * s, p[1] + b * s, c * s, d * s); ctx.clip(); ctx.drawImage(S.c, sx0, sy0, sw, shh); ctx.restore(); }
+  ctx.restore();
+  const tl = PJ(x0 + 112, y0 - 30, z); LGT(tl[0], tl[1], 140 * s, '255,210,150', .25);
+}
+/* campanilla sobre la puerta: oscila amortiguada cada vez que la puerta se abre */
+function bellAng(t, opens) { let a = 0; for (const t0 of opens) { const d = t - t0; if (d > 0 && d < 4) a += .7 * Math.exp(-d * 1.4) * Math.sin(d * 14); } return a; }
+function drawBell(t, opens) {
+  const z = MO.DOOR.z0 + 6, x = MO.X0 + 2, y = -MO.DOOR.h - 18, piv = PJ(x, y, z), s = PS(z), a = bellAng(t, opens);
+  ctx.strokeStyle = 'rgb(40,36,34)'; ctx.lineWidth = Math.max(.8, 1.6 * s); ctx.beginPath(); ctx.moveTo(piv[0] - 14 * s, piv[1] - 8 * s); ctx.quadraticCurveTo(piv[0] - 4 * s, piv[1] - 10 * s, piv[0], piv[1]); ctx.stroke();
+  ctx.save(); ctx.translate(piv[0], piv[1]); ctx.rotate(a);
+  ctx.strokeStyle = 'rgb(60,50,40)'; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, 8 * s); ctx.stroke();
+  const gr = ctx.createLinearGradient(-6 * s, 0, 6 * s, 0); gr.addColorStop(0, 'rgb(150,110,40)'); gr.addColorStop(.4, 'rgb(250,214,120)'); gr.addColorStop(1, 'rgb(120,86,30)'); ctx.fillStyle = gr;
+  ctx.beginPath(); ctx.moveTo(-3 * s, 8 * s); ctx.quadraticCurveTo(-4 * s, 14 * s, -7 * s, 18 * s); ctx.lineTo(7 * s, 18 * s); ctx.quadraticCurveTo(4 * s, 14 * s, 3 * s, 8 * s); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = 'rgb(90,66,30)'; ctx.beginPath(); ctx.arc(Math.sin(a * 2) * 3 * s, 19 * s, 1.6 * s, 0, TAU); ctx.fill();
+  ctx.restore();
+}
+/* servilletas de papel que salen volando con la corriente de aire */
+function napkinAt(i, t, t0, p0) {
+  const a = t - t0; if (a < 0) return { x: p0[0] + (i - 1) * 9, y: p0[1], z: p0[2] + (i % 2) * 6, rot: i * .3, fl: 1 };
+  const vx = -60 - hsh(i, 1) * 90, vy = -170 - hsh(i, 2) * 120, vz = -120 - hsh(i, 3) * 140, k = 1.4, e = (1 - Math.exp(-k * a)) / k;
+  const y = Math.min(0, p0[1] + vy * e + 45 * a * a * (a < 2.5 ? 1 : 0) + (a > 2.5 ? 45 * 6.25 + 60 * (a - 2.5) : 0));
+  return { x: p0[0] + (i - 1) * 9 + vx * e + Math.sin(a * 3 + i) * 20 * Math.min(1, a), y, z: p0[2] + vz * e, rot: a * (2 + i) + i, fl: Math.cos(a * (5 + i * 1.3)), down: y >= -.5 };
+}
+function drawNapkin(N) {
+  const s = 14, pts = [[-s, -s], [s, -s], [s, s], [-s, s]].map(([u, v]) => { const c = Math.cos(N.rot), si = Math.sin(N.rot); const lu = u * c - v * si, lv = u * si + v * c; return N.down ? [N.x + lu, -.6, N.z + lv * .9] : [N.x + lu, N.y + lv * N.fl * .6, N.z + lv * .3]; });
+  const P = poly3(pts); if (!P) return; ctx.fillStyle = cssc(mixc([250, 248, 240], [200, 190, 180], N.fl < 0 ? .3 : 0)); ctx.fill(P); ctx.strokeStyle = 'rgba(160,150,140,.6)'; ctx.lineWidth = .8; ctx.stroke(P);
+}
+/* ---------- la cafetería en t ---------- */
+function drawCafe(t, o = {}) {
+  lightsBegin(); T0();
+  const C = MO.CT, ZB = MO.ZB;
+  /* exterior por los ventanales y la puerta */
+  vplane(MOX.view, [-900, 200], [-900, 1000], -300, 20);
+  /* techo, ductos, suelo */
+  hplane(MOX.ceil, MO.X0, MO.X1, MO.ZF, ZB, MO.Y0);
+  hplane(MOX.floor, MO.X0, MO.X1, MO.ZF, ZB, 0);
+  /* pared del fondo: zócalo de nogal, yeso verde petróleo, pizarras, estantes */
+  vplane(MOX.wall, [MO.X0, ZB], [MO.X1, ZB], MO.Y0, -110); vplane(MOX.wains, [MO.X0, ZB], [MO.X1, ZB], -110, 0);
+  vplane(MOX.chalkA, [-420, ZB - 2], [-180, ZB - 2], -300, -150); vplane(MOX.chalkB, [-150, ZB - 2], [90, ZB - 2], -300, -150);
+  bill(MOX.shelf, 300, -120, ZB - 4);
+  /* pared izquierda: ventanales (huecos sobre la vista) y la puerta de vidrio; pared derecha de ladrillo */
+  const uz = z => (z - MO.ZF) / (ZB - MO.ZF), wl = (z0, z1, y0, y1) => vplane(MOX.wallL, [MO.X0, z0], [MO.X0, z1], y0, y1, { u0: uz(z0), u1: uz(z1), v0: (y0 - MO.Y0) / -MO.Y0, v1: (y1 - MO.Y0) / -MO.Y0 });
+  const D = MO.DOOR, WN = [[220, 560]];
+  wl(MO.ZF, WN[0][0], MO.Y0, 0); wl(WN[0][1], D.z0, MO.Y0, 0); wl(D.z1, ZB, MO.Y0, 0); wl(WN[0][0], WN[0][1], MO.Y0, -260); wl(WN[0][0], WN[0][1], -60, 0); wl(D.z0, D.z1, MO.Y0, -D.h);
+  for (const [z0, z1] of WN) for (const z of [z0, (z0 + z1) / 2, z1]) { const P = poly3([[MO.X0, -260, z - 3], [MO.X0, -260, z + 3], [MO.X0, -60, z + 3], [MO.X0, -60, z - 3]]); if (P) { ctx.fillStyle = 'rgb(26,24,26)'; ctx.fill(P); } }
+  const da = o.doorAng ? o.doorAng(t) : 0, hb = [MO.X0, D.z1], de = [MO.X0 + Math.sin(da) * (D.z1 - D.z0), D.z1 - Math.cos(da) * (D.z1 - D.z0)];
+  put(D.z0 + 1, () => { vplane(MOX.door, de, hb, -D.h, 0, { n: da > .02 ? 16 : 1 }); });
+  vplane(MOX.wallR, [MO.X1, ZB], [MO.X1, MO.ZF], MO.Y0, 0);
+  const vw = PJ(MO.X0, -160, 400); LGT(vw[0], vw[1], 400 * PS(400), '150,200,230', .35);
+  duct(880, MO.Y0 + 26, 14, t); duct(560, MO.Y0 + 30, 16, t);
+  /* mostrador: frente de nogal con barra de latón, sobre de mármol */
+  put(C.z0 + 2, () => {
+    vplane(MOX.walnut, [C.x0, C.z0], [C.x1, C.z0], C.top + 4, 0);
+    hplane(MOX.marble, C.x0 - 4, C.x1 + 4, C.z0 - 6, C.z1, C.top);
+    vplane(MOX.marbleEdge, [C.x0 - 4, C.z0 - 6], [C.x1 + 4, C.z0 - 6], C.top, C.top + 5);
+    const a = PJ(C.x0, -14, C.z0 - 12), b = PJ(C.x1, -14, C.z0 - 12); ctx.strokeStyle = 'rgb(214,176,96)'; ctx.lineWidth = Math.max(1, 3 * PS(C.z0)); ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.stroke();
+    const e = PJ(C.x0, 0, C.z0 - 6), f = PJ(C.x0, C.top, C.z0 - 6); ctx.fillStyle = 'rgb(60,40,28)'; ctx.fillRect(e[0] - 2 * PS(C.z0), f[1], 4 * PS(C.z0), e[1] - f[1]);
+    /* reflejo de las bombillas en el mármol */
+    for (let x = -500; x <= 650; x += 160) { const q = PJ(x + 20, C.top - .5, 700); ctx.fillStyle = 'rgba(255,220,170,.25)'; ctx.beginPath(); ctx.ellipse(q[0], q[1], 8 * PS(700), 1.5 * PS(700), 0, 0, TAU); ctx.fill(); }
+  });
+  /* vitrina curva con dulces, vidrio empañado en las esquinas de abajo */
+  put(C.z0 + 1, () => drawVitrine(t));
+  put(745, () => drawMachine(t, o));
+  put(744, () => { bill(MOX.grinder, 320, C.top, 730); steamCols(t, { x: 64, y: C.top - 20, z: 742 }, { n: 5, h: 230, w: 3, a: o.wand ? o.wand(t) : .08, sway: 10, spread: 6, drift: .1 }); steamCols(t, { x: 285, y: C.top - 20, z: 742 }, { n: 3, h: 200, w: 2.5, a: .07, sway: 8, spread: 4 }); });
+  /* bombillas Edison */
+  for (let x = -560; x <= 700; x += 150) { put(850, () => edison(x, 850, 90 + (x / 150 % 3 + 3) % 3 * 20, t)); put(640, () => edison(x + 75, 640, 120 + (x / 150 % 2 + 2) % 2 * 25, t, .8)); }
+  /* mesas y clientes con portátiles */
+  const custo = [[-470, 470, 0, true], [600, 830, 1, false], [520, 300, 2, true]];
+  for (const [x, z, k, lap] of custo) put(z, () => {
+    const P = MOX.people[k], tb = z < 400 ? MOX.tableB : MOX.table;
+    bill(P, x, 0, z + 30); bill(tb, x, 0, z);
+    if (lap) { const L = z < 400 ? MOX.laptopB : MOX.laptop; bill(L, x + 4, -76, z - 8); const g0 = PJ(x + 4, -96, z - 8); const near = z < 400 ? .35 : 1; LGT(g0[0], g0[1], 170 * PS(z) * near, '110,160,255', .8 * near); LGF(g0[0], g0[1], 30 * PS(z) * near, '170,210,255', .4 * near); }
+    else { const c = PJ(x, -80, z); ctx.fillStyle = 'rgb(240,236,226)'; ctx.fillRect(c[0] - 4 * PS(z), c[1] - 6 * PS(z), 8 * PS(z), 6 * PS(z)); }
+  });
+  /* servilletas */
+  if (o.napkins) for (let i = 0; i < 3; i++) { const N = napkinAt(i, t, o.napkins, [-470, -76, 470]); put(N.z - 1, () => drawNapkin(N)); }
+  put(D.z0 + .5, () => drawBell(t, o.opens || []));
+  if (o.items) o.items(put, t);
+  flush();
+  if (o.fx) o.fx(t);
+  lightsComp(0);
+}
+function drawVitrine(t) {
+  const x0 = -300, x1 = -40, z0 = 652, z1 = 744, top = MO.CT.top, h = 66;
+  bill(MOX.pastry, x0 + 6, top - 8, 700);
+  /* vidrio curvo: frente con brillo, esquinas empañadas */
+  const P = poly3([[x0, top - h, z0 + 30], [x1, top - h, z0 + 30], [x1, top, z0], [x0, top, z0]]);
+  if (P) { ctx.save(); ctx.fillStyle = 'rgba(220,236,240,.12)'; ctx.fill(P); ctx.clip(P);
+    for (const cx of [x0 + 18, x1 - 18]) { const c = PJ(cx, top - 6, z0 + 6), s = PS(z0), rg = ctx.createRadialGradient(c[0], c[1], 0, c[0], c[1], 40 * s); rg.addColorStop(0, 'rgba(240,244,246,.75)'); rg.addColorStop(1, 'rgba(240,244,246,0)'); ctx.fillStyle = rg; ctx.fillRect(c[0] - 40 * s, c[1] - 40 * s, 80 * s, 80 * s); }
+    const a = PJ(x0 + 60, top - h, z0 + 30), b = PJ(x0 + 30, top, z0); ctx.strokeStyle = 'rgba(255,255,255,.45)'; ctx.lineWidth = 6 * PS(z0); ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.stroke(); ctx.restore();
+    ctx.strokeStyle = 'rgba(40,30,26,.9)'; ctx.lineWidth = Math.max(1, 2 * PS(z0)); ctx.stroke(P); }
+  box3({ x0, x1, y0: top - h - 4, y1: top - h, z0: z0 + 26, z1 }, { front: [60, 40, 28], top: [70, 48, 34] });
+  const c = PJ((x0 + x1) / 2, top - 30, 700); LGT(c[0], c[1], 200 * PS(700), '255,210,150', .35);
+}
+
+/* =====================================================================
+   ESCENA 2 · EL FRENESÍ DE LA CAFETERÍA (07:35)
+   2a (61,5–86,6) calle Almagre: travelling, charco saltado, vapor de la rejilla, derrape frente a Molienda
+   2b (86,6–122,6) dentro: la puerta y su campanilla, derrape sobre la baldosa hidráulica, Valeria, la Vaporetta
+       con sus chorros de vapor, insertos de la vitrina y los jarabes, el vaso que se desliza por el mármol,
+       las servilletas que salen volando, y Valeria que se queda negando con la cabeza.
+   ===================================================================== */
+const S2 = { A: 61.5, B: 86.6, END: 122.6, V: 410, X0: -300 };
+const PUD_JUMP = 3000;
+/* ---------- calle ---------- */
+function teoCalle(t) {
+  const base = { clogs: true, top: 'cuaderno' }, stopT = S2.A + (CA.END - 100 - S2.X0) / S2.V;
+  if (t < stopT) { const x = S2.X0 + S2.V * (t - S2.A), j0 = PUD_JUMP - 160, j1 = PUD_JUMP + 160; let y = 0, f = runPose(t, { ...base, wide: Math.abs(t - 64.5) < 1.6 }, 1.1);
+    if (x > j0 && x < j1) { const u = (x - j0) / (j1 - j0); y = hop(u, 62); f = { ...base, legL: 2, legR: 2, happy: true }; }
+    return { x, y, z: CA.ZT, f, run: y === 0 }; }
+  const a = t - stopT; if (a < .55) return { x: CA.END - 100 + 46 * (1 - Math.pow(1 - a / .55, 2)), y: 0, z: CA.ZT, f: { ...base, wide: true }, skid: a };
+  const xs = CA.END - 54; if (t < 85.8) return { x: xs, y: 0, z: CA.ZT, f: { ...base, blink: (t * 3) % 1 < .1 } };
+  const u = seg(t, 85.8, 86.6); return { x: lerp(xs, CA.END, u), y: 0, z: lerp(CA.ZT, CA.ZF - 20, u), f: runPose(t, base), back: true, run: true };
+}
+function camCalle(t) { const B = teoCalle(Math.min(t, 84.9)), k = sm((t - 83.4) / 2.2); return { x: lerp(B.x + 150, CA.END - 30, k), y: lerp(-120, -150, k), zoom: lerp(.86, 1.0, k), ty: lerp(150, 110, k) }; }
+const gustGrate = t => { const tx = S2.A + (GRATE.x - S2.X0) / S2.V, d = t - tx; return d > 0 && d < 3 ? .9 * Math.exp(-d * 1.2) * Math.sin(Math.min(1, d * 4) * PI / 2) : 0; };
+function drawCalleScene(t) {
+  const B = teoCalle(t);
+  drawCalle(t, {
+    gust: gustGrate,
+    refl: () => { if (!B.hide && B.y < 30) pxReflect('teo', B.f, B.x, B.y, B.z, t, { a: .45, flip: B.flip }); },
+    items: put_ => put_(B.z - .5, () => { pxShadow('teo', B.x, B.z, B.y); pxDraw('teo', B.f, B.x, B.y, B.z, { flip: B.flip }); if (B.skid !== undefined) { const [fx, fy] = pxFoot(B.x, 0, B.z); pxBurst(fx - 10 * pxCell('teo', B.z), fy, pxCell('teo', B.z), B.skid, 10, 4, [[200, 200, 196], [150, 150, 150]], 10, 8, .6); } }),
+    fx: t2 => { const tj = S2.A + (PUD_JUMP - 160 - S2.X0) / S2.V, tl = S2.A + (PUD_JUMP + 160 - S2.X0) / S2.V; for (const [ts, xx] of [[tj, PUD_JUMP - 150], [tl, PUD_JUMP + 150]]) { const a = t2 - ts; if (a > 0 && a < .8) { const [fx, fy] = pxFoot(xx, 0, CA.ZT), c = pxCell('teo', CA.ZT); pxBurst(fx, fy, c, a, 14, 9, [[200, 220, 236], [160, 184, 204], [240, 248, 252]], 12, 14, .8); } } },
+  });
+}
+/* ---------- cafetería ---------- */
+const CAFE = { door: [86.6, 114.2], cup0: 110.0, cup1: 110.55, nap: 114.3 };
+function cafeDoor(t) { let a = 0; for (const t0 of CAFE.door) { const d = t - t0; if (d < 0 || d > 2.2) continue; a = Math.max(a, d < .3 ? 1.35 * eio(d / .3) : d < 1.2 ? 1.35 : 1.35 * (1 - eio((d - 1.2) / .6)) + (d > 1.8 ? .06 * Math.sin((d - 1.8) * 30) * Math.exp(-(d - 1.8) * 8) : 0)); } return Math.max(0, a); }
+function teoCafe(t) {
+  const base = { clogs: true, top: 'cuaderno' }, cup = t > CAFE.cup1;
+  if (t < 86.8) return { hide: true };
+  if (t < 88.4) { const u = seg(t, 86.8, 88.4); return { x: lerp(-640, 150, u), y: 0, z: lerp(670, 585, u), f: runPose(t, { ...base, wide: true }), run: true }; }
+  if (t < 89.4) { const a = (t - 88.4) / 1.0; return { x: 150 + 150 * (1 - Math.pow(1 - a, 2.2)), y: 0, z: 585, f: { ...base, wide: true, legL: 1 }, skid: t - 88.4, rot: -.12 * (1 - a) }; }
+  if (t < 109.2) { const look = t > 96.5 && t < 106 ? { happy: t > 100 } : { blink: (t * .45) % 1 < .05 }; return { x: 300, y: Math.abs(Math.sin(t * 6)) * (t > 92.6 && t < 94.5 ? 5 : 0), z: 585, f: { ...base, ...look, wide: t > 92.6 && t < 94.5 } }; }
+  if (t < 109.7) { const u = seg(t, 109.2, 109.7); return { x: lerp(300, 430, u), y: lerp(0, 105, u) + hop(u, 40), z: lerp(585, 702, u), f: { ...base, legL: 2, legR: 2 } }; }
+  if (t < 112.0) return { x: 430, y: 105, z: 702, f: { ...base, cup, happy: t > 110.7 }, counter: true };
+  if (t < 112.5) { const u = seg(t, 112.0, 112.5); return { x: lerp(430, 470, u), y: lerp(105, 0, u) + hop(u, 30), z: lerp(702, 590, u), f: { ...base, cup, legL: 2, legR: 2 } }; }
+  if (t < 114.9) { const u = seg(t, 112.6, 114.9); return { x: lerp(470, -700, u), y: 0, z: lerp(590, 670, u), f: runPose(t, { ...base, cup }, 1.2), run: true, flip: true }; }
+  return { hide: true };
+}
+function valeriaAt(t) {
+  const f = { blink: (t * .37 + .3) % 1 < .05 }; let x = 340, y = 105, z = 712;
+  if (t > 89.6 && t < 92.4) f.happy = true; if (t > 95.0 && t < 97.6) f.wink = true;
+  if (t > 96.4 && t < 101.2) { const u = seg(t, 96.4, 96.9), v = seg(t, 100.8, 101.2); x = lerp(340, 22, u) + (v > 0 ? (340 - 22) * v : 0); f.legL = Math.floor(t * 8) % 2 * (u > 0 && u < 1 ? 2 : 0); }
+  if (t > 101.2 && t < 109) f.happy = (t % 3) < 1.4;
+  if (t > 110.6 && t < 113) f.happy = true;
+  if (t > 115.8) { f.tilt = Math.floor(t * 2.2) % 2 === 0 && t < 118.4; f.blink = t > 118.4 && t < 118.7; }
+  return { x, y, z, f, flip: t > 96.4 && t < 101.2 && seg(t, 100.8, 101.2) < .5 };
+}
+const wandAt = t => t > 96.9 && t < 100.9 ? .08 + .5 * sm((t - 96.9) / .3) * (1 - sm((t - 100.5) / .4)) : .06;
+function cupAt(t) { if (t < CAFE.cup0) return { x: 330, z: 704 }; const u = eio(seg(t, CAFE.cup0, CAFE.cup1)); return { x: lerp(330, 418, u), z: 704 }; }
+function camCafe(t) {
+  if (t < 89.6) return camKeys(t, [[86.6, { x: -260, y: -150, zoom: .9, ty: 40 }], [89.6, { x: -60, y: -150, zoom: .95, ty: 40 }]]);
+  if (t < 96.4) return camKeys(t, [[89.6, { x: 320, y: -118, zoom: 1.95, ty: 96 }], [96.4, { x: 325, y: -118, zoom: 2.05, ty: 96 }]]);
+  if (t < 101.2) return camKeys(t, [[96.4, { x: 150, y: -150, zoom: 3.0, ty: 30 }], [101.2, { x: 170, y: -150, zoom: 3.25, ty: 30 }]]);
+  if (t < 103.6) return camKeys(t, [[101.2, { x: -180, y: -150, zoom: 3.2, ty: 30 }], [103.6, { x: -160, y: -150, zoom: 3.35, ty: 30 }]]);
+  if (t < 106.0) return camKeys(t, [[103.6, { x: 470, y: -205, zoom: 2.7, ty: 0 }], [106.0, { x: 520, y: -205, zoom: 2.8, ty: 0 }]]);
+  if (t < 109.0) return camKeys(t, [[106.0, { x: 260, y: -150, zoom: 1.15, ty: 40 }], [109.0, { x: 240, y: -150, zoom: 1.2, ty: 40 }]]);
+  if (t < 112.5) return camKeys(t, [[109.0, { x: 370, y: -130, zoom: 2.0, ty: 66 }], [112.5, { x: 380, y: -130, zoom: 2.05, ty: 66 }]]);
+  if (t < 115.6) { const B = teoCafe(Math.min(t, 114.7)); return { x: Math.max(-330, B.x - 120), y: -140, zoom: 1.15, ty: 50 }; }
+  return camKeys(t, [[115.6, { x: 120, y: -140, zoom: 1.35, ty: 60 }], [122.6, { x: 260, y: -128, zoom: 1.7, ty: 70 }]]);
+}
+function drawCafeScene(t) {
+  const B = teoCafe(t), V = valeriaAt(t), cp = cupAt(t);
+  drawCafe(t, {
+    doorAng: cafeDoor, opens: CAFE.door, wand: wandAt, napkins: CAFE.nap,
+    refl: (X, Y, Wd, Ht, s) => { const c = Math.max(1, Math.round(s * U * 1.1)), vf = elencoCanvas('valeria', V.f); pxBlit(vf, X + Wd * (.88 - (V.x - 22) / 318 * .5), Y + Ht * .98, c, { flip: !V.flip, a: .55 }); if (B.counter) pxBlit(elencoCanvas('teo', B.f), X + Wd * .2, Y + Ht * .98, c, { flip: true, a: .5 }); },
+    items: put_ => {
+      put_(V.z - .5, () => { pxShadow('valeria', V.x, V.z, 0, { a: .2 }); pxDraw('valeria', V.f, V.x, V.y, V.z, { flip: V.flip }); });
+      if (t < CAFE.cup1) put_(cp.z - .4, () => { const s = PS(cp.z), p = PJ(cp.x, MO.CT.top, cp.z); ctx.fillStyle = 'rgb(246,242,234)'; ctx.beginPath(); ctx.moveTo(p[0] - 7 * s, p[1]); ctx.lineTo(p[0] + 7 * s, p[1]); ctx.lineTo(p[0] + 9 * s, p[1] - 22 * s); ctx.lineTo(p[0] - 9 * s, p[1] - 22 * s); ctx.fill(); ctx.fillStyle = 'rgb(252,252,250)'; ctx.fillRect(p[0] - 10 * s, p[1] - 26 * s, 20 * s, 4 * s); ctx.fillStyle = 'rgb(186,142,96)'; ctx.fillRect(p[0] - 8 * s, p[1] - 15 * s, 16 * s, 6 * s); steamCols(t, { x: cp.x + 3, y: MO.CT.top - 26, z: cp.z }, { n: 2, h: 40, w: .8, a: .4, sway: 4, spread: 1 }); });
+      if (!B.hide) put_(B.z - .5, () => { pxShadow('teo', B.x, B.z, B.counter ? 0 : B.y); pxDraw('teo', B.f, B.x, B.y, B.z, { flip: B.flip, rot: B.rot });
+        if (B.f.cup) { const [fx, fy] = pxFoot(B.x, B.y, B.z), c = pxCell('teo', B.z); steamPixT(fx + (B.flip ? -9 : 9) * c, fy - 24 * c, c, t); }
+        if (B.skid !== undefined) { const [fx, fy] = pxFoot(B.x, 0, B.z), c = pxCell('teo', B.z); pxBurst(fx - 8 * c, fy, c, B.skid % .5, 8, Math.floor(B.skid * 2), [[240, 230, 210], [200, 150, 100]], 9, 7, .5); } });
+    },
+  });
+}
+/* vapor de 8 bits saliendo del agujero de la tapa del vaso */
+function steamPixT(fx, fy, cell, t) { ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); for (let i = 0; i < 6; i++) { const ph = (t * .8 + i / 6) % 1, x = fx + Math.round(Math.sin(t * 2.4 + i) * 1.2) * cell, y = fy - ph * 12 * cell; ctx.globalAlpha = .7 * Math.sin(ph * PI); ctx.fillStyle = 'rgb(250,248,240)'; ctx.fillRect(Math.round(x / cell) * cell, Math.round(y / cell) * cell, cell, cell); } ctx.restore(); T0(); }
+const DLG2 = [
+  { t: 64.0, who: 'teo', mood: 'prisa', txt: '¡Cortado doble, cortado doble, cortado doble!', face: { wide: true, clogs: true }, hold: .6 },
+  { t: 79.6, who: 'teo', mood: 'prisa', txt: '¡Ya casi, ya casi!', face: { happy: true }, hold: .5 },
+  { t: 89.6, who: 'valeria', mood: 'normal', txt: '¡Teo! ¿Lo de siempre? Cortado doble, sin azúcar.', face: { happy: true }, hold: .3 },
+  { t: 92.6, who: 'teo', mood: 'prisa', txt: '¡Sí, sí, sí! ¡Hoy viene la Guía Brújula!', face: { wide: true }, hold: .4 },
+  { t: 95.0, who: 'valeria', mood: 'normal', txt: 'Uy. Entonces que sea cortado TRIPLE.', face: { wink: true }, hold: .6 },
+  { t: 110.7, who: 'valeria', mood: 'normal', txt: '¡Corre, cazo, corre!', face: { happy: true }, hold: .5 },
+  { t: 112.6, who: 'teo', mood: 'prisa', txt: '¡Gracias, Vale!', face: { happy: true }, hold: .5 },
+  { t: 116.2, who: 'valeria', mood: 'normal', txt: 'Ese cazo... algún día va a llegar temprano.', face: { tilt: true }, hold: 1.2 },
+];
+
+/* =====================================================================
    ENTRE EL VAPOR Y EL BIT · SONIDO DE LA ESCENA 1 (nada de lo-fi: cada escena tendrá su propio color)
    · «Dos estrellas»: el motivo de Teo en caja de música (FM de campana), con un colchón suave, al amanecer
    · «Prisa»: chiptune a 150 BPM (pulso 25 % de melodía, arpegio de pulso 12 %, triángulo de bajo, ruido de batería)
@@ -2187,18 +2831,67 @@ function filmEvents() {
   for (let k = 0; k < 6; k++) E.push([40.5 + k * .16, at => clogClack(at, .5 - k * .07)]);
   E.push([46.0, at => whoosh(at, .5, 1, 800, 3000)]); E.push([47.5, at => tone(300, at, .2, .04, 'square', 900)]); E.push([47.85, at => clogClack(at, 1)]);
   E.push([49.6, at => whoosh(at, .5, 1, 800, 3000)]);
+  return E.concat(scene2Events());
+}
+/* ---------- escena 2 ---------- */
+function bellDing(at, v = 1) { for (const [f, d, a] of [[2637, 1.4, .05], [3951, .9, .025], [5274, .5, .012]]) tone(f, at, d, a * v, 'sine', f * .998); }
+function squeak(at) { const ac = AU.ac, o = ac.createOscillator(), g = ac.createGain(), l = ac.createOscillator(), lg = ac.createGain(); o.type = 'sine'; o.frequency.setValueAtTime(1500, at); o.frequency.exponentialRampToValueAtTime(820, at + .8); l.frequency.value = 23; lg.gain.value = 60; l.connect(lg); lg.connect(o.frequency); g.gain.setValueAtTime(0, at); g.gain.linearRampToValueAtTime(.04, at + .03); g.gain.setTargetAtTime(0, at + .7, .08); o.connect(g); g.connect(AU.bS); o.start(at); l.start(at); o.stop(at + 1.1); l.stop(at + 1.1); noiseHit(at, .8, { type: 'bandpass', f: 2400, f2: 900, q: 1.5, vol: .05 }); }
+function grinder(at, dur) { const ac = AU.ac, o = ac.createOscillator(), g = ac.createGain(), f = ac.createBiquadFilter(); o.type = 'sawtooth'; o.frequency.setValueAtTime(90, at); o.frequency.linearRampToValueAtTime(130, at + .3); f.type = 'bandpass'; f.frequency.value = 700; f.Q.value = 1.2; g.gain.setValueAtTime(0, at); g.gain.linearRampToValueAtTime(.05, at + .2); g.gain.setValueAtTime(.05, at + dur - .3); g.gain.linearRampToValueAtTime(0, at + dur); o.connect(f); f.connect(g); g.connect(AU.bS); o.start(at); o.stop(at + dur + .05); noiseHit(at, dur, { type: 'bandpass', f: 3000, q: .8, vol: .03, atk: .2 }); }
+function steamHiss(at, dur, v = 1) { noiseHit(at, dur, { type: 'highpass', f: 2800, vol: .07 * v, atk: .15 }); noiseHit(at, dur * .8, { type: 'bandpass', f: 600, q: 2, vol: .03 * v, atk: .2 }); }
+function cupSlide(at, dur) { noiseHit(at, dur, { type: 'bandpass', f: 900, f2: 1300, q: 3, vol: .05, atk: .05 }); }
+function splash(at, v = 1) { for (let k = 0; k < 6; k++) noiseHit(at + k * .03, .12, { type: 'bandpass', f: 1200 + Math.random() * 2000, q: 2, vol: .05 * v }); tone(500, at, .12, .03 * v, 'sine', 900); }
+function horn(at) { tone(330, at, .5, .03, 'sawtooth', 320, AU.bA); tone(415, at, .5, .02, 'sawtooth', 405, AU.bA); }
+const VBPM = 96, VB = 60 / VBPM, VSW = VB * .5 * .34;   // tema de Valeria: 96 BPM con swing
+const VMEL = [[0, 69, .5], [.5, 72, .5], [1, 77, 1], [2, 76, .5], [2.5, 74, .5], [3, 72, 1], [4, 70, .5], [4.5, 72, .5], [5, 74, 1.5], [6.5, 72, .5], [7, 69, 1], [8, 69, .5], [8.5, 72, .5], [9, 77, 1], [10, 79, .5], [10.5, 77, .5], [11, 76, 1], [12, 74, .5], [12.5, 76, .5], [13, 72, 2.5]];
+const VBASS = [[41, 45, 48, 45], [46, 50, 53, 50], [48, 52, 55, 52], [41, 48, 45, 48]], VCH = [[57, 60, 64], [58, 62, 65], [55, 60, 64], [57, 60, 65]];
+function scene2Events() {
+  const E = [];
+  /* calle: la prisa de Teo otra vez (arpegio en corcheas para aliviar), un tono más arriba a la mitad */
+  for (let bar = 0; bar < 15; bar++) { const t0 = 61.6 + bar * BEAT2 * 4, ch = CH[bar % 4], up = bar >= 8 ? 2 : 0; if (t0 > 85) break;
+    for (let s = 0; s < 16; s += 2) { const at0 = t0 + s * S16; if (at0 >= 85.0) break;
+      if (s % 4 === 0) E.push([at0, at => nkick(at, s === 0 ? 1 : .7)]); if (s === 4 || s === 12) E.push([at0, at => nsnare(at)]); E.push([at0, at => nhat(at, s % 4 ? .6 : 1)]);
+      E.push([at0, at => tri(ch[0] + up + (s % 4 === 2 ? 12 : 0), at, S16 * 1.8)]); E.push([at0, at => lead(ch[1][(s / 2) % 3] + 12 + up, at, S16 * 1.4, .3, 'pulse12')]); }
+    if (bar >= 1) for (const [sx, n, d] of MEL) { if ((sx >> 4) !== bar % 2) continue; const at0 = t0 + (sx % 16) * S16; if (at0 < 85.0) E.push([at0, at => lead(n + up, at, d * S16 * .95, .9)]); } }
+  E.push([85.0, at => { squeak(at); lead(86, at, .12, .7); lead(81, at + .12, .12, .6); lead(74, at + .24, .3, .6); }]);
+  /* pasos de zuecos en la calle y el café, charco, rejilla, bocinas */
+  let last = null; for (let t = 61.5; t < 115; t += 1 / 60) { const B = t < S2.B ? teoCalle(t) : teoCafe(t); if (!B || B.hide || !B.run) { last = null; continue; } const st = Math.floor(t / (STEP / 1.15)); if (last !== null && st !== last) E.push([t, at => clogClack(at, .45)]); last = st; }
+  const tj = S2.A + (PUD_JUMP - 160 - S2.X0) / S2.V, tl = S2.A + (PUD_JUMP + 160 - S2.X0) / S2.V; E.push([tj, at => { splash(at, .6); tone(300, at, .25, .04, 'square', 900); }]); E.push([tl, at => splash(at, 1)]);
+  E.push([S2.A + (GRATE.x - S2.X0) / S2.V - .6, at => steamHiss(at, 2.2, 1.2)]);
+  E.push([68.4, at => horn(at)]); E.push([81.2, at => horn(at)]); E.push([73.0, at => { tone(2800, at, .4, .025, 'sine'); tone(2800, at + .16, .5, .025, 'sine'); }]);
+  /* cafetería: puerta y campanilla, derrape, molinillo, vapor, vaso, servilletas */
+  for (const t0 of CAFE.door) { E.push([t0, at => { bellDing(at); whoosh(at, .4, .6, 400, 1800); }]); E.push([t0 + 1.75, at => thump(at, .25, 110)]); }
+  E.push([88.4, at => squeak(at)]);
+  E.push([93.9, at => grinder(at, 1.9)]); E.push([96.9, at => steamHiss(at, 4.0, 1)]); E.push([101.4, at => { for (let k = 0; k < 8; k++) tone(900 + Math.random() * 400, at + k * .09, .05, .006, 'sine', 600); }]);
+  E.push([109.2, at => tone(300, at, .25, .04, 'square', 900)]); E.push([109.7, at => clogClack(at, 1)]);
+  E.push([CAFE.cup0, at => cupSlide(at, .55)]); E.push([CAFE.cup1, at => ceramic(at, 1.2)]);
+  E.push([112.0, at => tone(300, at, .2, .035, 'square', 700)]); E.push([112.5, at => clogClack(at, 1)]);
+  for (let k = 0; k < 3; k++) E.push([CAFE.nap + k * .12, at => paperFlip(at, .8)]);
+  for (let t = 88; t < 121; t += 1.8 + hsh(t, 7) * 2.6) E.push([t, at => ceramic(at, .35)]);   // tazas y cucharitas al fondo
+  for (let t = 104; t < 109; t += .16 + hsh(t, 3) * .2) E.push([t, at => noiseHit(at, .015, { type: 'bandpass', f: 3500, q: 6, vol: .015 })]);   // teclados
+  /* el tema de Valeria: 14 compases de 4 tiempos con swing */
+  const v0 = 87.0;
+  for (let bar = 0; bar < 14; bar++) { const t0 = v0 + bar * VB * 4, b4 = bar % 4, sw = x => x + ((x / (VB * .5)) % 2 >= 1 ? VSW : 0); if (t0 > 121.6) break;
+    for (let q = 0; q < 4; q++) E.push([t0 + q * VB, at => tri(VBASS[b4][q], at, VB * .9, .9)]);
+    E.push([t0, at => { for (const n of VCH[b4]) mbox(n + 12, at, .35); }]);
+    for (let q = 0; q < 8; q++) E.push([t0 + q * VB * .5 + (q % 2 ? VSW : 0), at => nhat(at, q % 4 === 2 ? .7 : .35)]);
+    if (bar >= 1 && bar < 13) for (const [b, n, d] of VMEL) { if (Math.floor(b / 4) !== b4) continue; const bb = b - b4 * 4, at0 = t0 + bb * VB + ((bb * 2) % 2 === 1 ? VSW : 0); E.push([at0, at => lead(n + 12, at, d * VB * .9, .55, 'pulse12')]); } }
+  E.push([v0 + 13 * VB * 4, at => { for (const n of [65, 69, 72, 76]) mbox(n + 12, at, .5); }]);
   return E;
 }
 /* ---------- lechos ---------- */
 function filmAudioInit() {
   auBed('room', AU.brown, 'lowpass', 180, .5); auBed('city', AU.brown, 'bandpass', 420, .7); auBed('hiss', AU.white, 'highpass', 7000, .5); auBed('hall', AU.brown, 'lowpass', 300, .6);
+  auBed('traffic', AU.brown, 'lowpass', 260, .6); auBed('wind', AU.white, 'bandpass', 900, .5); auBed('murmur', AU.white, 'bandpass', 620, 2.4); auBed('cafe', AU.brown, 'lowpass', 400, .6);
 }
 function filmBeds(t, n) {
-  bedSet('room', .05, n); bedSet('hiss', .004, n);
-  bedSet('city', .028 * (1 - slowK(t) * .7), n);
-  bedSet('hall', t > 40 ? .03 : 0, n);
-  /* cámara lenta: todo se apaga un poco y se oscurece */
-  const k = slowK(t); AU.master && AU.sfx.gain.setTargetAtTime(1 - .4 * k, n, .1);
+  const s1 = t < S1END + .5, s2a = t >= S1END && t < S2.B, s2b = t >= S2.B;
+  bedSet('room', s1 ? .05 : 0, n); bedSet('hiss', .004, n);
+  bedSet('city', s1 ? .028 * (1 - slowK(t) * .7) : 0, n);
+  bedSet('hall', s1 && t > 40 ? .03 : 0, n);
+  bedSet('traffic', s2a ? .07 : s2b ? .015 : 0, n); bedSet('wind', s2a ? .012 : 0, n);
+  bedSet('murmur', s2b ? .016 : 0, n); bedSet('cafe', s2b ? .04 : 0, n);
+  if (AU.bedL.murmur) AU.bedL.murmur.fl.frequency.setTargetAtTime(560 + 140 * Math.sin(t * .7), n, .3);
+  const k = slowK(t); AU.sfx.gain.setTargetAtTime(1 - .4 * k, n, .1);
 }
 
 /* =====================================================================
@@ -2225,7 +2918,7 @@ function camEstudio(t) {
   if (t < 51.6) return { x: 10, y: -160, zoom: .83, ty: 34 };
   return camKeys(t, [[51.6, { x: -60, y: -150, zoom: .9, ty: 30 }], [64, { x: -300, y: -132, zoom: 1.45, ty: 40 }]]);
 }
-const DLG = [
+const DLG1 = [
   { t: 4.2, who: 'teo', mood: 'sueno', txt: 'Zzz... un poquito más de mantequilla... zzz', face: { sleep: true }, hold: 1.2 },
   { t: 19.4, who: 'teo', mood: 'sueno', txt: 'Mmmh... cinco minutos más...', face: { tired: true, flat: true }, hold: .25 },
   { t: 23.0, who: 'teo', mood: 'prisa', txt: '¿¡LAS SIETE Y QUINCE!?', face: { wide: true, mouthO: true }, hold: .6 },
@@ -2235,22 +2928,38 @@ const DLG = [
   { t: 38.3, who: 'teo', mood: 'prisa', txt: '¡Allá voooy!', face: { happy: true }, hold: .5 },
   { t: 48.2, who: 'teo', mood: 'normal', txt: 'Perdón, Kronotek. Buenos días.', face: { happy: true }, hold: .7 },
 ];
-const LABELS = [{ t0: 14.5, t1: 19.3, big: '07:15 AM', small: 'EL ESTUDIO DE TEO' }, { t0: 64.2, t1: 67.4, big: '07:35 AM', small: 'CONTINÚA: LA CAFETERÍA', col: '#ffd84a' }];
+const DLG = DLG1.concat(DLG2);
+const LABELS = [{ t0: 14.5, t1: 19.3, big: '07:15 AM', small: 'EL ESTUDIO DE TEO' }, { t0: 62.0, t1: 66.6, big: '07:35 AM', small: 'CALLE ALMAGRE' }, { t0: 123.4, t1: 127.4, big: '07:50 AM', small: 'CONTINÚA: EL PARQUE', col: '#ffd84a' }];
+const S1END = 60.4;
+/* quién habla y dónde está (para subir la caja si está abajo) */
+function speakerY(t) { const d = DLG.find(q => t >= q.t - .12 && t < q.end + .15); if (!d) return 0; let B;
+  if (d.who === 'valeria') { const V = valeriaAt(t); B = V; } else B = t < S2.A ? teoAt(t) : t < S2.B ? teoCalle(t) : teoCafe(t);
+  if (!B || B.hide) return 0; return pxFoot(B.x, (B.y || 0) + 40, B.z)[1]; }
+function scene1(t) {
+  estudioSol(false); SOL.on = 1; camSet(camEstudio(t));
+  ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.fillStyle = '#120d10'; ctx.fillRect(0, 0, W, H); ctx.restore(); T0();
+  lightsBegin(); T0(); drawEstudio(t); lightsComp(0);
+  postFx(t, { tone: [255, 240, 222], vig: .6 }); slowVig(slowK(t));
+}
+function scene2a(t) { SOL.on = 0; camSet(camCalle(t)); ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.fillStyle = '#c8d2d8'; ctx.fillRect(0, 0, W, H); ctx.restore(); T0(); drawCalleScene(t); postFx(t, { tone: [228, 240, 248], vig: .5 }); }
+function scene2b(t) { SOL.on = 0; camSet(camCafe(t)); ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.fillStyle = '#1c1210'; ctx.fillRect(0, 0, W, H); ctx.restore(); T0(); drawCafeScene(t); postFx(t, { tone: [255, 232, 206], vig: .62 }); }
+function black() { ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H); ctx.restore(); T0(); }
 const FILM = {
-  DUR: 67.5, CHAPTERS: [[0, 'El estudio'], [14.4, 'La alarma'], [25, 'El salto'], [46, 'Vuelve']],
-  fonts: ['700 20px "Playfair Display"', '20px "Bebas Neue"', '700 20px "Josefin Sans"', '20px "Pacifico"', '20px "Space Mono"'],
-  load: [['Pintando el ladrillo, el yeso y el parqué…', () => estudioPaint()], ['Llenando la estantería de post-its…', () => utileriaPaint()], ['Tendiendo las sábanas de lino…', () => sheetBake()], ['Afinando los bleeps…', () => { FILM.bleeps = dlgPrep(DLG).concat(...LABELS.map(labelBleeps)); }]],
-  door: doorAt, events: () => filmEvents(), audioInit: () => filmAudioInit(), beds: (t, n) => filmBeds(t, n), fade: t => 1 - sm((t - 63.5) / 3.5),
+  DUR: 127.6, CHAPTERS: [[0, 'El estudio'], [14.4, 'La alarma'], [25, 'El salto'], [46, 'Vuelve'], [61.5, 'La calle'], [86.6, 'Molienda'], [109, 'El cortado']],
+  fonts: ['700 20px "Playfair Display"', '20px "Bebas Neue"', '700 20px "Josefin Sans"', '20px "Pacifico"', '20px "Space Mono"', '600 20px "Caveat"'],
+  load: [['Pintando el ladrillo, el yeso y el parqué…', () => estudioPaint()], ['Llenando la estantería de post-its…', () => utileriaPaint()], ['Tendiendo las sábanas de lino…', () => sheetBake()],
+    ['Pintando la calle Almagre…', () => callePaint()], ['Encendiendo las bombillas de Molienda…', () => cafePaint()],
+    ['Afinando los bleeps…', () => { FILM.bleeps = dlgPrep(DLG).concat(...LABELS.map(labelBleeps)); }]],
+  door: doorAt, events: () => filmEvents(), audioInit: () => filmAudioInit(), beds: (t, n) => filmBeds(t, n), fade: t => 1 - sm((t - 123.0) / 4),
   draw(t) {
-    camSet(camEstudio(t));
-    lightsBegin(); T0();
-    ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.fillStyle = '#120d10'; ctx.fillRect(0, 0, W, H); ctx.restore(); T0();
-    drawEstudio(t);
-    lightsComp(0);
-    postFx(t, { tone: [255, 240, 222], vig: .6 });
-    slowVig(slowK(t));
-    fadeTo('#000', 1 - sm(t / 2.6)); fadeTo('#000', sm((t - 62.4) / 1.8));
-    dlgDraw(DLG, t, { anchor: () => { const B = teoAt(t); if (B.hide) return 0; return pxFoot(B.x, (B.y || 0) + 40, B.z)[1]; } }); for (const L of LABELS) labelDraw(L, t);
+    if (t < S1END) scene1(t);
+    else if (t < S2.A) pxWipe(() => scene1(t), () => scene2a(t), (t - S1END) / (S2.A - S1END), { dir: 'right' });
+    else if (t < S2.B) scene2a(t);
+    else if (t < S2.END) scene2b(t);
+    else if (t < S2.END + 1) pxWipe(() => scene2b(t), black, t - S2.END, { dir: 'center' });
+    else black();
+    fadeTo('#000', 1 - sm(t / 2.6));
+    dlgDraw(DLG, t, { anchor: () => speakerY(t) }); for (const L of LABELS) labelDraw(L, t);
   },
 };
 window.__tex = (k, w = 900) => { const c = (ESX[k] || PROPS[k]).c, o = mk(w, w * c.height / c.width); o.getContext('2d').drawImage(c, 0, 0, o.width, o.height); return o.toDataURL('image/png'); };

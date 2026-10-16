@@ -319,4 +319,33 @@ Base: compresor + reverb por convolución con impulso generado. **Lechos** conti
 
   A 960 px no se ven.
 - **Verifica lo que el usuario señala reproduciendo exactamente ese plano.** Sus capturas suelen venir de una pantalla de alta frecuencia y de reproducción real, no del modo prueba.
-- Entregar: publicar como artifact y enviar también el `.html` completo; resumir actos y escenas y avisar de lo no verificable (balance de audio sin escuchar, FPS con GPU real, fuentes). Si existe la carpeta del usuario, copiar ahí película, código, biblia y lecciones nuevas (y añadir a su `LECCIONES.md` lo aprendido).
+- Entregar: publicar como artifact y enviar también el `.html` completo (tras la primera entrega, §10: preguntar una vez si quiere aportar lecciones); resumir actos y escenas y avisar de lo no verificable (balance de audio sin escuchar, FPS con GPU real, fuentes). Si existe la carpeta del usuario, copiar ahí película, código, biblia y lecciones nuevas (y añadir a su `LECCIONES.md` lo aprendido).
+
+## 10. Aportar lecciones (opcional, nunca obligatorio)
+El skill mejora con lo que aprende cada película (`references/LECCIONES.md`). Quien quiera puede compartir lo que aprendió para que la siguiente película de todos salga mejor. Es una invitación: si no, no pasa nada.
+
+**Preguntar una sola vez:**
+- **Cuándo:** al terminar la primera entrega, nunca en medio del trabajo.
+- **Qué decir**, en una o dos frases:
+  > Este skill se alimenta de lecciones de quienes lo usan. ¿Te gustaría que, cuando aprendamos algo útil (un error y su arreglo, una técnica que funcionó), te proponga compartirlo con el proyecto? Siempre te enseñaré el texto antes y no incluye datos personales.
+- **Guardar la respuesta** para no volver a preguntar:
+  1. en Claude Code, en `~/.claude/sumi-e-canvas-film/aportes.json` con `{"preguntado": true, "acepta": true|false, "fecha": "…"}`;
+  2. si no hay archivos persistentes, en la memoria de Claude si está activa;
+  3. si no hay ninguna de las dos, en la biblia o las notas del proyecto («aportes: sí/no»).
+  Antes de preguntar, mira si ya existe la respuesta.
+- **Si dice que no:** no se vuelve a mencionar. Solo se retoma si el propio usuario lo pide más adelante («quiero aportar esta lección»).
+
+**Si dice que sí, cada aporte se pide por separado:**
+1. **Redacta la lección** en el estilo de `LECCIONES.md`: qué pasó o qué funcionó, por qué, y la regla. Añade el fragmento mínimo de código o los valores si ayudan.
+2. **Límpiala de datos personales.** Solo debe quedar conocimiento para crear. Quita:
+   - nombres de personas, correos, usuarios y rutas del equipo;
+   - enlaces privados y nombres de clientes, empresas o proyectos;
+   - el guion, los personajes o las marcas propias del usuario, salvo que los ofrezca él;
+   - contenido con derechos de terceros.
+3. **Enséñale el texto exacto** y pregunta: «¿Lo comparto así?». Sin un sí explícito a ese texto, no se envía nada. Si lo cambia, se envía su versión.
+4. **Envíalo como issue** en `Anoth3rHellsing/Claude-Hollywood` con la plantilla «Aportar una lección»: título «Lección: …» y etiqueta `leccion`.
+   - Con acceso a GitHub (herramientas de GitHub o `gh`), créalo tú.
+   - Sin acceso, dale este enlace para que lo abra él: `https://github.com/Anoth3rHellsing/Claude-Hollywood/issues/new?template=leccion.yml`
+5. **Confirma** con el enlace del issue y sigue con el trabajo. No propongas más de un aporte por entrega.
+
+El mantenedor revisa los issues y pasa a `LECCIONES.md` lo que sirve para todos.

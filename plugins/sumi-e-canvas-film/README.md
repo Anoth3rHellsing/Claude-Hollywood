@@ -54,3 +54,11 @@ claude plugin validate . && claude plugin validate plugins/sumi-e-canvas-film --
 ```
 
 Sube `version` en `.claude-plugin/plugin.json` en cada publicación, para que los usuarios reciban la actualización.
+
+## Aportar lecciones (opcional)
+
+Al terminar tu primera película, el skill te preguntará **una sola vez** si quieres compartir lo que aprendan juntos.
+
+- **Si aceptas:** cada lección se te enseña antes de enviarse, sin datos personales. Se manda como issue con la plantilla «Aportar una lección».
+- **Si no:** no vuelve a preguntar, salvo que tú lo pidas.
+

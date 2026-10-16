@@ -1,6 +1,6 @@
 {
   "name": "sumi-e-canvas-film",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Películas animadas en un solo HTML con Canvas 2D: acuarela/sumi-e, papel recortado y mapas 3D (motor Escenarios) con personajes pixel, diálogos con bleeps y sonido 100 % sintetizado.",
   "author": { "name": "Anoth3rHellsing", "url": "https://github.com/Anoth3rHellsing" },
   "homepage": "https://github.com/Anoth3rHellsing/Claude-Hollywood",

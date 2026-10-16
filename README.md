@@ -154,6 +154,16 @@ cp -r plugins/sumi-e-canvas-film/skills/sumi-e-canvas-film/assets/plantilla mi-p
 cd mi-pelicula && python build.py      # → dist/pelicula.html (abre con ?t=5 para el modo prueba)
 ```
 
+## Aporta lecciones (opcional)
+
+Cada película deja lo que aprendió en [`LECCIONES.md`](Claude-Hollywood/LECCIONES.md), y así la siguiente sale mejor.
+
+- **Si haces algo con el skill**, tu experiencia también puede sumar: un error y su arreglo, o una técnica que funcionó.
+- **El propio Claude te lo preguntará una sola vez.** Si aceptas, te enseñará cada lección antes de enviarla, siempre sin datos personales. Si dices que no, no vuelve a preguntar.
+- **También puedes aportar a mano** con la plantilla [«Aportar una lección»](https://github.com/Anoth3rHellsing/Claude-Hollywood/issues/new?template=leccion.yml).
+
+Totalmente opcional, y muy agradecido. 🍿
+
 ## Licencia
 
 [GPL-3.0](LICENSE). Los personajes, las marcas y los mundos de las películas son originales de este proyecto. No es contenido oficial de Anthropic.

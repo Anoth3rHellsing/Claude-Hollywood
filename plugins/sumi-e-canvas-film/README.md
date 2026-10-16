@@ -47,7 +47,7 @@ Desde la terminal: `claude plugin marketplace add Anoth3rHellsing/Claude-Hollywo
 | `…/assets/plantilla/` | Motor Escenarios completo y una escena de ejemplo de 20 s que funciona (`python build.py`). |
 | `…/references/` | Manuales: `ESCENARIOS.md`, `FONDOS.md`, `RIG.md` y `LECCIONES.md` (el catálogo de errores). |
 | `…/scripts/` | Herramientas de prueba con Playwright: capturas, hojas de contacto, audio, rendimiento. |
-| `…/assets/tiquete.html` | Formulario opcional de pedido («tiquete de producción»). |
+| `…/assets/tiquete.html` · `ticket.html` | Formulario opcional de pedido («tiquete de producción»), en español y en inglés. |
 
 ## Para quien mantiene el repo
 

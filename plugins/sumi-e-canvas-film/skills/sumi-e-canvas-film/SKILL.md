@@ -21,7 +21,7 @@ Procedimiento probado en «Kurenai» (samurái, 6:26), la serie «El Juramento R
   - `audio.py`: prueba de eventos y render del audio;
   - `rendimiento.py`: ms por cuadro;
   - `notas.js`.
-- `assets/tiquete.html`: plantilla del tiquete de producción (§0 bis).
+- `assets/tiquete.html`: plantilla del tiquete de producción (§0 bis); `assets/ticket.html` es la misma en inglés.
 
 Si el usuario ya tiene una carpeta con películas anteriores (por ejemplo `Claude-Hollywood/`), esa es la referencia: reutiliza su código y añade ahí lo nuevo al terminar.
 
@@ -38,10 +38,10 @@ Si el usuario ya tiene una carpeta con películas anteriores (por ejemplo `Claud
 - Para una serie, mantén una **biblia** (personajes, siluetas, sellos, motivos, guiones por tiempos de cada episodio) y escribe en ella el guion del episodio nuevo antes de programar.
 
 ## 0 bis. Modos de trabajo y tiquete de producción
-El modo llega como argumento (`/sumi-e-canvas-film control|auto|asistido`) o en el campo «modo» del tiquete; sin nada, **control**.
+El modo llega como argumento (`/sumi-e-canvas-film control|auto|asistido`; `assisted` = `asistido`) o en el campo «modo» del tiquete; sin nada, **control**.
 
-**El tiquete** (opcional) es un formulario del usuario para pedir películas. Su fuente está en `assets/tiquete.html`: se publica como artifact con base de datos, y el usuario comparte su enlace.
-- **Cómo leerlo:** con `ArtifactData` → `list` de la colección `tickets` (un documento por tiquete; el que está en estado `listo` es el pedido). Si el usuario pega un bloque que empieza por `# TIQUETE`, ese es el mismo contenido. Sin tiquete, el pedido llega por el chat.
+**El tiquete** (opcional) es un formulario del usuario para pedir películas. Su fuente está en `assets/tiquete.html` (en inglés, `assets/ticket.html`): se publica como artifact con base de datos, y el usuario comparte su enlace. Las dos versiones guardan los mismos campos y valores; solo cambian los textos de la página.
+- **Cómo leerlo:** con `ArtifactData` → `list` de la colección `tickets` (un documento por tiquete; el que está en estado `listo` es el pedido). Si el usuario pega un bloque que empieza por `# TIQUETE` (o `# TICKET`, la versión inglesa), ese es el mismo contenido; con el tiquete en inglés, responde en inglés. Sin tiquete, el pedido llega por el chat.
 - **Campos:**
   - ficha: título, duración, estilo, universo, estado, modo;
   - `logline` y `tono`;

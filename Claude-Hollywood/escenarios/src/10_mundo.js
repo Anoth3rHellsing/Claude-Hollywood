@@ -93,3 +93,5 @@ function bill(S, x, y, z, o = {}) {
 }
 /* recorte de pantalla a un polígono 3D (para pintar luz o sombra solo en una cara) */
 function clip3(pts) { const P = poly3(pts); if (!P) return false; ctx.clip(P); return true; }
+/* sprite reflejado bajo su base (charcos, estanques, suelos pulidos): o.y = altura del espejo, o.k = escala */
+function billMirror(S, x, z, a = .5, o = {}) { const s = PS(z) * (o.k ?? 1), p = PJ(x, o.y || 0, z), b = S.box; if (p[0] + b[2] * s < -SW / 2 || p[0] + b[0] * s > SW / 2) return; ctx.save(); ctx.translate(p[0], p[1]); ctx.scale(1, -1); ctx.globalAlpha = a; ctx.drawImage(S.c, b[0] * s, b[1] * s, (b[2] - b[0]) * s, (b[3] - b[1]) * s); ctx.restore(); }

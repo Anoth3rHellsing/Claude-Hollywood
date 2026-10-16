@@ -189,3 +189,33 @@ function matMarble(w, h, o = {}) {
 }
 /* copia desenfocada de un sprite (primer plano fuera de foco); se hace una vez */
 function sprBlur(S, px) { const c = mk(S.c.width + px * 4, S.c.height + px * 4), g = c.getContext('2d'); g.filter = `blur(${px}px)`; g.drawImage(S.c, px * 2, px * 2); const k = 2 * px / S.d; return { c, g, box: [S.box[0] - k, S.box[1] - k, S.box[2] + k, S.box[3] + k], d: S.d }; }
+/* ---------- camino de grava suelta sobre tierra apisonada, con hojas secas y rocío ---------- */
+function matGravel(w, h, o = {}) {
+  const T = tex(w, h, o.d ?? 1.4), g = T.g, r = mulberry32(o.seed ?? 71), earth = o.c ?? [150, 124, 92];
+  g.fillStyle = cssc(earth); g.fillRect(0, 0, w, h);
+  for (let i = 0; i < 30; i++) { const x = r() * w, y = r() * h, rr = 30 + r() * 90, rg = g.createRadialGradient(x, y, 0, x, y, rr); rg.addColorStop(0, `rgba(${r() < .5 ? '110,90,66' : '180,156,120'},.35)`); rg.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = rg; g.fillRect(x - rr, y - rr, rr * 2, rr * 2); }
+  /* rodadas y huellas apisonadas */
+  for (let k = 0; k < 2; k++) { const y = h * (.35 + k * .3); g.fillStyle = 'rgba(110,88,64,.25)'; g.fillRect(0, y, w, 16); }
+  /* piedritas: cada una con su sombra y su brillo */
+  for (let i = 0; i < w * h / (o.dens ?? 9); i++) { const x = r() * w, y = r() * h, rr = .6 + Math.pow(r(), 2) * 2.4, c = shc(pick3(r, [[176, 168, 156], [150, 140, 128], [196, 186, 170], [128, 118, 108], [166, 140, 112]]), (r() - .5) * .2);
+    g.fillStyle = 'rgba(60,44,30,.35)'; g.beginPath(); g.ellipse(x + rr * .3, y + rr * .4, rr, rr * .7, 0, 0, TAU); g.fill();
+    g.fillStyle = cssc(c); g.beginPath(); g.ellipse(x, y, rr, rr * .75, r() * 3, 0, TAU); g.fill();
+    if (rr > 1.2) { g.fillStyle = 'rgba(255,250,240,.35)'; g.beginPath(); g.ellipse(x - rr * .3, y - rr * .3, rr * .35, rr * .25, 0, 0, TAU); g.fill(); } }
+  /* hojas secas */
+  const LC = [[204, 140, 52], [186, 96, 40], [220, 176, 70], [150, 90, 44], [170, 60, 36]];
+  for (let i = 0; i < w * h / (o.leaves ?? 900); i++) { const x = r() * w, y = r() * h, s = 3 + r() * 4, a = r() * TAU, c = pick3(r, LC); g.save(); g.translate(x, y); g.rotate(a); g.fillStyle = cssc(c, .9); g.beginPath(); g.moveTo(-s, 0); g.quadraticCurveTo(0, -s * .55, s, 0); g.quadraticCurveTo(0, s * .55, -s, 0); g.fill(); g.strokeStyle = cssc(shc(c, -.35), .7); g.lineWidth = .3; g.beginPath(); g.moveTo(-s, 0); g.lineTo(s, 0); g.stroke(); g.restore(); }
+  /* bordes con hierba */
+  if (o.edges !== false) for (const yy of [0, h]) for (let x = 0; x < w; x += 2) { const L = 3 + r() * 9, c = pick3(r, [[96, 130, 60], [120, 150, 70], [80, 110, 56]]); g.strokeStyle = cssc(c, .9); g.lineWidth = .7; g.beginPath(); g.moveTo(x, yy + (yy ? 2 : -2) * r()); g.lineTo(x + (r() - .5) * 3, yy + (yy ? -L : L)); g.stroke(); }
+  wcTex(g, T.c.width, T.c.height, .25, .3);
+  return T;
+}
+/* césped visto desde arriba (para planos grandes) */
+function matGrass(w, h, o = {}) {
+  const T = tex(w, h, o.d ?? .9), g = T.g, r = mulberry32(o.seed ?? 81), c = o.c ?? [92, 132, 64];
+  g.fillStyle = cssc(c); g.fillRect(0, 0, w, h);
+  for (let i = 0; i < 40; i++) { const x = r() * w, y = r() * h, rr = 40 + r() * 140, rg = g.createRadialGradient(x, y, 0, x, y, rr); rg.addColorStop(0, `rgba(${r() < .5 ? '60,96,44' : '150,180,90'},.4)`); rg.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = rg; g.fillRect(x - rr, y - rr, rr * 2, rr * 2); }
+  for (let i = 0; i < w * h / 5; i++) { const x = r() * w, y = r() * h; g.strokeStyle = `rgba(${r() < .5 ? '60,92,40' : '170,200,110'},${.2 + r() * .3})`; g.lineWidth = .6; g.beginPath(); g.moveTo(x, y); g.lineTo(x + (r() - .5) * 2, y - 2 - r() * 4); g.stroke(); }
+  for (let i = 0; i < w * h / 1200; i++) { g.fillStyle = cssc(pick3(r, [[204, 140, 52], [186, 96, 40], [220, 176, 70]]), .8); g.beginPath(); g.ellipse(r() * w, r() * h, 2 + r() * 2, 1 + r(), r() * 3, 0, TAU); g.fill(); }
+  wcTex(g, T.c.width, T.c.height, .2, .25);
+  return T;
+}

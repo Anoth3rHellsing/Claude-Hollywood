@@ -76,7 +76,8 @@ ELENCO.teo = {
     if (o.sweat) gridPut(g, 21, 6, ['L.', 'LL', '.L']);
     const P = gridPad(g, 6); for (const r of P) r.push('.', '.', '.', '.');
     if (o.top === 'cuaderno') gridPut(P, 6, 2, ['KKKKKKKKKKKKK', 'KNNNNNNNNNNNK', 'KNnnNNNnNNnNK', 'KKKKKKKKKKKKK']);
-    if (o.cup) gridPut(P, 20, 15, ['.KKKK', 'KCCCCK', 'KCCCCK', 'KccccK', 'KCCCCK', '.KCCK.', '.KKKK.']);
+    if (o.cup && !o.sip) gridPut(P, 20, 15, ['.KKKK', 'KCCCCK', 'KCCCCK', 'KccccK', 'KCCCCK', '.KCCK.', '.KKKK.']);
+    if (o.sip) gridPut(P, 18, 17, ['..KKKK', '.KCCCCK', 'KCCCCK.', 'KccccK.', 'KCCCCK.', '.KKKK..']);
     return P;
   },
 };
@@ -157,6 +158,31 @@ ELENCO.valeria = {
     if (o.tilt) for (let y = 0; y < 3; y++) { g[y].push(g[y].shift()); }
     return gridPad(g, 6);
   },
+};
+/* =====================================================================
+   RAMIRO LAGOS · ánade real del estanque del Parque del Invernadero. Lleva a sus patitos de paseo cada mañana.
+   Habla poco: «Cuac.» Lo dice todo con eso.
+   ===================================================================== */
+ELENCO.ramiro = {
+  nombre: 'Ramiro Lagos', rol: 'Ánade del estanque del Parque del Invernadero', pelicula: 'Entre el Vapor y el Bit',
+  voz: { base: 196, paso: 1.02, onda: 'pulse' },
+  pal: { K: PXK, G: [44, 118, 76], g: [30, 82, 56], T: [255, 255, 255], Y: [236, 196, 60], W: [244, 244, 240], B: [130, 72, 52], S: [184, 184, 178], s: [112, 112, 118] },
+  cell: 2.6, foot: 8,
+  base: [
+    '........KKKK......',
+    '.......KGGGgK.....',
+    '......KGGTKGgK....',
+    '......KGGGGGgKYYK.',
+    '......KgGGGGgKYYYK',
+    '.......KWWWWKKKKK.',
+    '..KK...KBBBBBK....',
+    '.KssK.KBBBBBBBK...',
+    'KsssSKSSSSSSSBBK..',
+    'KssSSSSSSSSSSSBK..',
+    '.KSSSSSSSSSSSSK...',
+    '..KKSSSSSSSSKK....',
+    '....KKKKKKKKK.....'],
+  frame(o = {}) { const g = gridOf(this.base); if (o.quack) { g[3][14] = 'Y'; g[3][15] = 'K'; g[3][16] = '.'; g[4][15] = 'K'; g[4][16] = 'Y'; g[4][17] = '.'; } if (o.blink) { g[2][9] = 'G'; g[2][10] = 'K'; } if (o.chick) for (let y = 0; y < g.length; y++) for (let x = 0; x < g[y].length; x++) if ('GgBSs'.includes(g[y][x])) g[y][x] = y < 5 ? 'Y' : 'Y'; return gridPad(g, 6); },
 };
 /* =====================================================================
    PERSONAJES ANTERIORES (para mantener la familia consistente)

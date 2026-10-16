@@ -72,7 +72,7 @@ function filmEvents() {
   for (let k = 0; k < 6; k++) E.push([40.5 + k * .16, at => clogClack(at, .5 - k * .07)]);
   E.push([46.0, at => whoosh(at, .5, 1, 800, 3000)]); E.push([47.5, at => tone(300, at, .2, .04, 'square', 900)]); E.push([47.85, at => clogClack(at, 1)]);
   E.push([49.6, at => whoosh(at, .5, 1, 800, 3000)]);
-  return E.concat(scene2Events());
+  return E.concat(scene2Events(), scene3Events());
 }
 /* ---------- escena 2 ---------- */
 function bellDing(at, v = 1) { for (const [f, d, a] of [[2637, 1.4, .05], [3951, .9, .025], [5274, .5, .012]]) tone(f, at, d, a * v, 'sine', f * .998); }
@@ -119,10 +119,44 @@ function scene2Events() {
   E.push([v0 + 13 * VB * 4, at => { for (const n of [65, 69, 72, 76]) mbox(n + 12, at, .5); }]);
   return E;
 }
+/* ---------- escena 3: el parque ---------- */
+function crunch(at, v = 1) { noiseHit(at, .05, { type: 'bandpass', f: 2200 + Math.random() * 1600, q: 1.4, vol: .06 * v }); noiseHit(at + .012, .03, { type: 'highpass', f: 5000, vol: .025 * v }); }
+function quack(at, v = 1, f = 300) { const ac = AU.ac, o = ac.createOscillator(), g = ac.createGain(), bp = ac.createBiquadFilter(); o.type = 'sawtooth'; o.frequency.setValueAtTime(f, at); o.frequency.linearRampToValueAtTime(f * .78, at + .16); bp.type = 'bandpass'; bp.frequency.value = 1100; bp.Q.value = 3; g.gain.setValueAtTime(0, at); g.gain.linearRampToValueAtTime(.06 * v, at + .015); g.gain.setTargetAtTime(0, at + .14, .03); o.connect(bp); bp.connect(g); g.connect(AU.bS); o.start(at); o.stop(at + .3); }
+function peep(at, v = 1) { tone(2400, at, .07, .02 * v, 'sine', 3000); }
+function plop(at, v = 1) { tone(420, at, .12, .04 * v, 'sine', 900); noiseHit(at, .05, { type: 'bandpass', f: 1600, q: 3, vol: .02 * v }); }
+function slurp(at) { noiseHit(at, .5, { type: 'bandpass', f: 600, f2: 2400, q: 4, vol: .05, atk: .1 }); tone(330, at, .4, .02, 'square', 660, AU.bV); }
+const PBPM = 120, PB = 60 / PBPM;
+const PCH = [[43, [59, 62, 67]], [38, [57, 62, 66]], [40, [59, 64, 67]], [36, [60, 64, 67]]];   // G · D · Em · C
+function scene3Events() {
+  const E = [], q = PB;
+  /* tema del parque: el motivo «dos estrellas» transportado a sol, más rápido, flauta de triángulo + pizzicato */
+  const sec = (a, b, full) => { for (let bar = 0; ; bar++) { const t0 = a + bar * q * 4; if (t0 >= b) break; const ch = PCH[bar % 4];
+    E.push([t0, at => tri(ch[0], at, q * 1.8, .8)]); E.push([t0 + q * 2, at => tri(ch[0] + 7, at, q * 1.8, .7)]);
+    for (let s = 0; s < 8; s++) { const at0 = t0 + s * q / 2; if (at0 >= b) break; E.push([at0, at => lead(ch[1][s % 3] + 12, at, q * .22, .28, 'pulse12')]); if (s % 2) E.push([at0, at => noiseHit(at, .04, { type: 'highpass', f: 8000, vol: .025, dest: AU.bM })]); }
+    if (full) { E.push([t0, at => nkick(at, .5)]); if (bar % 2 === 0) for (const [b_, n, d] of MOTIF) { const at0 = t0 + b_ * q * .5; if (at0 < b) E.push([at0, at => lead(n - 7 + 12, at, d * q * .45, .7, 'triangle')]); } } } };
+  sec(124.0, 134.6, true); sec(134.6, 141.4, false); sec(141.4, 146.6, true); sec(152.0, 169.6, true);
+  /* «ocho y media en la cocina»: vuelve la prisa */
+  for (let bar = 0; bar < 6; bar++) { const t0 = 169.6 + bar * BEAT2 * 4, ch = CH[bar % 4]; for (let s_ = 0; s_ < 16; s_ += 2) { const at0 = t0 + s_ * S16; if (at0 >= 179.6) break; if (s_ % 4 === 0) E.push([at0, at => nkick(at, .8)]); if (s_ === 4 || s_ === 12) E.push([at0, at => nsnare(at, .8)]); E.push([at0, at => tri(ch[0] + 5 + (s_ % 4 === 2 ? 12 : 0), at, S16 * 1.8)]); E.push([at0, at => lead(ch[1][(s_ / 2) % 3] + 17, at, S16 * 1.4, .28, 'pulse12')]); } for (const [sx, n, d] of MEL) { if ((sx >> 4) !== bar % 2) continue; const at0 = t0 + (sx % 16) * S16; if (at0 < 179.6) E.push([at0, at => lead(n + 5, at, d * S16 * .95, .85)]); } }
+  /* el invernadero se revela: acorde amplio y arpegio de caja de música */
+  E.push([146.6, at => pad([43, 50, 59, 62, 66], at, 5.6, 1.4)]); for (let k = 0; k < 16; k++) E.push([146.8 + k * .3, at => mbox([67, 71, 74, 78, 79, 83][k % 6] + (k > 8 ? 12 : 0), at, .45)]);
+  E.push([179.6, at => { for (const n of [67, 71, 74, 79]) mbox(n + 12, at, .5); pad([43, 55, 62, 71], at, 3, 1); }]);
+  /* Ramiro: «cuac» + los patitos; el fagot del «lo mismo digo» */
+  E.push([138.0, at => quack(at, 1.2, 260)]); for (let k = 0; k < 5; k++) E.push([136.2 + k * .7 + hsh(k, 3) * .3, at => peep(at, .8)]);
+  E.push([141.0, at => { tri(43, at, .25, .9); tri(38, at + .3, .5, .9); }]);
+  for (let t = 126; t < 176; t += 4 + hsh(t, 5) * 5) E.push([t, at => quack(at, .35, 300 + Math.random() * 60)]);
+  for (const [ts] of duckRings(150).concat(duckRings(137))) if (ts > 124 && ts < 180) E.push([ts, at => plop(at, .4)]);
+  /* pasos en la grava, sorbos, «quema», el riego */
+  for (const [ts] of STEPS3) E.push([ts, at => crunch(at, .8)]);
+  E.push([129.6, at => slurp(at)]); E.push([160.3, at => slurp(at)]);
+  for (let k = 0; k < 10; k++) E.push([130.65 + k * .09, at => tone(1200 + k * 120, at, .05, .02, 'square', null, AU.bV)]);
+  E.push([158.2, at => noiseHit(at, 15, { type: 'highpass', f: 4000, vol: .03, atk: 3 })]);
+  for (let t = 124; t < 181; t += .9 + hsh(t, 1) * 1.6) E.push([t, at => chirp(at, 1)]);
+  return E;
+}
 /* ---------- lechos ---------- */
 function filmAudioInit() {
   auBed('room', AU.brown, 'lowpass', 180, .5); auBed('city', AU.brown, 'bandpass', 420, .7); auBed('hiss', AU.white, 'highpass', 7000, .5); auBed('hall', AU.brown, 'lowpass', 300, .6);
-  auBed('traffic', AU.brown, 'lowpass', 260, .6); auBed('wind', AU.white, 'bandpass', 900, .5); auBed('murmur', AU.white, 'bandpass', 620, 2.4); auBed('cafe', AU.brown, 'lowpass', 400, .6);
+  auBed('traffic', AU.brown, 'lowpass', 260, .6); auBed('wind', AU.white, 'bandpass', 900, .5); auBed('murmur', AU.white, 'bandpass', 620, 2.4); auBed('cafe', AU.brown, 'lowpass', 400, .6); auBed('leaves', AU.white, 'bandpass', 2600, .4); auBed('water', AU.brown, 'bandpass', 320, .8);
 }
 function filmBeds(t, n) {
   const s1 = t < S1END + .5, s2a = t >= S1END && t < S2.B, s2b = t >= S2.B;
@@ -130,7 +164,8 @@ function filmBeds(t, n) {
   bedSet('city', s1 ? .028 * (1 - slowK(t) * .7) : 0, n);
   bedSet('hall', s1 && t > 40 ? .03 : 0, n);
   bedSet('traffic', s2a ? .07 : s2b ? .015 : 0, n); bedSet('wind', s2a ? .012 : 0, n);
-  bedSet('murmur', s2b ? .016 : 0, n); bedSet('cafe', s2b ? .04 : 0, n);
+  const s3 = t >= S3.A - .5; bedSet('murmur', s2b && !s3 ? .016 : 0, n); bedSet('cafe', s2b && !s3 ? .04 : 0, n);
+  bedSet('leaves', s3 ? .012 + .006 * Math.sin(t * .4) : 0, n); bedSet('water', s3 && t < 152 ? .03 : 0, n); if (s3) bedSet('traffic', .01, n);
   if (AU.bedL.murmur) AU.bedL.murmur.fl.frequency.setTargetAtTime(560 + 140 * Math.sin(t * .7), n, .3);
   const k = slowK(t); AU.sfx.gain.setTargetAtTime(1 - .4 * k, n, .1);
 }

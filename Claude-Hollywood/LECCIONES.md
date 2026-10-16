@@ -392,3 +392,11 @@ Prueba de 3:00 con todo lo nuevo: el rig, la magia de tinta y fondos con mucho d
 - **Ladrillo a distancia:** una baldosa de ladrillo como patrón multiplicado y teñida por edificio. Pintar ladrillo a ladrillo cada fachada lejana costaría segundos de carga.
 - **Personajes del mundo con su tema:** Valeria (barista) tiene un tema corto a 96 BPM con swing (pulso 12 %, bajo caminante en triángulo, acordes de caja de música, escobillas). Es liviano: unos 30 eventos por compás.
 - **La caja de diálogo sabe quién habla:** el ancla busca al hablante del diálogo activo (Teo en su escena o Valeria) para decidir si va arriba o abajo.
+
+## Entre el Vapor y el Bit · fase 3 (el parque y el Invernadero de día)
+- **Un estanque se ve solo si la cámara lo mira desde arriba:** con la cámara a la altura de Teo el agua era una tira. Hay que subirla (`y` −260) y compensar con `ty` negativo para que el personaje no se salga por abajo.
+- **El reflejo de alguien que corre junto a un vidrio** va a la profundidad del espejo (`2·z_vidrio − z_personaje`) a la misma x, con poca opacidad y recortado por paneles, cada uno algo corrido (vidrios curvos). Se lee de inmediato.
+- **Una hilera de un solo tipo de árbol parece papel tapiz:** hay que alternar sauces y árboles redondos con altura y profundidad al azar, también en el reflejo.
+- **Los círculos de color desenfocados en primer plano distraen** (parecen manchas de la lente); en primer plano, verdes.
+- **Un parque largo necesita un final:** la reja de salida con el escudo de la ciudad cierra el recorrido.
+- **Personajes de paso:** un pato que solo dice «Cuac.» (voz de pulso grave, ánimo de sueño) y la respuesta seca de Teo funcionan mejor que un diálogo largo.

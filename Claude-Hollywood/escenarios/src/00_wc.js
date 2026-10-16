@@ -77,3 +77,5 @@ function nightBake(S, col, a = 1) {
   g.fillStyle = `rgb(${col})`; g.fillRect(0, 0, c.width, c.height); g.globalCompositeOperation = 'destination-in'; g.drawImage(c, 0, 0);
   const sg = c.getContext('2d'); sg.save(); sg.setTransform(1, 0, 0, 1, 0, 0); sg.globalCompositeOperation = 'multiply'; sg.globalAlpha = a; sg.drawImage(t, 0, 0); sg.restore();
 }
+
+const pick3 = (r, a) => a[(r() * a.length) | 0];

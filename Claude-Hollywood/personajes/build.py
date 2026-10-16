@@ -22,7 +22,8 @@ canvas { image-rendering:pixelated; display:block; background:repeating-conic-gr
 <div class="grid" id="g"></div>
 <script>
 ''' + js + r'''
-const FR = { teo: [['quieto', {}], ['parpadeo', { blink: true }], ['dormido', { sleep: true }], ['sorpresa', { wide: true, mouthO: true }], ['feliz', { happy: true }], ['agotado', { tired: true, flat: true }], ['corre', { legL: 2 }], ['zuecos', { clogs: true, legR: 1 }], ['cuaderno', { top: 'cuaderno', clogs: true }], ['café', { cup: true, clogs: true }]],
+const FR = { teo: [['quieto', {}], ['parpadeo', { blink: true }], ['dormido', { sleep: true }], ['sorpresa', { wide: true, mouthO: true }], ['feliz', { happy: true }], ['agotado', { tired: true, flat: true }], ['corre', { legL: 2 }], ['zuecos', { clogs: true, legR: 1 }], ['cuaderno', { top: 'cuaderno', clogs: true }], ['café', { cup: true, clogs: true }], ['sorbo', { cup: true, sip: true, happy: true, clogs: true }]],
+  ramiro: [['nada', {}], ['cuac', { quack: true }], ['patito', { chick: true }]],
   valeria: [['quieta', {}], ['guiño', { wink: true }], ['feliz', { happy: true }], ['sorpresa', { wide: true, mouthO: true }]],
   rosa: [['quieta', {}], ['parpadeo', { blink: true }], ['feliz', { happy: true }], ['camina', { legL: 1 }]],
   brote: [['quieto', {}], ['feliz', { happy: true }]], tetera: [['quieta', {}], ['parpadeo', { blink: true }]], aguada: [['quieta', {}], ['parpadeo', { blink: true }]] };

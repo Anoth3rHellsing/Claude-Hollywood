@@ -21,6 +21,7 @@ Al crear un personaje nuevo se le da un **nombre realista** al azar.
 |---|---|---|
 | **Teo Cazorla** | Cazo de cobre con gorro de chef; el mango es su colita, con cinta roja. Jefe de partida en Brasa y Bruma. Voz 523 Hz, cuadrada. | Entre el Vapor y el Bit |
 | **Valeria Ocampo** | Jarrita de leche de acero con delantal de Molienda; barista, trabaja de pie sobre el mostrador. Voz 698 Hz, triángulo. Tema propio con swing. | Entre el Vapor y el Bit |
+| **Ramiro Lagos** | Ánade real del estanque del parque, con sus patitos. Solo dice «Cuac.». Voz 196 Hz, pulso. | Entre el Vapor y el Bit |
 | **Rosa Mijares** | Pancito de masa madre con gorro; segunda de cocina. Voz 392 Hz, triángulo. | Entre el Vapor y el Bit |
 | Brote | maceta con audífonos | Lo-Fi Codes |
 | Tetera | barista del carrito de café | Lo-Fi Codes |

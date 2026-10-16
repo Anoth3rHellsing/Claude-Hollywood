@@ -58,7 +58,6 @@ function paintBuilding(seed, w, h, o = {}) {
   S.w = w; S.h = h; S.vents = [[w * (.2 + r() * .6), -h - 20], [S.escape ? S.escape.x + 30 : w * .3, -400 - FL * (r() * 2 | 0)], [w * (.55 + r() * .3), -360 - FL - 60]];
   return S;
 }
-function pick3(r, a) { return a[(r() * a.length) | 0]; }
 /* ---------- la fachada de Molienda Reserva (cálida, al final de la calle) ---------- */
 function paintMoliendaFront() {
   const w = 900, h = 1150, S = spr([-20, -h - 80, w + 20, 2], .9), g = S.g;
@@ -125,8 +124,6 @@ function callePuddles(t, refl) {
   ctx.restore();
   ctx.strokeStyle = 'rgba(60,64,70,.45)'; ctx.lineWidth = 1.6; ctx.stroke(P);
 }
-/* sprite reflejado en el suelo (bajo su base) */
-function billMirror(S, x, z, a = .5) { const s = PS(z), p = PJ(x, 0, z), b = S.box; if (p[0] + b[2] * s < -SW / 2 || p[0] + b[0] * s > SW / 2) return; ctx.save(); ctx.translate(p[0], p[1]); ctx.scale(1, -1); ctx.globalAlpha = a; ctx.drawImage(S.c, b[0] * s, b[1] * s, (b[2] - b[0]) * s, (b[3] - b[1]) * s); ctx.restore(); }
 /* ---------- la calle en t ---------- */
 function drawCalle(t, o = {}) {
   lightsBegin(); T0();

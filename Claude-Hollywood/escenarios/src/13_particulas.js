@@ -62,3 +62,41 @@ function steamCols(t, src, o = {}) {
   }
   ctx.restore();
 }
+/* komorebi: manchas de sol que se cuelan entre las copas y tiemblan con el viento, sobre un plano horizontal.
+   R = {x0, x1, z0, z1, y}; devuelve una función luz(x, z) para iluminar a los personajes que pasan por debajo */
+function dappleAt(x, z, t, o = {}) { const cs = o.cell ?? 70, i = Math.floor(x / cs), j = Math.floor(z / cs); let v = 0;
+  for (let di = -1; di <= 1; di++) for (let dj = -1; dj <= 1; dj++) { const a = i + di, b = j + dj; if (hsh(a, b) > (o.dens ?? .55)) continue; const cx = (a + .5) * cs + (hsh(a, b + 1) - .5) * cs * .8 + Math.sin(t * (.9 + hsh(a, 3)) + a) * 8, cz = (b + .5) * cs + (hsh(a + 2, b) - .5) * cs * .8, r = cs * (.18 + hsh(a, b + 5) * .3), d = Math.hypot(x - cx, (z - cz) * .9) / r; if (d < 1) v = Math.max(v, (1 - d * d) * (.6 + .4 * Math.sin(t * 2.3 + a * 1.7 + b))); }
+  return v; }
+function dapple(t, R, o = {}) {
+  const cs = o.cell ?? 70, s0 = PS(R.z0), xs0 = Math.max(R.x0, CAM.x + (-SW / 2 - 40) / PS(R.z1)), xs1 = Math.min(R.x1, CAM.x + (SW / 2 + 40) / PS(R.z1));
+  ctx.save(); ctx.globalCompositeOperation = o.mode || 'screen';
+  for (let a = Math.floor(xs0 / cs); a * cs < xs1; a++) for (let b = Math.floor(R.z0 / cs); b * cs < R.z1; b++) {
+    if (hsh(a, b) > (o.dens ?? .55)) continue;
+    const cx = (a + .5) * cs + (hsh(a, b + 1) - .5) * cs * .8 + Math.sin(t * (.9 + hsh(a, 3)) + a) * 8, cz = (b + .5) * cs + (hsh(a + 2, b) - .5) * cs * .8; if (cz < R.z0 || cz > R.z1 || cz - CAM.z < 30) continue;
+    const r = cs * (.18 + hsh(a, b + 5) * .3), p = PJ(cx, R.y, cz), s = PS(cz), rx = r * s, ry = rx * Math.max(.08, (R.y - CAM.y) / Math.max(40, cz - CAM.z) * 1.1), k = (.6 + .4 * Math.sin(t * 2.3 + a * 1.7 + b)) * (o.a ?? .5);
+    const gr = ctx.createRadialGradient(p[0], p[1], 0, p[0], p[1], rx); gr.addColorStop(0, cssc(o.col || [255, 236, 170], k)); gr.addColorStop(.6, cssc(o.col || [255, 236, 170], k * .55)); gr.addColorStop(1, cssc(o.col || [255, 236, 170], 0));
+    ctx.fillStyle = gr; ctx.save(); ctx.translate(p[0], p[1]); ctx.scale(1, ry / rx); ctx.translate(-p[0], -p[1]); ctx.fillRect(p[0] - rx, p[1] - rx, rx * 2, rx * 2); ctx.restore();
+  }
+  ctx.restore();
+}
+/* rayos entre las copas: columnas inclinadas de luz en el aire húmedo (se mecen y respiran) */
+function godRays(t, list, o = {}) {
+  ctx.save(); ctx.globalCompositeOperation = 'screen';
+  for (const [x, z, w, ph] of list) {
+    const k = (o.a ?? .1) * (.6 + .4 * Math.sin(t * .5 + ph)), dx = o.dx ?? 260, y0 = o.y0 ?? -900, sw = Math.sin(t * .3 + ph) * 20;
+    const P = poly3([[x - w / 2 + sw, y0, z], [x + w / 2 + sw, y0, z], [x + w / 2 + dx, 0, z - (o.dz ?? 120)], [x - w / 2 + dx, 0, z - (o.dz ?? 120)]]); if (!P) continue;
+    const a = PJ(x, y0, z), b = PJ(x + dx, 0, z), gr = ctx.createLinearGradient(a[0], a[1], b[0], b[1]); gr.addColorStop(0, cssc(o.col || [255, 240, 190], k)); gr.addColorStop(1, cssc(o.col || [255, 240, 190], k * .15)); ctx.fillStyle = gr; ctx.fill(P);
+  }
+  ctx.restore();
+}
+/* piedritas y hojas secas que levantan los pasos: steps = [[t, x, z, dir]]; sin estado */
+function kickBits(t, steps, o = {}) {
+  const LC = [[204, 140, 52], [186, 96, 40], [220, 176, 70], [170, 60, 36]];
+  for (const [ts, x0, z0, dir] of steps) { const a = t - ts; if (a < 0 || a > 1.6) continue;
+    for (let i = 0; i < (o.n ?? 4); i++) { const h = k => hsh(i + ts * 13, k), leaf = h(1) < (o.leafP ?? .35);
+      if (!leaf) { const vx = (dir || 1) * -(40 + h(2) * 90), vy = 90 + h(3) * 160, vz = (h(4) - .5) * 60, tt = Math.min(a, 2 * vy / 980), y = -(vy * tt - 490 * tt * tt), x = x0 + vx * tt, z = z0 + vz * tt; if (a > 1.2) continue;
+        const p = PJ(x, y, z), r = Math.max(.7, (1 + h(5) * 1.5) * PS(z)); ctx.fillStyle = cssc(pick3(() => h(6), [[150, 140, 128], [176, 168, 156], [120, 110, 100]])); ctx.fillRect(p[0] - r, p[1] - r, r * 2, r * 1.6); }
+      else { const vx = (dir || 1) * -(30 + h(2) * 70), vy = 120 + h(3) * 160, k = 2.5, e = (1 - Math.exp(-k * a)) / k, y = Math.min(0, -(vy * e) + 60 * a * a), x = x0 + vx * e + Math.sin(a * 6 + i) * 10 * a, z = z0 + (h(4) - .5) * 80 * e, rot = a * (6 + h(5) * 6) * (h(6) < .5 ? -1 : 1), fl = Math.cos(a * 9 + i);
+        const p = PJ(x, y, z), s = (4 + h(7) * 3) * PS(z); ctx.save(); ctx.translate(p[0], p[1]); ctx.rotate(rot); ctx.scale(1, Math.max(.2, Math.abs(fl))); ctx.fillStyle = cssc(LC[(h(8) * 4) | 0]); ctx.beginPath(); ctx.moveTo(-s, 0); ctx.quadraticCurveTo(0, -s * .55, s, 0); ctx.quadraticCurveTo(0, s * .55, -s, 0); ctx.fill(); ctx.restore(); }
+    } }
+}

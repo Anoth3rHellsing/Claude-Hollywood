@@ -1,0 +1,27 @@
+{
+ "flow_id": "wZRVHdYAtDkhs2Ll2pYx",
+ "modelo": "eleven_v4",
+ "voice_id": "2CGcaXd1E04jesxY7nfq",
+ "hechas": [
+  "L01",
+  "L02",
+  "L03",
+  "L04",
+  "L05",
+  "L06",
+  "L07",
+  "L08",
+  "L09",
+  "L10",
+  "L11",
+  "L12",
+  "L13",
+  "L14",
+  "L15",
+  "L16",
+  "L17",
+  "L18"
+ ],
+ "faltan": {},
+ "nota": "Las 18 líneas listas. Una ráfaga de llamadas en paralelo desde la nube provocó 429 y un bloqueo temporal del plan gratuito; después, una a una, funcionó. Créditos usados ≈ 1.665."
+}

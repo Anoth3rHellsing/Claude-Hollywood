@@ -1,0 +1,176 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Marcas de Almagre</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Josefin+Sans:wght@400;600;700&family=Pacifico&family=Playfair+Display:wght@400;700&family=Space+Mono:wght@400;700&display=swap">
+<style>
+:root { --bg:#f3ecdc; --fg:#2a211c; --dim:#7a6c5c; --card:#fbf7ee; --line:#d9ccb2; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg:#1d1916; --fg:#f1e8d6; --dim:#a89a86; --card:#27221d; --line:#3b332b; } }
+:root[data-theme="dark"] { --bg:#1d1916; --fg:#f1e8d6; --dim:#a89a86; --card:#27221d; --line:#3b332b; }
+body { margin:0; background:var(--bg); color:var(--fg); font:16px/1.5 "Playfair Display", Georgia, serif; padding:24px 16px 48px; }
+h1 { font-size:30px; margin:0 0 4px; } p.sub { color:var(--dim); margin:0 0 24px; max-width:72ch; font-family:"Josefin Sans", sans-serif; }
+.grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(min(100%, 440px), 1fr)); gap:16px; }
+.card { background:var(--card); border:1px solid var(--line); border-radius:10px; overflow:hidden; }
+.card canvas { display:block; width:100%; height:auto; }
+.txt { padding:14px 16px 16px; font-family:"Josefin Sans", sans-serif; font-size:15px; }
+.txt h2 { font:700 20px "Playfair Display", Georgia, serif; margin:0; } .rubro { color:var(--dim); margin:2px 0 8px; }
+.lema { font-style:italic; font-family:"Playfair Display", Georgia, serif; margin:8px 0; }
+.chips { display:flex; gap:6px; margin-top:8px; } .chips span { width:28px; height:18px; border-radius:4px; border:1px solid var(--line); }
+.donde { color:var(--dim); font-size:13px; margin-top:8px; }
+</style></head><body>
+<h1>Marcas de Almagre</h1>
+<p class="sub">Identidades ficticias del mundo Clawd para decorar las películas: cada marca tiene carácter, lema, paleta y un emblema dibujado con código. Nada copia logos reales.</p>
+<div class="grid" id="g"></div>
+<script>
+const TAU = Math.PI * 2, PI = Math.PI;
+/* =====================================================================
+   MARCAS DEL MUNDO CLAWD · identidades ficticias para decorar las películas (como las de un mundo de Rockstar):
+   cada marca tiene nombre, rubro, personalidad, lema, paleta, tipografía y un emblema dibujado con código.
+   Nada copia logos reales: son genéricas en la forma y con alma en el carácter.
+   Uso: marcaLogo(g, id, x, y, h, o) dibuja emblema + nombre con la esquina superior izquierda en (x, y), alto h.
+        o.mono = [r,g,b] (todo en un color: grabado, sello, neón), o.layout = 'h' | 'v' | 'emblema', o.sub = false
+   ===================================================================== */
+const MFONT = {
+  serif: '"Playfair Display", "Cormorant Garamond", Georgia, serif', sans: '"Josefin Sans", "Futura", "Trebuchet MS", sans-serif',
+  cond: '"Bebas Neue", "Oswald", Impact, "Arial Narrow", sans-serif', mono: '"Space Mono", ui-monospace, "Courier New", monospace', script: '"Pacifico", "Brush Script MT", cursive',
+};
+const MARCAS = {
+  molienda: { nombre: 'Molienda', sub: 'RESERVA', rubro: 'Cadena de cafeterías de especialidad', fuente: 'serif',
+    personalidad: 'Solemne y artesanal; habla del grano como de un vino. Nogal, latón, mármol y luz ámbar. Un poco pretenciosa, pero el café es bueno de verdad.',
+    lema: 'Cada taza, una geografía.', pal: [[110, 36, 48], [201, 163, 90], [243, 233, 214], [30, 26, 24]], donde: 'Cafetería de la escena 2, tazas, vasos de cartón, bolsas kraft, la taza del estudio' },
+  vaporetta: { nombre: 'Vaporetta', sub: 'FIRENZE · 1931', rubro: 'Máquinas de espresso de palanca y caldera', fuente: 'script',
+    personalidad: 'Orgullo italiano y teatro: cromo, rojo y un silbido de vapor. Cree que la presión es una emoción.',
+    lema: 'La presión es una emoción.', pal: [[179, 36, 31], [200, 204, 210], [26, 24, 26], [246, 242, 236]], donde: 'La cafetera cromada de la barra' },
+  brujula: { nombre: 'Guía Brújula', sub: 'GASTRONÓMICA', rubro: 'Guía de restaurantes (otorga estrellas)', fuente: 'serif',
+    personalidad: 'Severa, anónima y puntual. Sus inspectores comen solos y nunca repiten plato. Tinta azul, papel crema.',
+    lema: 'Donde apunta, se come.', pal: [[31, 47, 85], [200, 162, 74], [244, 238, 224], [140, 30, 36]], donde: 'Diploma enmarcado en el estudio, placa en la puerta del restaurante' },
+  brasa: { nombre: 'Brasa y Bruma', sub: 'COCINA DE FUEGO Y VAPOR', rubro: 'Restaurante · dos estrellas Guía Brújula', fuente: 'sans',
+    personalidad: 'Obsesiva y poética: rigor de cocina japonesa con alma del sur. Acero, binchotan y silencio. Donde trabaja Teo.',
+    lema: 'Fuego lento, memoria larga.', pal: [[35, 32, 30], [212, 87, 42], [207, 214, 216], [246, 240, 230]], donde: 'Chaqueta de Teo, delantales, la cocina de la escena 4' },
+  kronotek: { nombre: 'Kronotek', sub: 'DIGITAL', rubro: 'Relojes y electrónica de consumo (desde 1983)', fuente: 'cond',
+    personalidad: 'Retrofuturista y entusiasta, como un anuncio de 1984. Cree que todo es mejor con LED rojo.',
+    lema: 'El tiempo, en rojo.', pal: [[255, 59, 48], [30, 30, 34], [190, 194, 200], [250, 250, 250]], donde: 'El despertador del estudio, el reloj de pared de la cocina' },
+  sobremesa: { nombre: 'Sobremesa', sub: 'EDICIONES', rubro: 'Editorial de libros de gastronomía', fuente: 'serif',
+    personalidad: 'Erudita y glotona; tapas de tela y post-its. Publica tratados de cocina que nadie termina pero todos subrayan.',
+    lema: 'Libros para leer con hambre.', pal: [[47, 75, 58], [232, 222, 200], [150, 60, 40], [36, 32, 28]], donde: 'Lomos de la estantería del estudio',
+    libros: ['El Laberinto Líquido', 'Fermento del Norte', 'Enciclopedia del Fuego Lento', 'Cien Salsas Madre', 'Cortes y Cuchillos', 'La Cocina del Vapor', 'Atlas de Especias', 'Pan Antiguo', 'Umami: un diccionario', 'Mar y Brasa', 'Técnica Clásica II', 'El Arte del Caldo', 'Nieve y Azúcar', 'Fuego Japonés', 'Hierbas del Sur'] },
+  gabinete: { nombre: 'Láminas del Gabinete', sub: 'IMPRENTA BOTÁNICA', rubro: 'Láminas didácticas y botánicas', fuente: 'serif',
+    personalidad: 'Naturalista del siglo XIX que se enamoró de la cocina: dibuja cortes de carne como si fueran helechos.',
+    lema: 'Todo se entiende mejor dibujado.', pal: [[120, 84, 52], [228, 214, 186], [70, 98, 64], [36, 30, 26]], donde: 'Pósters del estudio' },
+  tsukiyo: { nombre: 'Tsukiyo', sub: 'HAMONO', rubro: 'Cuchillos forjados (gyuto, santoku)', fuente: 'sans',
+    personalidad: 'Silenciosa y exacta. Una luna creciente sobre el filo; acero de damasco y un sello bermellón.',
+    lema: 'Un corte, una luna.', pal: [[40, 40, 46], [196, 200, 206], [204, 52, 40], [246, 244, 238]], donde: 'Diagrama de cuchillos del estudio, barras magnéticas de la cocina' },
+  firme: { nombre: 'Firme', sub: 'ZUECOS DE COCINA', rubro: 'Calzado profesional', fuente: 'cond',
+    personalidad: 'Práctica, nada glamorosa, indestructible. Habla como una jefa de cocina a las 23:00.',
+    lema: 'Pisa firme, cocina largo.', pal: [[30, 30, 32], [236, 190, 40], [246, 246, 240], [120, 120, 126]], donde: 'Los zuecos de Teo' },
+  valdes: { nombre: 'Cobre Valdés', sub: 'MARTILLADO A MANO', rubro: 'Fundición familiar de batería de cobre', fuente: 'serif',
+    personalidad: 'Familiar, cálida, de taller con radio. Cada cazo sale con su nombre. (Teo nació en este taller).',
+    lema: 'Calor que se hereda.', pal: [[190, 104, 56], [92, 56, 36], [246, 232, 210], [36, 30, 26]], donde: 'Sartenes de cobre colgadas en la cocina, origen de Teo' },
+  almagre: { nombre: 'Ciudad de Almagre', sub: 'SERVICIOS MUNICIPALES', rubro: 'La ciudad (escudo municipal)', fuente: 'sans',
+    personalidad: 'Puerto viejo de ladrillo rojo y vapor de calderas. Burocrática pero orgullosa de sus farolas de hierro.',
+    lema: 'Ladrillo, vapor y puerto.', pal: [[138, 59, 43], [232, 220, 198], [52, 70, 86], [200, 160, 70]], donde: 'Parquímetros, bocas de incendio, farolas, señales, bancos del parque' },
+  nimbo: { nombre: 'Nimbo', sub: '', rubro: 'Portátiles', fuente: 'sans',
+    personalidad: 'Minimalista, blanca y un poco engreída. Su nube brilla en la tapa de todas las laptops de la cafetería.',
+    lema: 'Piensa en nube.', pal: [[236, 240, 244], [120, 170, 230], [40, 44, 52], [180, 186, 196]], donde: 'Laptops de la cafetería' },
+  medialuna: { nombre: 'Hotel Medialuna', sub: '', rubro: 'Hotel (letrero de neón)', fuente: 'script',
+    personalidad: 'Noctámbulo y romántico; su neón magenta y cian se cuela por todas las ventanas de la calle.',
+    lema: 'Duerme cuando la luna se canse.', pal: [[255, 70, 170], [80, 230, 240], [24, 20, 40], [255, 236, 250]], donde: 'Neón que entra por la ventana del estudio de noche' },
+  tikket: { nombre: 'Tikket', sub: 'IMPRESORAS TÉRMICAS', rubro: 'Impresoras de comandas', fuente: 'mono',
+    personalidad: 'Incansable y algo pasivo-agresiva: imprime comandas sin pausa y pita cuando nadie la mira.',
+    lema: 'Una comanda más.', pal: [[40, 40, 44], [240, 240, 236], [60, 160, 120], [200, 60, 50]], donde: 'Impresora de comandas de la cocina (escena 5)' },
+};
+const mcss = (c, a = 1) => `rgba(${c[0] | 0},${c[1] | 0},${c[2] | 0},${a})`;
+/* ---------- emblemas en un cuadrado de lado 1 (origen arriba a la izquierda) ---------- */
+const MEMB = {
+  molienda(g, P) {   /* sello redondo: piedra de molino con estrías y una voluta de vapor */
+    g.fillStyle = mcss(P[0]); g.beginPath(); g.arc(.5, .5, .5, 0, TAU); g.fill();
+    g.strokeStyle = mcss(P[1]); g.lineWidth = .025; g.beginPath(); g.arc(.5, .5, .44, 0, TAU); g.stroke();
+    g.fillStyle = mcss(P[2]); g.beginPath(); g.arc(.5, .58, .22, 0, TAU); g.fill();
+    g.strokeStyle = mcss(P[0]); g.lineWidth = .018; for (let k = 0; k < 8; k++) { const a = k / 8 * TAU; g.beginPath(); g.moveTo(.5 + Math.cos(a) * .06, .58 + Math.sin(a) * .06); g.lineTo(.5 + Math.cos(a + .35) * .2, .58 + Math.sin(a + .35) * .2); g.stroke(); }
+    g.fillStyle = mcss(P[0]); g.beginPath(); g.arc(.5, .58, .045, 0, TAU); g.fill();
+    g.strokeStyle = mcss(P[1]); g.lineWidth = .035; g.lineCap = 'round'; g.beginPath(); g.moveTo(.5, .33); g.bezierCurveTo(.42, .26, .58, .22, .5, .13); g.stroke();
+  },
+  vaporetta(g, P) {   /* V alada con un hilo de vapor */
+    g.fillStyle = mcss(P[0]); g.beginPath(); g.moveTo(.22, .25); g.lineTo(.5, .9); g.lineTo(.78, .25); g.lineTo(.64, .25); g.lineTo(.5, .62); g.lineTo(.36, .25); g.closePath(); g.fill();
+    g.fillStyle = mcss(P[1]); for (const s of [-1, 1]) { g.beginPath(); for (let k = 0; k < 3; k++) { const y = .3 + k * .1; g.moveTo(.5 + s * (.3 + k * .02), y); g.quadraticCurveTo(.5 + s * (.48 - k * .04), y - .06, .5 + s * (.5 - k * .05), y + .02); g.lineTo(.5 + s * (.32 + k * .02), y + .05); } g.fill(); }
+    g.strokeStyle = mcss(P[1]); g.lineWidth = .03; g.lineCap = 'round'; g.beginPath(); g.moveTo(.5, .2); g.bezierCurveTo(.44, .14, .56, .1, .5, .03); g.stroke();
+  },
+  brujula(g, P) {   /* rosa de los vientos con estrella al centro */
+    g.strokeStyle = mcss(P[0]); g.lineWidth = .03; g.beginPath(); g.arc(.5, .5, .46, 0, TAU); g.stroke();
+    for (let k = 0; k < 4; k++) { const a = k * PI / 2 - PI / 2; g.fillStyle = mcss(k % 2 ? P[0] : P[1]); g.beginPath(); g.moveTo(.5 + Math.cos(a) * .44, .5 + Math.sin(a) * .44); g.lineTo(.5 + Math.cos(a + .5) * .1, .5 + Math.sin(a + .5) * .1); g.lineTo(.5, .5); g.lineTo(.5 + Math.cos(a - .5) * .1, .5 + Math.sin(a - .5) * .1); g.closePath(); g.fill(); }
+    g.fillStyle = mcss(P[2]); mStar(g, .5, .5, .09, .04, 5); g.fill(); g.strokeStyle = mcss(P[0]); g.lineWidth = .012; g.stroke();
+  },
+  brasa(g, P) {   /* brasa en rombo bajo tres líneas de bruma */
+    g.fillStyle = mcss(P[1]); g.beginPath(); g.moveTo(.5, .14); g.bezierCurveTo(.72, .36, .7, .58, .5, .7); g.bezierCurveTo(.3, .58, .28, .36, .5, .14); g.fill();
+    g.fillStyle = mcss(shiftC(P[1], .35)); g.beginPath(); g.moveTo(.5, .36); g.bezierCurveTo(.6, .48, .58, .58, .5, .63); g.bezierCurveTo(.42, .58, .4, .48, .5, .36); g.fill();
+    g.strokeStyle = mcss(P[0]); g.lineCap = 'round'; for (let k = 0; k < 3; k++) { g.lineWidth = .04 - k * .008; g.beginPath(); const y = .76 + k * .08; g.moveTo(.16 + k * .06, y); g.bezierCurveTo(.36, y - .05, .5, y + .05, .84 - k * .06, y - .01); g.stroke(); }
+  },
+  kronotek(g, P) {   /* K en cuña con líneas de velocidad */
+    g.fillStyle = mcss(P[0]); g.beginPath(); g.moveTo(.3, .15); g.lineTo(.46, .15); g.lineTo(.4, .45); g.lineTo(.72, .15); g.lineTo(.92, .15); g.lineTo(.56, .48); g.lineTo(.8, .85); g.lineTo(.6, .85); g.lineTo(.44, .58); g.lineTo(.38, .85); g.lineTo(.2, .85); g.closePath(); g.fill();
+    g.fillStyle = mcss(P[2]); for (let k = 0; k < 3; k++) g.fillRect(.02, .32 + k * .14, .2 - k * .04, .05);
+  },
+  sobremesa(g, P) {   /* libro abierto con un tenedor como marcapáginas */
+    g.fillStyle = mcss(P[0]); g.beginPath(); g.moveTo(.5, .3); g.quadraticCurveTo(.3, .2, .08, .26); g.lineTo(.08, .8); g.quadraticCurveTo(.3, .74, .5, .84); g.quadraticCurveTo(.7, .74, .92, .8); g.lineTo(.92, .26); g.quadraticCurveTo(.7, .2, .5, .3); g.fill();
+    g.strokeStyle = mcss(P[1]); g.lineWidth = .02; for (let k = 0; k < 3; k++) { g.beginPath(); g.moveTo(.16, .38 + k * .12); g.quadraticCurveTo(.3, .34 + k * .12, .44, .4 + k * .12); g.stroke(); g.beginPath(); g.moveTo(.56, .4 + k * .12); g.quadraticCurveTo(.7, .34 + k * .12, .84, .38 + k * .12); g.stroke(); }
+    g.fillStyle = mcss(P[2]); g.fillRect(.47, .06, .06, .36); for (let k = 0; k < 4; k++) g.fillRect(.445 + k * .03, .02, .018, .1);
+  },
+  gabinete(g, P) {   /* cartela ovalada con una hoja */
+    g.strokeStyle = mcss(P[0]); g.lineWidth = .03; g.beginPath(); g.ellipse(.5, .5, .36, .46, 0, 0, TAU); g.stroke(); g.lineWidth = .012; g.beginPath(); g.ellipse(.5, .5, .31, .41, 0, 0, TAU); g.stroke();
+    g.fillStyle = mcss(P[2]); g.beginPath(); g.moveTo(.5, .2); g.bezierCurveTo(.72, .36, .66, .64, .5, .8); g.bezierCurveTo(.34, .64, .28, .36, .5, .2); g.fill();
+    g.strokeStyle = mcss(P[1]); g.lineWidth = .015; g.beginPath(); g.moveTo(.5, .24); g.lineTo(.5, .78); for (let k = 0; k < 4; k++) { g.moveTo(.5, .34 + k * .1); g.lineTo(.6, .28 + k * .1); g.moveTo(.5, .36 + k * .1); g.lineTo(.4, .3 + k * .1); } g.stroke();
+  },
+  tsukiyo(g, P) {   /* luna creciente sobre un filo, sello bermellón */
+    g.fillStyle = mcss(P[0]); g.beginPath(); g.arc(.42, .38, .26, 0, TAU); g.fill(); g.globalCompositeOperation = 'destination-out'; g.beginPath(); g.arc(.52, .32, .23, 0, TAU); g.fill(); g.globalCompositeOperation = 'source-over';
+    g.fillStyle = mcss(P[1]); g.beginPath(); g.moveTo(.06, .74); g.lineTo(.86, .7); g.quadraticCurveTo(.94, .72, .9, .76); g.lineTo(.06, .8); g.closePath(); g.fill();
+    g.fillStyle = mcss(P[0]); g.fillRect(.06, .74, .22, .07);
+    g.fillStyle = mcss(P[2]); g.fillRect(.72, .14, .18, .18);
+  },
+  firme(g, P) {   /* huella de zueco con una barra de firmeza */
+    g.fillStyle = mcss(P[0]); g.beginPath(); g.ellipse(.42, .32, .2, .22, -.25, 0, TAU); g.fill(); g.beginPath(); g.ellipse(.5, .74, .16, .17, -.2, 0, TAU); g.fill();
+    g.fillStyle = mcss(P[1]); g.fillRect(.12, .5, .76, .07);
+  },
+  valdes(g, P) {   /* cazo de perfil y martillo cruzado */
+    g.fillStyle = mcss(P[0]); g.beginPath(); g.moveTo(.18, .42); g.lineTo(.66, .42); g.lineTo(.62, .78); g.quadraticCurveTo(.42, .86, .22, .78); g.closePath(); g.fill(); g.fillRect(.64, .44, .32, .06);
+    g.strokeStyle = mcss(P[1]); g.lineWidth = .04; g.lineCap = 'round'; g.beginPath(); g.moveTo(.2, .12); g.lineTo(.6, .36); g.stroke(); g.fillStyle = mcss(P[1]); g.save(); g.translate(.2, .12); g.rotate(-.55 + PI / 2); g.fillRect(-.09, -.04, .18, .08); g.restore();
+    g.fillStyle = mcss(shiftC(P[0], .3)); for (let k = 0; k < 5; k++) { g.beginPath(); g.arc(.26 + k * .08, .58 + (k % 2) * .08, .018, 0, TAU); g.fill(); }
+  },
+  almagre(g, P) {   /* escudo con torre de ladrillo y olas de vapor */
+    g.fillStyle = mcss(P[0]); g.beginPath(); g.moveTo(.12, .08); g.lineTo(.88, .08); g.lineTo(.88, .52); g.quadraticCurveTo(.86, .84, .5, .96); g.quadraticCurveTo(.14, .84, .12, .52); g.closePath(); g.fill();
+    g.fillStyle = mcss(P[1]); g.fillRect(.38, .3, .24, .34); for (let k = 0; k < 3; k++) g.fillRect(.36 + k * .1, .22, .07, .09);
+    g.fillStyle = mcss(P[0]); g.fillRect(.46, .48, .08, .16);
+    g.strokeStyle = mcss(P[1]); g.lineWidth = .03; g.lineCap = 'round'; for (let k = 0; k < 2; k++) { g.beginPath(); for (let i = 0; i <= 8; i++) { const x = .22 + i * .07, y = .74 + k * .08 + Math.sin(i * 1.6) * .02; i ? g.lineTo(x, y) : g.moveTo(x, y); } g.stroke(); }
+  },
+  nimbo(g, P) { g.fillStyle = mcss(P[1]); g.beginPath(); g.arc(.36, .58, .17, PI * .5, PI * 1.5); g.arc(.52, .42, .22, PI, PI * 2); g.arc(.7, .58, .15, PI * 1.5, PI * .5); g.closePath(); g.fill(); },
+  medialuna(g, P) { g.strokeStyle = mcss(P[0]); g.lineWidth = .06; g.beginPath(); g.arc(.5, .5, .36, PI * .3, PI * 1.7); g.stroke(); g.strokeStyle = mcss(P[1]); g.lineWidth = .04; mStar(g, .62, .4, .1, .045, 5); g.stroke(); },
+  tikket(g, P) { g.fillStyle = mcss(P[0]); g.fillRect(.15, .3, .7, .36); g.fillStyle = mcss(P[1]); g.beginPath(); g.moveTo(.3, .12); g.lineTo(.7, .12); g.lineTo(.7, .5); for (let k = 0; k < 6; k++) g.lineTo(.7 - (k + .5) * .4 / 6, .5 + (k % 2 ? 0 : .04)); g.lineTo(.3, .5); g.closePath(); g.fill(); g.fillStyle = mcss(P[2]); g.fillRect(.72, .56, .06, .05); },
+};
+function mStar(g, cx, cy, ro, ri, n) { g.beginPath(); for (let k = 0; k < n * 2; k++) { const a = -PI / 2 + k * PI / n, r = k % 2 ? ri : ro; k ? g.lineTo(cx + Math.cos(a) * r, cy + Math.sin(a) * r) : g.moveTo(cx + Math.cos(a) * r, cy + Math.sin(a) * r); } g.closePath(); }
+function shiftC(c, k) { return k < 0 ? c.map(v => v * (1 + k)) : c.map(v => v + (255 - v) * k); }
+/* ---------- logo completo ---------- */
+function marcaLogo(g, id, x, y, h, o = {}) {
+  const M = MARCAS[id]; if (!M) return 0;
+  const P = o.mono ? [o.mono, o.mono, o.monoBg || [244, 238, 224], o.mono] : M.pal, lum = c => c[0] * .3 + c[1] * .59 + c[2] * .11, byL = M.pal.slice().sort((a, b) => lum(a) - lum(b)), ink = o.mono || (o.dark ? byL[byL.length - 1] : byL[0]), layout = o.layout || 'h';
+  g.save(); g.globalAlpha *= o.a ?? 1;
+  g.save(); g.translate(x, y); g.scale(h, h); MEMB[id](g, P); g.restore();
+  if (layout === 'emblema') { g.restore(); return h; }
+  const f = MFONT[M.fuente] || MFONT.serif, wx = layout === 'h' ? x + h * 1.15 : x + h / 2, wy = layout === 'h' ? y + h * (M.sub && o.sub !== false ? .52 : .66) : y + h * 1.32;
+  g.fillStyle = mcss(ink); g.textAlign = layout === 'h' ? 'left' : 'center'; g.textBaseline = 'alphabetic';
+  g.font = `${M.fuente === 'cond' ? 400 : 700} ${h * (M.fuente === 'cond' ? .62 : .44)}px ${f}`;
+  const name = M.fuente === 'cond' ? M.nombre.toUpperCase() : M.nombre; g.fillText(name, wx, wy); const tw = g.measureText(name).width;
+  if (M.sub && o.sub !== false) { g.font = `600 ${h * .17}px ${MFONT.sans}`; if ('letterSpacing' in g) g.letterSpacing = `${h * .04}px`; g.fillStyle = mcss(o.mono || (lum(M.pal[0]) < 140 !== !!o.dark ? M.pal[0] : M.pal[1])); g.fillText(M.sub, wx, wy + h * .3); if ('letterSpacing' in g) g.letterSpacing = '0px'; }
+  g.restore(); return (layout === 'h' ? h * 1.15 + tw : Math.max(h, tw));
+}
+
+async function go() {
+  try { await Promise.race([document.fonts.load('700 20px "Playfair Display"'), new Promise(r => setTimeout(r, 2500))]); await Promise.race([Promise.all(['20px "Bebas Neue"', '700 20px "Josefin Sans"', '20px "Pacifico"', '20px "Space Mono"'].map(f => document.fonts.load(f))), new Promise(r => setTimeout(r, 2500))]); } catch (e) {}
+  const G = document.getElementById('g');
+  for (const id in MARCAS) { const M = MARCAS[id], d = document.createElement('div'); d.className = 'card';
+    const c = document.createElement('canvas'); c.width = 880; c.height = 300; const g = c.getContext('2d');
+    g.fillStyle = '#f6f0e4'; g.fillRect(0, 0, 440, 300); g.fillStyle = '#1e1a18'; g.fillRect(440, 0, 440, 300);
+    marcaLogo(g, id, 26, 118, 62, {});
+    marcaLogo(g, id, 466, 118, 62, { dark: true });
+    d.appendChild(c);
+    d.insertAdjacentHTML('beforeend', `<div class="txt"><h2>${M.nombre}</h2><div class="rubro">${M.rubro}</div><div>${M.personalidad}</div><div class="lema">«${M.lema}»</div><div class="chips">${M.pal.map(p => `<span style="background:rgb(${p})"></span>`).join('')}</div><div class="donde">Aparece en: ${M.donde}</div>${M.libros ? `<div class="donde">Títulos: ${M.libros.join(' · ')}</div>` : ''}</div>`);
+    G.appendChild(d); }
+}
+go();
+</script></body></html>

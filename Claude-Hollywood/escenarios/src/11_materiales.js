@@ -1,0 +1,250 @@
+/* =====================================================================
+   ESCENARIOS · MATERIALES: cada uno es un pintor que devuelve una textura (tex) en unidades de mundo.
+   El detalle sale de pintar pieza por pieza lo que el material ES (cada ladrillo, cada tabla, cada hebra)
+   y luego desgastarlo con lo que le pasó (cal vieja, salitre, hollín, pasos, rayones).
+   ===================================================================== */
+/* ---------- ladrillo visto desgastado ---------- */
+function matBrick(w, h, o = {}) {
+  const T = tex(w, h, o.d ?? 1.6), g = T.g, r = mulberry32(o.seed ?? 7);
+  const mortar = o.mortar ?? [178, 166, 148], BW = o.bw ?? 21.5, BH = o.bh ?? 6.5, J = o.j ?? 1.3;
+  const cols = o.cols ?? [[150, 70, 50], [168, 86, 58], [132, 60, 44], [182, 104, 72], [120, 56, 46], [158, 96, 76], [142, 78, 58], [174, 78, 52]];
+  g.fillStyle = cssc(mortar); g.fillRect(0, 0, w, h);
+  for (let i = 0; i < w * h / 22; i++) { g.fillStyle = `rgba(${r() < .5 ? '90,80,70' : '240,232,220'},${r() * .2})`; g.fillRect(r() * w, r() * h, .7, .7); }
+  let row = 0;
+  for (let y = h - BH - J / 2; y > -BH; y -= BH + J, row++) {
+    const off = (row % 2) * (BW + J) / 2 + (o.bond === 'random' ? r() * BW : 0);
+    for (let x = -off - BW; x < w; x += BW + J) {
+      const bx = x + (r() - .5) * .5, by = y + (r() - .5) * .35, bw = BW + (r() - .5) * .9, bh = BH + (r() - .5) * .5;
+      let c = cols[Math.floor(r() * cols.length)]; c = shc(c, (r() - .5) * .16);
+      /* esquinas mordidas: el ladrillo viejo pierde los cantos */
+      const k = () => r() < .35 ? .6 + r() * 1.6 : r() * .4;
+      const P = [[bx + k(), by], [bx + bw - k(), by], [bx + bw, by + k()], [bx + bw, by + bh - k()], [bx + bw - k(), by + bh], [bx + k(), by + bh], [bx, by + bh - k()], [bx, by + k()]];
+      const path = pPolys([P]), gr = g.createLinearGradient(0, by, 0, by + bh);
+      gr.addColorStop(0, cssc(shc(c, .1))); gr.addColorStop(1, cssc(shc(c, -.14))); g.fillStyle = gr; g.fill(path);
+      g.save(); g.clip(path);
+      for (let m = 0; m < 4; m++) { g.fillStyle = cssc(shc(c, r() < .5 ? -.25 : .2), .22 + r() * .2); g.beginPath(); g.ellipse(bx + r() * bw, by + r() * bh, 1 + r() * 4, .6 + r() * 1.8, r() * 3, 0, TAU); g.fill(); }
+      for (let m = 0; m < 10; m++) { g.fillStyle = `rgba(40,20,14,${r() * .35})`; g.fillRect(bx + r() * bw, by + r() * bh, .5, .5); }
+      if (r() < .12) { g.fillStyle = 'rgba(60,30,24,.35)'; g.fillRect(bx, by, bw, bh); }   // ladrillo quemado
+      g.restore();
+      g.strokeStyle = 'rgba(255,236,214,.22)'; g.lineWidth = .5; g.beginPath(); g.moveTo(bx + 1, by + .3); g.lineTo(bx + bw - 1, by + .3); g.stroke();      // canto que recibe luz
+      g.strokeStyle = 'rgba(40,24,20,.4)'; g.lineWidth = .8; g.beginPath(); g.moveTo(bx + .5, by + bh + .4); g.lineTo(bx + bw, by + bh + .4); g.lineTo(bx + bw + .4, by + .8); g.stroke();   // sombra en la junta
+    }
+  }
+  /* cal vieja: restos de pintura blanca en zonas, con borde de pincel seco */
+  if (o.whitewash !== false) {
+    const lw = Math.ceil(w / 2), lh = Math.ceil(h / 2), m = mk(lw, lh), mg = m.getContext('2d'), im = mg.createImageData(lw, lh);
+    for (let j = 0; j < lh; j++) for (let i = 0; i < lw; i++) { const v = FBM(i * .012 + 5, j * .018 + 2, 5) + N2(i * .2, j * .2) * .12 - (o.wash ?? .12), k = (j * lw + i) * 4; im.data[k] = 236; im.data[k + 1] = 228; im.data[k + 2] = 214; im.data[k + 3] = clamp(v * 4) * 200; }
+    mg.putImageData(im, 0, 0); g.save(); g.globalAlpha = .75; g.drawImage(m, 0, 0, w, h); g.restore();
+  }
+  /* salitre abajo, hollín que chorrea desde arriba */
+  const ef = g.createLinearGradient(0, h, 0, h - 60); ef.addColorStop(0, 'rgba(244,240,230,.45)'); ef.addColorStop(1, 'rgba(244,240,230,0)'); g.fillStyle = ef; g.fillRect(0, h - 60, w, 60);
+  for (let i = 0; i < (o.soot ?? 6); i++) { const x = r() * w, ww = 8 + r() * 30, ll = 30 + r() * 120, sg = g.createLinearGradient(0, 0, 0, ll); sg.addColorStop(0, 'rgba(40,30,30,.3)'); sg.addColorStop(1, 'rgba(40,30,30,0)'); g.fillStyle = sg; g.globalCompositeOperation = 'multiply'; g.fillRect(x, 0, ww, ll); g.globalCompositeOperation = 'source-over'; }
+  wcTex(g, T.c.width, T.c.height, .35, .3);
+  return T;
+}
+/* ---------- yeso pintado (con paneles, grietas finas y roces) ---------- */
+function matPlaster(w, h, o = {}) {
+  const T = tex(w, h, o.d ?? 1.4), g = T.g, r = mulberry32(o.seed ?? 3), c = o.c ?? [232, 222, 202];
+  const gr = g.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, cssc(shc(c, .04))); gr.addColorStop(1, cssc(shc(c, -.08))); g.fillStyle = gr; g.fillRect(0, 0, w, h);
+  g.globalCompositeOperation = 'multiply';
+  for (let i = 0; i < 40; i++) { const x = r() * w, y = r() * h, rr = 20 + r() * 90, rg = g.createRadialGradient(x, y, 0, x, y, rr), cc = r() < .5 ? [214, 200, 176] : [226, 214, 200]; rg.addColorStop(0, cssc(cc, .35)); rg.addColorStop(1, cssc(cc, 0)); g.fillStyle = rg; g.fillRect(x - rr, y - rr, rr * 2, rr * 2); }
+  g.globalCompositeOperation = 'source-over';
+  /* pasadas de llana */
+  for (let i = 0; i < 70; i++) { const x = r() * w, y = r() * h, a = r() * TAU, l = 20 + r() * 50; g.strokeStyle = `rgba(${r() < .5 ? '255,250,240' : '150,130,110'},${.05 + r() * .06})`; g.lineWidth = 2 + r() * 5; g.beginPath(); g.arc(x, y, l, a, a + .5 + r() * .6); g.stroke(); }
+  /* grietas capilares */
+  for (let i = 0; i < (o.cracks ?? 4); i++) { let x = r() * w, y = r() * h * .8; const pts = [[x, y]]; for (let k = 0; k < 14; k++) { x += (r() - .3) * 9; y += 2 + r() * 7; pts.push([x, y]); } wcInk(g, pts, .5, .35, i * 7, .3, [90, 76, 64]); }
+  if (o.panels) for (const px of o.panels) { g.fillStyle = 'rgba(120,100,80,.25)'; g.fillRect(px, 0, 1, h); g.fillStyle = 'rgba(255,250,240,.35)'; g.fillRect(px + 1, 0, 1, h); }
+  /* roces y suciedad abajo */
+  const sd = g.createLinearGradient(0, h, 0, h - 40); sd.addColorStop(0, 'rgba(110,90,70,.25)'); sd.addColorStop(1, 'rgba(110,90,70,0)'); g.fillStyle = sd; g.fillRect(0, h - 40, w, 40);
+  for (let i = 0; i < 12; i++) { g.strokeStyle = `rgba(80,66,56,${.08 + r() * .1})`; g.lineWidth = .6 + r(); const x = r() * w, y = h - 10 - r() * 60; g.beginPath(); g.moveTo(x, y); g.lineTo(x + 6 + r() * 20, y + (r() - .5) * 4); g.stroke(); }
+  wcTex(g, T.c.width, T.c.height, .3, .25);
+  return T;
+}
+/* ---------- madera: veta con nudos, por tablas ---------- */
+function woodGrain(g, x, y, w, h, c, r, o = {}) {
+  const gr = g.createLinearGradient(x, y, x, y + h); gr.addColorStop(0, cssc(shc(c, .08))); gr.addColorStop(1, cssc(shc(c, -.1))); g.fillStyle = gr; g.fillRect(x, y, w, h);
+  g.save(); g.beginPath(); g.rect(x, y, w, h); g.clip();
+  const n = Math.max(3, Math.round(h / (o.gap ?? 1.6))), ph = r() * 50, fq = o.fq ?? .02;
+  for (let i = 0; i < n; i++) {
+    const yy = y + (i + .5) * h / n, a = .06 + r() * .16, dk = r() < .7;
+    g.strokeStyle = dk ? `rgba(70,40,24,${a})` : `rgba(255,236,200,${a * .7})`; g.lineWidth = .3 + r() * .7; g.beginPath();
+    for (let xx = x; xx <= x + w; xx += 3) { const v = yy + N2(xx * fq + ph, i * .7) * (o.wave ?? 2.2) + Math.sin(xx * .01 + i) * .4; xx === x ? g.moveTo(xx, v) : g.lineTo(xx, v); } g.stroke();
+  }
+  if (o.knots !== false) for (let k = 0; k < (o.nk ?? 1); k++) if (r() < .45) { const kx = x + r() * w, ky = y + r() * h, kr = 1 + r() * 2.5; for (let j = 4; j > 0; j--) { g.strokeStyle = `rgba(70,40,24,${.12 + j * .05})`; g.lineWidth = .5; g.beginPath(); g.ellipse(kx, ky, kr * j * 1.8, kr * j * .7, 0, 0, TAU); g.stroke(); } g.fillStyle = 'rgba(60,34,20,.55)'; g.beginPath(); g.ellipse(kx, ky, kr * 1.2, kr * .6, 0, 0, TAU); g.fill(); }
+  g.restore();
+}
+function matWood(w, h, o = {}) {
+  const T = tex(w, h, o.d ?? 1.4), g = T.g, r = mulberry32(o.seed ?? 11), c = o.c ?? [150, 98, 62], pw = o.plank ?? h;
+  for (let y = 0; y < h; y += pw) { const cc = shc(c, (r() - .5) * .14); woodGrain(g, 0, y, w, Math.min(pw, h - y), cc, r, o); if (y > 0) { g.fillStyle = 'rgba(40,22,14,.5)'; g.fillRect(0, y - .4, w, .8); } }
+  if (o.scratch) for (let i = 0; i < o.scratch; i++) { const x = r() * w, y = r() * h, a = (r() - .5) * .6, l = 4 + r() * 18; g.strokeStyle = `rgba(250,226,190,${.2 + r() * .25})`; g.lineWidth = .4; g.beginPath(); g.moveTo(x, y); g.lineTo(x + Math.cos(a) * l, y + Math.sin(a) * l); g.stroke(); }
+  wcTex(g, T.c.width, T.c.height, .3, .22);
+  return T;
+}
+/* ---------- parqué en espiga (vista desde arriba; u = x, v del fondo al frente) ---------- */
+function matParquet(w, h, o = {}) {
+  const T = tex(w, h, o.d ?? 1.3), g = T.g, r = mulberry32(o.seed ?? 21), pw = o.pw ?? 9, L = pw * (o.n ?? 5);
+  const cols = o.cols ?? [[192, 140, 88], [176, 122, 76], [206, 158, 104], [168, 112, 70], [184, 130, 84], [156, 104, 64]];
+  g.fillStyle = 'rgb(70,46,30)'; g.fillRect(0, 0, w, h);
+  /* espiga ortogonal (H_i y V_i en escalera, períodos (pw,pw) y (L,-L)) girada 45° para que la espina corra hacia el fondo */
+  const cx = w / 2, cy = h / 2, rot = o.spine === 'z' ? (x, y) => [cx + (x - y) * Math.SQRT1_2, cy + (x + y) * Math.SQRT1_2] : (x, y) => [cx + (x + y) * Math.SQRT1_2, cy + (y - x) * Math.SQRT1_2], Rn = Math.hypot(w, h) * .75;
+  const plank = (x, y, ww, hh, horiz) => {
+    const pts = [[x, y], [x + ww, y], [x + ww, y + hh], [x, y + hh]].map(p => rot(p[0], p[1])), bb = bbx(pts);
+    if (bb[2] < -2 || bb[0] > w + 2 || bb[3] < -2 || bb[1] > h + 2) return;
+    const c = shc(cols[Math.floor(r() * cols.length)], (r() - .5) * .1), P = pPolys([pts]);
+    g.fillStyle = cssc(c); g.fill(P);
+    g.save(); g.clip(P);
+    /* veta a lo largo de la tabla */
+    const a = pts[0], b = horiz ? pts[1] : pts[3], side = horiz ? pts[3] : pts[1], d = [b[0] - a[0], b[1] - a[1]], e = [(side[0] - a[0]), (side[1] - a[1])];
+    for (let k = 0; k < 6; k++) { const f = (k + .5) / 6 + (r() - .5) * .08; g.strokeStyle = r() < .7 ? `rgba(90,56,30,${.12 + r() * .18})` : `rgba(250,220,170,${.1 + r() * .1})`; g.lineWidth = .3 + r() * .5; g.beginPath(); for (let s = 0; s <= 8; s++) { const u = s / 8, wv = N2(u * 3 + k, f * 9 + r()) * .07; g.lineTo(a[0] + d[0] * u + e[0] * (f + wv), a[1] + d[1] * u + e[1] * (f + wv)); } g.stroke(); }
+    const sh = g.createLinearGradient(a[0], a[1], side[0], side[1]); sh.addColorStop(0, 'rgba(255,240,210,.12)'); sh.addColorStop(1, 'rgba(60,36,20,.12)'); g.fillStyle = sh; g.fill(P);
+    g.restore();
+    g.strokeStyle = 'rgba(52,32,20,.75)'; g.lineWidth = .55; g.stroke(P);
+  };
+  const N = Math.ceil(Rn / pw) + 2, M = Math.ceil(Rn / L) + 2;
+  for (let m = -M; m <= M; m++) for (let i = -N; i <= N; i++) {
+    plank(i * pw + m * L, i * pw - m * L, L, pw, true);
+    plank(L + i * pw + m * L, pw - L + i * pw - m * L, pw, L, false);
+  }
+  /* barniz satinado, camino gastado, polvo en las juntas y rayones */
+  g.globalCompositeOperation = 'multiply'; for (let i = 0; i < 18; i++) { const x = r() * w, y = r() * h, rr = 40 + r() * 140, rg = g.createRadialGradient(x, y, 0, x, y, rr); rg.addColorStop(0, `rgba(150,110,80,${.15 + r() * .15})`); rg.addColorStop(1, 'rgba(150,110,80,0)'); g.fillStyle = rg; g.fillRect(x - rr, y - rr, rr * 2, rr * 2); }
+  g.globalCompositeOperation = 'source-over';
+  if (o.path) { const [px0, py0, px1, py1, pr] = o.path; const lg = g.createLinearGradient(px0, py0, px1, py1); g.save(); g.lineCap = 'round'; g.strokeStyle = 'rgb(236,214,180)'; for (let k = 0; k < 6; k++) { g.globalAlpha = .025; g.lineWidth = pr * (1 - k * .14); g.beginPath(); g.moveTo(px0, py0); g.quadraticCurveTo((px0 + px1) / 2, py0 - 30, px1, py1); g.stroke(); } g.restore(); }
+  for (let i = 0; i < 90; i++) { const x = r() * w, y = r() * h, a = r() * TAU, l = 3 + r() * 16; g.strokeStyle = `rgba(250,232,200,${.08 + r() * .14})`; g.lineWidth = .35; g.beginPath(); g.moveTo(x, y); g.lineTo(x + Math.cos(a) * l, y + Math.sin(a) * l); g.stroke(); }
+  wcTex(g, T.c.width, T.c.height, .3, .25);
+  return T;
+}
+/* ---------- lino (sábanas): trama fina, irregularidades del hilo y arrugas suaves ---------- */
+function matLinen(w, h, o = {}) {
+  const T = tex(w, h, o.d ?? 1.6), g = T.g, r = mulberry32(o.seed ?? 5), c = o.c ?? [234, 228, 214];
+  g.fillStyle = cssc(c); g.fillRect(0, 0, w, h);
+  for (let y = 0; y < h; y += .9) { g.fillStyle = `rgba(${r() < .5 ? '120,110,96' : '255,252,244'},${.04 + r() * .05})`; g.fillRect(0, y, w, .45); }
+  for (let x = 0; x < w; x += .9) { g.fillStyle = `rgba(120,110,96,${.03 + r() * .04})`; g.fillRect(x, 0, .45, h); }
+  for (let i = 0; i < w * h / 60; i++) { g.fillStyle = `rgba(110,98,84,${.08 + r() * .1})`; g.fillRect(r() * w, r() * h, 2 + r() * 6, .5); }   // hilos gruesos (slubs)
+  for (let i = 0; i < (o.folds ?? 10); i++) { const y = r() * h, a = .05 + r() * .08; g.strokeStyle = `rgba(150,136,120,${a})`; g.lineWidth = 2 + r() * 5; g.beginPath(); for (let x = 0; x <= w; x += 6) g.lineTo(x, y + N2(x * .02, i) * 14); g.stroke(); g.strokeStyle = `rgba(255,252,246,${a})`; g.lineWidth = 2; g.beginPath(); for (let x = 0; x <= w; x += 6) g.lineTo(x, y - 3 + N2(x * .02, i) * 14); g.stroke(); }
+  wcTex(g, T.c.width, T.c.height, .22, .2);
+  return T;
+}
+/* ---------- color liso pintado (para caras pequeñas) ---------- */
+function matWash(w, h, c, o = {}) { const T = tex(w, h, o.d ?? 1.2), g = T.g; wcWash(g, rectP(0, 0, w, h), c, .95, { reserve: false, mode: 'source-over', amt: .3, seed: o.seed ?? 1, edge: false, step: 12 }); wcTex(g, T.c.width, T.c.height, .3, .25); return T; }
+/* ---------- sombra ambiente horneada: el tono de la luz que no es sol (violeta de mañana, azul de noche) se multiplica
+   UNA vez en la textura en vez de pintarse en cada cuadro ---------- */
+function texShade(T, col, a) { const c = T.c, g = c.getContext('2d'); g.save(); g.setTransform(1, 0, 0, 1, 0, 0); g.globalCompositeOperation = 'multiply'; g.globalAlpha = a; g.fillStyle = cssc(col); g.fillRect(0, 0, c.width, c.height); g.restore(); return T; }
+function texShadeKeep(T, col, a) { const c = T.c, g = c.getContext('2d'); g.save(); g.setTransform(1, 0, 0, 1, 0, 0); g.globalCompositeOperation = 'source-atop'; g.globalAlpha = a; g.fillStyle = cssc(col); g.globalCompositeOperation = 'multiply'; g.fillRect(0, 0, c.width, c.height); g.globalCompositeOperation = 'destination-in'; g.globalAlpha = 1; g.drawImage(c, 0, 0); g.restore(); return T; }
+/* ---------- concreto de acera: losas con juntas, grietas, manchas, chicles y hierba en las rendijas ---------- */
+function matConcrete(w, h, o = {}) {
+  const T = tex(w, h, o.d ?? 1.1), g = T.g, r = mulberry32(o.seed ?? 31), S = o.slab ?? 120, base = o.c ?? [168, 170, 172];
+  for (let y = 0; y < h; y += S) for (let x = 0; x < w; x += S) { const c = shc(base, (r() - .5) * .1); wcWash(g, rectP(x + 1, y + 1, S - 2, S - 2), c, .97, { reserve: false, mode: 'source-over', amt: .6, seed: x * .1 + y, edge: false, step: 30, bloom: r() < .3 ? shc(c, -.12) : null }); }
+  for (let i = 0; i < w * h / 14; i++) { g.fillStyle = `rgba(${r() < .5 ? '60,62,66' : '230,232,234'},${r() * .22})`; g.fillRect(r() * w, r() * h, .8, .8); }   // árido
+  g.strokeStyle = 'rgba(60,62,66,.65)'; g.lineWidth = 1.4; for (let y = 0; y <= h; y += S) { g.beginPath(); g.moveTo(0, y); g.lineTo(w, y); g.stroke(); } for (let x = 0; x <= w; x += S) { g.beginPath(); g.moveTo(x, 0); g.lineTo(x, h); g.stroke(); }
+  /* grietas con hierba */
+  for (let i = 0; i < (o.cracks ?? w * h / 26000); i++) { let x = r() * w, y = r() * h; const pts = [[x, y]]; const a0 = r() * TAU; for (let k = 0; k < 10 + r() * 14; k++) { x += Math.cos(a0 + (r() - .5) * 1.4) * 6; y += Math.sin(a0 + (r() - .5) * 1.4) * 6; pts.push([x, y]); } wcInk(g, pts, .8 + r() * .7, .6, i, .1, [50, 52, 56]);
+    if (r() < .4) for (let k = 0; k < 4; k++) { const p = pts[(r() * pts.length) | 0]; g.strokeStyle = `rgba(${90 + r() * 40},${120 + r() * 30},60,.8)`; g.lineWidth = .6; g.beginPath(); g.moveTo(p[0], p[1]); g.quadraticCurveTo(p[0] + (r() - .5) * 4, p[1] - 3, p[0] + (r() - .5) * 6, p[1] - 4 - r() * 4); g.stroke(); } }
+  for (let i = 0; i < w * h / 6000; i++) { const x = r() * w, y = r() * h, rr = 2 + r() * 14; g.fillStyle = `rgba(40,42,48,${.06 + r() * .1})`; g.beginPath(); g.ellipse(x, y, rr, rr * (.5 + r() * .5), r() * 3, 0, TAU); g.fill(); }   // manchas
+  for (let i = 0; i < w * h / 9000; i++) { g.fillStyle = 'rgba(220,220,214,.55)'; g.beginPath(); g.arc(r() * w, r() * h, .8 + r() * 1.2, 0, TAU); g.fill(); }   // chicles
+  wcTex(g, T.c.width, T.c.height, .3, .3);
+  return T;
+}
+/* ---------- asfalto con parches y la línea pintada ---------- */
+function matAsphalt(w, h, o = {}) {
+  const T = tex(w, h, o.d ?? 1), g = T.g, r = mulberry32(o.seed ?? 41);
+  g.fillStyle = cssc(o.c ?? [74, 76, 82]); g.fillRect(0, 0, w, h);
+  for (let i = 0; i < w * h / 6; i++) { g.fillStyle = `rgba(${r() < .5 ? '30,30,34' : '170,172,176'},${r() * .3})`; g.fillRect(r() * w, r() * h, .9, .9); }
+  for (let i = 0; i < 8; i++) { const x = r() * w, y = r() * h, pw = 60 + r() * 160, ph = 40 + r() * 80; g.fillStyle = `rgba(${r() < .5 ? '50,52,58' : '96,98,104'},.6)`; g.fill(pPolys([wob(rectP(x, y, pw, ph), 4, i, .05)])); }
+  if (o.line !== false) { const y = o.lineY ?? h * .5; for (let x = 0; x < w; x += 300) { g.fillStyle = 'rgba(236,230,214,.85)'; g.fill(pPolys([wob(rectP(x, y, 160, 10), .8, x, .2)])); } }
+  wcTex(g, T.c.width, T.c.height, .3, .35);
+  return T;
+}
+/* ---------- baldosa hidráulica (roseta de 8 puntas, 20 × 20 cm) ---------- */
+function matHydraulic(w, h, o = {}) {
+  const T = tex(w, h, o.d ?? 1.4), g = T.g, r = mulberry32(o.seed ?? 51), S = o.tile ?? 20, P = o.pal ?? [[234, 224, 204], [62, 82, 104], [176, 84, 60], [204, 176, 120]];
+  const tile = document.createElement('canvas'), d = T.d; tile.width = tile.height = Math.ceil(S * d * 2); const tg = tile.getContext('2d'); tg.scale(d * 2, d * 2);
+  tg.fillStyle = cssc(P[0]); tg.fillRect(0, 0, S, S);
+  /* cuartos de círculo en las esquinas (al juntar 4 baldosas forman un círculo) y la roseta central */
+  tg.fillStyle = cssc(P[1]); for (const [cx, cy] of [[0, 0], [S, 0], [0, S], [S, S]]) { tg.beginPath(); tg.arc(cx, cy, S * .3, 0, TAU); tg.fill(); }
+  tg.fillStyle = cssc(P[0]); for (const [cx, cy] of [[0, 0], [S, 0], [0, S], [S, S]]) { tg.beginPath(); tg.arc(cx, cy, S * .18, 0, TAU); tg.fill(); }
+  tg.fillStyle = cssc(P[3]); for (const [cx, cy] of [[0, 0], [S, 0], [0, S], [S, S]]) { tg.beginPath(); tg.arc(cx, cy, S * .08, 0, TAU); tg.fill(); }
+  tg.save(); tg.translate(S / 2, S / 2); tg.fillStyle = cssc(P[2]); for (let k = 0; k < 8; k++) { tg.rotate(PI / 4); tg.beginPath(); tg.moveTo(0, 0); tg.quadraticCurveTo(S * .1, -S * .12, 0, -S * .3); tg.quadraticCurveTo(-S * .1, -S * .12, 0, 0); tg.fill(); }
+  tg.fillStyle = cssc(P[1]); tg.beginPath(); tg.arc(0, 0, S * .06, 0, TAU); tg.fill(); tg.restore();
+  tg.strokeStyle = cssc(P[1], .6); tg.lineWidth = .4; tg.strokeRect(S * .04, S * .04, S * .92, S * .92);
+  for (let y = 0; y < h; y += S) for (let x = 0; x < w; x += S) {
+    g.drawImage(tile, x, y, S, S);
+    if (r() < .5) { g.fillStyle = `rgba(${r() < .5 ? '40,30,30' : '255,250,240'},${r() * .12})`; g.fillRect(x, y, S, S); }   // desgaste desigual
+    if (r() < .08) { g.fillStyle = cssc(P[0], .9); g.beginPath(); g.arc(x + r() * S, y + (r() < .5 ? 0 : S), 1 + r() * 2, 0, TAU); g.fill(); }   // descascarado
+  }
+  g.strokeStyle = 'rgba(90,80,70,.55)'; g.lineWidth = .5; for (let y = 0; y <= h; y += S) { g.beginPath(); g.moveTo(0, y); g.lineTo(w, y); g.stroke(); } for (let x = 0; x <= w; x += S) { g.beginPath(); g.moveTo(x, 0); g.lineTo(x, h); g.stroke(); }
+  wcTex(g, T.c.width, T.c.height, .25, .22);
+  return T;
+}
+/* ---------- mármol veteado (vetas grises y doradas deformadas por ruido) ---------- */
+function matMarble(w, h, o = {}) {
+  const T = tex(w, h, o.d ?? 1.6), g = T.g, r = mulberry32(o.seed ?? 61), c = o.c ?? [238, 234, 226];
+  const gr = g.createLinearGradient(0, 0, w, h); gr.addColorStop(0, cssc(shc(c, .04))); gr.addColorStop(1, cssc(shc(c, -.06))); g.fillStyle = gr; g.fillRect(0, 0, w, h);
+  for (let i = 0; i < (o.veins ?? 14); i++) {
+    let x = r() * w, y = r() * h; const a = r() * TAU, pts = [[x, y]], L = 40 + r() * 160;
+    for (let k = 0; k < L / 3; k++) { const n = N2(x * .02 + i, y * .02) * 1.6; x += Math.cos(a + n) * 3; y += Math.sin(a + n) * 3; pts.push([x, y]); }
+    const gold = r() < .25; g.strokeStyle = gold ? 'rgba(196,160,96,.5)' : `rgba(110,110,118,${.18 + r() * .25})`; g.lineWidth = .4 + r() * 1.4; g.beginPath(); pts.forEach((p, k) => k ? g.lineTo(p[0], p[1]) : g.moveTo(p[0], p[1])); g.stroke();
+    g.strokeStyle = 'rgba(140,140,150,.08)'; g.lineWidth = 4 + r() * 6; g.stroke();
+  }
+  return T;
+}
+/* copia desenfocada de un sprite (primer plano fuera de foco); se hace una vez */
+function sprBlur(S, px) { const c = mk(S.c.width + px * 4, S.c.height + px * 4), g = c.getContext('2d'); g.filter = `blur(${px}px)`; g.drawImage(S.c, px * 2, px * 2); const k = 2 * px / S.d; return { c, g, box: [S.box[0] - k, S.box[1] - k, S.box[2] + k, S.box[3] + k], d: S.d }; }
+/* ---------- camino de grava suelta sobre tierra apisonada, con hojas secas y rocío ---------- */
+function matGravel(w, h, o = {}) {
+  const T = tex(w, h, o.d ?? 1.4), g = T.g, r = mulberry32(o.seed ?? 71), earth = o.c ?? [150, 124, 92];
+  g.fillStyle = cssc(earth); g.fillRect(0, 0, w, h);
+  for (let i = 0; i < 30; i++) { const x = r() * w, y = r() * h, rr = 30 + r() * 90, rg = g.createRadialGradient(x, y, 0, x, y, rr); rg.addColorStop(0, `rgba(${r() < .5 ? '110,90,66' : '180,156,120'},.35)`); rg.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = rg; g.fillRect(x - rr, y - rr, rr * 2, rr * 2); }
+  /* rodadas y huellas apisonadas */
+  for (let k = 0; k < 2; k++) { const y = h * (.35 + k * .3); g.fillStyle = 'rgba(110,88,64,.25)'; g.fillRect(0, y, w, 16); }
+  /* piedritas: cada una con su sombra y su brillo */
+  for (let i = 0; i < w * h / (o.dens ?? 9); i++) { const x = r() * w, y = r() * h, rr = .6 + Math.pow(r(), 2) * 2.4, c = shc(pick3(r, [[176, 168, 156], [150, 140, 128], [196, 186, 170], [128, 118, 108], [166, 140, 112]]), (r() - .5) * .2);
+    g.fillStyle = 'rgba(60,44,30,.35)'; g.beginPath(); g.ellipse(x + rr * .3, y + rr * .4, rr, rr * .7, 0, 0, TAU); g.fill();
+    g.fillStyle = cssc(c); g.beginPath(); g.ellipse(x, y, rr, rr * .75, r() * 3, 0, TAU); g.fill();
+    if (rr > 1.2) { g.fillStyle = 'rgba(255,250,240,.35)'; g.beginPath(); g.ellipse(x - rr * .3, y - rr * .3, rr * .35, rr * .25, 0, 0, TAU); g.fill(); } }
+  /* hojas secas */
+  const LC = [[204, 140, 52], [186, 96, 40], [220, 176, 70], [150, 90, 44], [170, 60, 36]];
+  for (let i = 0; i < w * h / (o.leaves ?? 900); i++) { const x = r() * w, y = r() * h, s = 3 + r() * 4, a = r() * TAU, c = pick3(r, LC); g.save(); g.translate(x, y); g.rotate(a); g.fillStyle = cssc(c, .9); g.beginPath(); g.moveTo(-s, 0); g.quadraticCurveTo(0, -s * .55, s, 0); g.quadraticCurveTo(0, s * .55, -s, 0); g.fill(); g.strokeStyle = cssc(shc(c, -.35), .7); g.lineWidth = .3; g.beginPath(); g.moveTo(-s, 0); g.lineTo(s, 0); g.stroke(); g.restore(); }
+  /* bordes con hierba */
+  if (o.edges !== false) for (const yy of [0, h]) for (let x = 0; x < w; x += 2) { const L = 3 + r() * 9, c = pick3(r, [[96, 130, 60], [120, 150, 70], [80, 110, 56]]); g.strokeStyle = cssc(c, .9); g.lineWidth = .7; g.beginPath(); g.moveTo(x, yy + (yy ? 2 : -2) * r()); g.lineTo(x + (r() - .5) * 3, yy + (yy ? -L : L)); g.stroke(); }
+  wcTex(g, T.c.width, T.c.height, .25, .3);
+  return T;
+}
+/* césped visto desde arriba (para planos grandes) */
+function matGrass(w, h, o = {}) {
+  const T = tex(w, h, o.d ?? .9), g = T.g, r = mulberry32(o.seed ?? 81), c = o.c ?? [92, 132, 64];
+  g.fillStyle = cssc(c); g.fillRect(0, 0, w, h);
+  for (let i = 0; i < 40; i++) { const x = r() * w, y = r() * h, rr = 40 + r() * 140, rg = g.createRadialGradient(x, y, 0, x, y, rr); rg.addColorStop(0, `rgba(${r() < .5 ? '60,96,44' : '150,180,90'},.4)`); rg.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = rg; g.fillRect(x - rr, y - rr, rr * 2, rr * 2); }
+  for (let i = 0; i < w * h / 5; i++) { const x = r() * w, y = r() * h; g.strokeStyle = `rgba(${r() < .5 ? '60,92,40' : '170,200,110'},${.2 + r() * .3})`; g.lineWidth = .6; g.beginPath(); g.moveTo(x, y); g.lineTo(x + (r() - .5) * 2, y - 2 - r() * 4); g.stroke(); }
+  for (let i = 0; i < w * h / 1200; i++) { g.fillStyle = cssc(pick3(r, [[204, 140, 52], [186, 96, 40], [220, 176, 70]]), .8); g.beginPath(); g.ellipse(r() * w, r() * h, 2 + r() * 2, 1 + r(), r() * 3, 0, TAU); g.fill(); }
+  wcTex(g, T.c.width, T.c.height, .2, .25);
+  return T;
+}
+/* ---------- azulejo blanco biselado (metro) con juntas grises impecables ---------- */
+function matSubway(w, h, o = {}) {
+  const T = tex(w, h, o.d ?? 1.6), g = T.g, r = mulberry32(o.seed ?? 91), TW = o.tw ?? 15, TH = o.th ?? 7.5, J = .5, c = o.c ?? [240, 242, 240];
+  g.fillStyle = cssc(o.grout ?? [150, 152, 156]); g.fillRect(0, 0, w, h);
+  let row = 0; for (let y = 0; y < h; y += TH, row++) for (let x = -(row % 2) * TW / 2; x < w; x += TW) {
+    const x0 = x + J / 2, y0 = y + J / 2, tw = TW - J, th = TH - J, cc = shc(c, (r() - .5) * .03);
+    const gr = g.createLinearGradient(x0, y0, x0, y0 + th); gr.addColorStop(0, cssc(shc(cc, .05))); gr.addColorStop(.5, cssc(cc)); gr.addColorStop(1, cssc(shc(cc, -.08))); g.fillStyle = gr; g.fillRect(x0, y0, tw, th);
+    g.fillStyle = 'rgba(255,255,255,.75)'; g.fillRect(x0 + .4, y0 + .3, tw - .8, .5); g.fillStyle = 'rgba(120,124,132,.35)'; g.fillRect(x0 + .4, y0 + th - .7, tw - .8, .5); g.fillRect(x0 + tw - .6, y0, .5, th);   // bisel
+    g.fillStyle = 'rgba(255,255,255,.18)'; g.fillRect(x0 + tw * .15, y0 + th * .2, tw * .35, th * .25);   // brillo del esmalte
+  }
+  wcTex(g, T.c.width, T.c.height, .12, .1);
+  return T;
+}
+/* ---------- acero inoxidable cepillado (vetas en una dirección; o.band = franja de reflejo de las tiras LED) ---------- */
+function matSteel(w, h, o = {}) {
+  const T = tex(w, h, o.d ?? 1.2), g = T.g, r = mulberry32(o.seed ?? 95), c = o.c ?? [186, 190, 196], vert = !!o.vert;
+  const gr = vert ? g.createLinearGradient(0, 0, w, 0) : g.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, cssc(shc(c, .08))); gr.addColorStop(.5, cssc(shc(c, -.06))); gr.addColorStop(1, cssc(shc(c, .02))); g.fillStyle = gr; g.fillRect(0, 0, w, h);
+  for (let i = 0; i < (vert ? w : h) * 3; i++) { const p = r() * (vert ? w : h), L = 20 + r() * (vert ? h : w) * .6, q = r() * (vert ? h : w); g.fillStyle = `rgba(${r() < .5 ? '255,255,255' : '60,64,72'},${.03 + r() * .06})`; if (vert) g.fillRect(p, q, .5, L); else g.fillRect(q, p, L, .5); }
+  for (const b of o.bands || []) { const bg = vert ? g.createLinearGradient(b[0] * w - b[1] * w, 0, b[0] * w + b[1] * w, 0) : g.createLinearGradient(0, b[0] * h - b[1] * h, 0, b[0] * h + b[1] * h); bg.addColorStop(0, 'rgba(255,255,255,0)'); bg.addColorStop(.5, `rgba(255,255,255,${b[2] ?? .6})`); bg.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = bg; g.fillRect(0, 0, w, h); }
+  for (let i = 0; i < (o.smudge ?? 6); i++) { const x = r() * w, y = r() * h, rr = 6 + r() * 20, rg = g.createRadialGradient(x, y, 0, x, y, rr); rg.addColorStop(0, 'rgba(120,124,130,.12)'); rg.addColorStop(1, 'rgba(120,124,130,0)'); g.fillStyle = rg; g.fillRect(x - rr, y - rr, rr * 2, rr * 2); }
+  return T;
+}
+/* ---------- baldosa de cocina antideslizante (rojo teja) ---------- */
+function matQuarry(w, h, o = {}) {
+  const T = tex(w, h, o.d ?? 1.1), g = T.g, r = mulberry32(o.seed ?? 97), S = o.tile ?? 20;
+  g.fillStyle = 'rgb(70,50,44)'; g.fillRect(0, 0, w, h);
+  for (let y = 0; y < h; y += S) for (let x = 0; x < w; x += S) { const c = shc([150, 76, 56], (r() - .5) * .14); g.fillStyle = cssc(c); g.fillRect(x + .6, y + .6, S - 1.2, S - 1.2); for (let k = 0; k < 14; k++) { g.fillStyle = `rgba(${r() < .5 ? '60,30,20' : '220,170,140'},${r() * .25})`; g.fillRect(x + r() * S, y + r() * S, .9, .9); } }
+  return T;
+}

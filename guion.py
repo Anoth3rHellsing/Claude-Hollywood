@@ -1,7 +1,7 @@
 import json
 L=[
 ("B0","0:00","Apertura","L01","¡Hola! Bienvenidos a Claude Hollywood ciento uno. Antes de empezar, un secreto: nada de lo que ven es un video."),
-("B0","0:00","Apertura","L02","No hay cámara, ni actores, ni dibujos guardados. Solo código… y una tacita con boina."),
+("B0","0:00","Apertura","L02","No hay cámara, ni actores, ni dibujos guardados. Solo código… y yo, Aguada: una tacita con boina."),
 ("B1","0:20","Todo es código","L03","Miren. Si congelo el mundo, aparece su esqueleto: una cámara en tres dimensiones, hecha con matemáticas."),
 ("B1","0:20","Todo es código","L04","Sesenta veces por segundo, Claude calcula dónde va cada columna, cada hoja y cada charco… y lo vuelve a pintar desde cero."),
 ("B2","0:50","La acuarela","L05","¿Y la acuarela? Empieza como una figura simple. Claude la deforma un poquito, una y otra vez."),
@@ -13,7 +13,7 @@ L=[
 ("B4","1:50","El mundo reacciona","L11","Si piso un charco, el agua se mueve. Y si agarro esta piedra y la lanzo…"),
 ("B4","1:50","El mundo reacciona","L12","…Uy. Eso no estaba en el guion."),
 ("B4","1:50","El mundo reacciona","L13","Pero fíjense: cada vidrio cae por su cuenta. La física también es código."),
-("B5","2:25","El sonido","L14","¿Y el sonido? La lluvia, el viento y la música también los fabrica el código, nota por nota."),
+("B5","2:25","El sonido","L14","¿Y el sonido? Las hojas, el viento y la música también los fabrica el código, nota por nota."),
 ("B5","2:25","El sonido","L15","Lo único que viene de afuera es mi voz, gracias a ElevenLabs."),
 ("B6","2:45","Tu turno","L16","¿Quieres hacer la tuya? Llena el tiquete: la idea, los personajes y lo que no se puede tocar."),
 ("B6","2:45","Tu turno","L17","Elige un modo: control, auto o asistido. Y Claude se pone a pintar."),

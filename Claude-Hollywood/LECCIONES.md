@@ -353,3 +353,80 @@ Prueba de 3:00 con todo lo nuevo: el rig, la magia de tinta y fondos con mucho d
 - **Cortes:** la cara del corte sigue el ángulo del tajo (más larga cuanto más oblicuo). Tocón y trozo que cae se recortan por ese plano; el trozo primero resbala por el corte y luego cae. De cada corte salen dos rodajas que giran y quedan en el suelo.
 - **Variedad en lo repetido:** cuatro clases de esquirla (astilla, trozo de cuatro lados, aguja y curva de los arcos de abanico).
 - **Capas en el choque:** la presión de la esfera las empuja hacia fuera (viento por mago, no global) y el punto negro las aspira.
+
+## Claude Hollywood 101 (Aguada, día de otoño)
+- **ElevenLabs desde la nube: una llamada a la vez.** 17 en paralelo dieron 429 y luego «Free Tier disabled» (temporal). Secuencial, esperando cada una, funcionó. Las etiquetas `[excited]` cuentan como caracteres.
+- **La voz real es más lenta que el cálculo:** ~10 car/s con eleven_v4 (no 14,5). Medir cada MP3 y sacar de ahí los tiempos; partir los subtítulos en las pausas (silencedetect).
+- **De día el vidrio casi no se ve:** un hueco en el muro solo se lee si faltan los hierros y hay polvo y esquirlas; despejar las plantas delante.
+- **Lo que está detrás de las palmeras no existe para el espectador:** las pantallas de B3 pasaron del muro a cristales colgados del techo.
+- **Personaje pixel art en mundo 3D:** escala `PS(z)` redondeada a píxeles enteros, `imageSmoothingEnabled = false`, sombra y reflejo también en la cuadrícula.
+- **Saltar en la línea de tiempo con audio programado:** todos los sonidos van a buses que se reemplazan al saltar o pausar; los eventos se programan con 0,2 s de anticipación.
+
+## Lo-Fi Codes (música 100 % sintetizada, varios escenarios)
+- **Grabar la música sin conexión** (`OfflineAudioContext`) sirve para medir niveles y exportar MP3. Ojo: el bucle de la página sigue llamando a `auUpdate` y le pone automatizaciones al grafo de la grabación; bloquearlo con una bandera (`AU.offline`).
+- **Medir el balance por bandas** antes de entregar: la primera mezcla tenía los graves 28 dB por encima de los medios (bombo y bajo tapaban el piano). Objetivo lo-fi cálido: graves ≈ bajo-medios, medios −3 a −15, presencia y brillo ≈ −20. Integrado −14 LUFS.
+- **Wow & flutter barato:** un solo oscilador lento (0,42 Hz + 6,3 Hz) conectado al `detune` de cada nota; desconectarlo en `onended` para no acumular nodos.
+- **El bombo hace respirar al teclado:** bajar la ganancia del bus de teclado en cada bombo (`setValueAtTime` + `setTargetAtTime`).
+- **Otro escenario con el mismo motor:** cambiar el decorado y conservar `PJ/PS`, las franjas de suelo (aquí con baldosa que se repite en x) y la lista de profundidad. La carretera, en cambio, va mejor en 2D con capas de paralaje.
+- **Personajes pixel art que miran al mar:** hace falta una vista de espaldas (misma cuadrícula sin cara). El respaldo del banco va del lado de la cámara.
+
+## Entre el Vapor y el Bit · fase 1 (motor Escenarios, el estudio)
+- **Nuevo estándar de mapas:** cada superficie es una textura pintada una vez sobre un rectángulo 3D (`vplane`, `hplane`, `box3`); todo lo que tiene profundidad va a la lista `put/flush`. El Atlas y los fondos de Lo-Fi quedan como legacy.
+- **Las tiras de un plano horizontal son paralelogramos:** el borde derecho del lado cercano se queda corto y la pantalla se ve dentada. Hay que estirar `xr` para cubrir la pantalla en los dos bordes de la tira, y dibujar las paredes *después* del suelo y del techo para que tapen los bordes.
+- **La espiga de parqué hacia el fondo se lee como arcos** (moiré en perspectiva); con la espina a lo ancho se lee como espiga.
+- **Sol por la persiana:** cada rendija se proyecta en 3D sobre cada receptor y se recorta a sus bordes. Las sombras son los oclusores proyectados con la misma dirección, y las hojas de monstera tienen agujeros (`evenodd`). Una luz rasante (`dir = [1, .22, .6]`) dibuja franjas en diagonal sobre la pared. Para que el polvo de la sábana brille, la cama tiene que estar en el camino de los haces: la planta del cuarto se decide con la luz.
+- **El búfer de luz por receptor era carísimo** a pantalla completa (dos composiciones por receptor). Limitado al rectángulo donde cae la luz, y con la sombra ambiente **horneada** en las texturas, el plano general pasó de ~120 a ~60 ms en CPU.
+- **Tela horneada:** se simula una vez en la carga y se guarda a 60 Hz (función de t, se puede saltar). **El impulso se aplica UNA vez:** sumarlo en cada subpaso durante 0,1 s lo multiplica por 24 y la sábana atraviesa el techo. Pon también un techo de colisión.
+- **El sombreado por cara sale en damero:** se suaviza con normales promediadas por vértice y el sol medio de las esquinas.
+- **Una tela en el suelo se ordena como suelo;** si no, tapa al personaje que está encima.
+- **Caja de diálogo pixel:** si el que habla está en la mitad de abajo del cuadro, la caja va arriba (como en los RPG de 8 bits). Para asomarse de debajo de la sábana basta un recorte de filas del sprite (`crop`) y una posición que sube con el recorte.
+- **Cámara lenta con tiempo físico:** `phys(t)` estira un tramo; tela, polvo y salto usan el tiempo físico y el resto (diálogos, cámara, música) el real.
+- **Audio:** la primera mezcla salió a −31 LUFS. Con el volumen general en 2,0 y un compresor firme (umbral −20, razón 8) queda en −15,8 LUFS. La caja de música de la intro ya llena sola los medios: bajarla.
+- **Marcas y elenco compartidos:** `marcas/` y `personajes/` se meten en cada película desde `build.py`; los nombres de personajes nuevos son realistas y al azar.
+
+## Entre el Vapor y el Bit · fase 2 (la calle y Molienda)
+- **`ctx.filter` por cuadro es veneno:** un `blur(1.5px)` en unos cables subió la calle de 26 a 300 ms por cuadro (CPU). Todo desenfoque se hornea en la carga (`sprBlur`).
+- **Travelling en cuatro planos con el mismo motor:** no hacen falta tiras repetidas. Basta poner las cosas a su profundidad (bordillo z 250, Teo 560, fachadas 1400, ciudad 9000) y mover la cámara en x. El paralaje sale solo.
+- **Para ver las escaleras de incendio y su vapor** hubo que bajar el zoom (0,86) y empujar la imagen hacia abajo (`ty` = 150). Los cables cuelgan bajo (comba de 2–3 m) para entrar en cuadro.
+- **El cromo no es vidrio:** un reflejo con colores saturados (ventanas cian, siluetas) se lee como vitrina. Funciona desaturar la placa, multiplicar un degradado gris con bandas, sumar 5–7 franjas especulares y repintar encima el logo y los manómetros.
+- **Ladrillo a distancia:** una baldosa de ladrillo como patrón multiplicado y teñida por edificio. Pintar ladrillo a ladrillo cada fachada lejana costaría segundos de carga.
+- **Personajes del mundo con su tema:** Valeria (barista) tiene un tema corto a 96 BPM con swing (pulso 12 %, bajo caminante en triángulo, acordes de caja de música, escobillas). Es liviano: unos 30 eventos por compás.
+- **La caja de diálogo sabe quién habla:** el ancla busca al hablante del diálogo activo (Teo en su escena o Valeria) para decidir si va arriba o abajo.
+
+## Entre el Vapor y el Bit · fase 3 (el parque y el Invernadero de día)
+- **Un estanque se ve solo si la cámara lo mira desde arriba:** con la cámara a la altura de Teo el agua era una tira. Hay que subirla (`y` −260) y compensar con `ty` negativo para que el personaje no se salga por abajo.
+- **El reflejo de alguien que corre junto a un vidrio** va a la profundidad del espejo (`2·z_vidrio − z_personaje`) a la misma x, con poca opacidad y recortado por paneles, cada uno algo corrido (vidrios curvos). Se lee de inmediato.
+- **Una hilera de un solo tipo de árbol parece papel tapiz:** hay que alternar sauces y árboles redondos con altura y profundidad al azar, también en el reflejo.
+- **Los círculos de color desenfocados en primer plano distraen** (parecen manchas de la lente); en primer plano, verdes.
+- **Un parque largo necesita un final:** la reja de salida con el escudo de la ciudad cierra el recorrido.
+- **Personajes de paso:** un pato que solo dice «Cuac.» (voz de pulso grave, ánimo de sueño) y la respuesta seca de Teo funcionan mejor que un diálogo largo.
+
+## Entre el Vapor y el Bit · fase 4 (la cocina Brasa y Bruma)
+- **Lo que entra y sale por una puerta tiene que estar donde mira la cámara.** La cámara no gira; una puerta en la pared lateral, cerca del plano de cámara, queda fuera de cuadro en todos los planos. En la pared del fondo se ve en el general, en el plano medio y en la espera.
+- **Personajes sobre muebles:** si están encima de un mostrador se dibujan dentro del callback de ese mueble (`onPass`, `onRange`), después de la caja; si no, la tapa del mueble les tapa los pies.
+- **El mobiliario de delante tapa a quien está detrás.** Para ver a Teo en el fogón por encima del pase, la cámara sube (`y` −230) y `ty` muy negativo recentra la imagen: la impresora queda por debajo de sus pies.
+- **Las luces aditivas escalan con el zoom.** Un `LGT` de radio `k·PS(z)` cubre toda la pantalla en un primer plano y lava la imagen (neblina rosa de las lámparas). Hay que bajar el alfa o el radio.
+- **Llamas con `lighter`:** muchas lenguas superpuestas se queman a blanco. Con alfas de 0,25–0,5 y unas 45 lenguas se lee naranja, azul en la base y amarillo arriba.
+- **Las sombras enormes de una llamarada** solo aparecen si los objetos están entre la llama y la pared y lejos de la pared (factor `(z_pared − z_luz)/(z_obj − z_luz)`). Cucharones pegados al azulejo dan sombras del mismo tamaño.
+- **Insertos de receta a pantalla completa** (en unidades de pantalla, sin cámara 3D): el detalle de cocina (microgotas con rebote calculado sin estado, espuma con burbujas que crecen y revientan, láminas pintadas una vez) solo se lee de cerca. Un brillo rojo encima del plato negro lo vuelve marrón: la luz de las lámparas va **debajo** del plato y encima solo un `soft-light` suave.
+- **Teo se asoma por el borde del inserto** (pixel grande, cortado): mantiene al personaje en los planos de manos sin dibujar manos.
+- **Los textos de diálogo largos se salen de la caja:** tres líneas como máximo; recortar la frase.
+
+## Entre el Vapor y el Bit · fases 5 y 6 (el turno en avance rápido y la noche)
+- **Avance rápido con cámara fija:** todo es función de t (caos que crece y se limpia, manchas con hora de aparición y de limpieza, torres de platos, serpentina con largo creciente sobre una ruta 3D). Los personajes como **estelas** (tres copias semitransparentes a pocos milisegundos) leen «velocidad» sin animación nueva. Hay que apagarlas antes de que vuelvan los personajes sólidos o se ven duplicados.
+- **Apagar una cocina:** cada luz con su interruptor (`power(t)`) y su «clack»; al final, un velo oscuro *encima* de lo pintado y *debajo* de las luces (`LGT`), y lo que queda encendido (matamoscas UV, cartel de SALIDA, displays de los roners) cuenta la hora.
+- **Noche sobre un mapa de día:** el mismo parque con un `multiply` azul después de la lista de profundidad y las luces encima (farolas, luciérnagas, el brillo del invernadero). El personaje se vuelve a dibujar a medio alfa encima del velo para que se lea.
+- **Un sprite girado gira sobre el 45 % de su altura:** para tumbar a Teo en la cama hay que bajarle el pie (y ≈ altura del colchón − 0,45·alto del sprite) o queda flotando.
+- **Las luces aditivas y el zoom, otra vez:** el neón que entra por la ventana lavaba los primeros planos de cian. Se divide el radio y el alfa por el zoom de la cámara.
+- **La tela se hornea otra vez para cada gesto:** la caída en la cama es una sábana nueva (reposo sobre el colchón, una esfera que baja y un empujón hacia arriba de los bordes lejanos), así se ve que se infla y se asienta.
+- **La noche suena más baja a propósito** (−17 a −19 LUFS frente a −14/−16 del día), pero no menos: grillos, respiración, la nana. Por debajo de −20 se pierde.
+
+## Entre el Vapor y el Bit · correcciones tras el estreno (notas de Nico)
+- **Otra vez un nombre repetido:** `paintShelf` de la cocina pisó al del estudio y la estantería de libros salió con frascos y platos. Antes de declarar una función, buscar el nombre en todos los módulos (`grep -n "function nombre"`). El build no avisa porque es JavaScript válido.
+- **Suelo en trozos = triángulos vacíos:** cada tira de `hplane` es un paralelogramo; si su ancho sale del borde lejano, el cercano se queda corto y entre trozos contiguos aparece un triángulo. Ahora el ancho sale del borde **cercano** (el más largo): los trozos se solapan un poco en vez de abrirse.
+- **Una estructura de vidrio necesita sus caras de cierre:** sin testeros en los extremos de las bóvedas ni laterales en el pabellón que sobresale, se ve hueca. Detrás del vidrio va siempre algo: follaje continuo en el techo, con claros que se abren poco a poco y nunca de golpe.
+- **Una calle necesita vida, no solo fachadas:** calzada con tráfico (taxis, coches, furgonetas y autobús con marcas del mundo), vecinos que caminan y otros que esperan y miran pasar al protagonista. El vapor solo sale de donde tiene sentido: alcantarillas y registros, no de las fachadas.
+- **Un sprite reflejado refleja también sus rótulos** («IXAT»). Los vehículos que miran a la derecha se pintan ya reflejados, con los textos y logos devueltos a su sentido.
+- **Toda tienda que se usa necesita su puerta** (y si se entra por ella, que se vea dónde está).
+- **La caja de diálogo admite tres líneas:** si el texto es más largo, sube como en los RPG. Aun así, mejor partir las frases largas en dos cajas.
+

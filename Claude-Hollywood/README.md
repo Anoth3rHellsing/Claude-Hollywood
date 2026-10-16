@@ -11,7 +11,10 @@ Cortometrajes en tinta y acuarela hechos con código: un solo archivo HTML por p
 | `cine/` | Motor de escenas sobre el laboratorio: utilidades comunes (`07_cine.js`), una película por archivo (`08_trailer.js`, `08_perdon.js`), sonido y reproductor. |
 | `cambio-personajes/` | Las películas originales con los personajes del rig nuevo: `build.py` cambia solo los personajes (fondos, cámara, música y efectos intactos) y `trailer/` monta el tráiler v2 a partir de las tres. |
 | `laboratorio/` | `laboratorio.html` (pruebas de rostro, manos, cuerpo y estilos), su código en `src/` y `build.py`. |
-| `FONDOS.md` | **Cómo hacer fondos con mucho detalle**: geometría con significado y dos materiales (acuarela y papel recortado), profundidad, día y noche, rendimiento y lo que falta. Código en `fondos/`. |
+| `ESCENARIOS.md` | **El estándar nuevo para mapas** (desde «Entre el Vapor y el Bit»): superficies 3D con texturas pintadas una vez, sol por la persiana con sombras proyectadas, polvo, tela horneada, personajes pixel, diálogo con bleeps y rótulos de hora. Código en `escenarios/`. |
+| `marcas/` | **Marcas ficticias del mundo** (Molienda, Vaporetta, Guía Brújula, Kronotek…): identidad, personalidad, paleta y emblema dibujado con código; libro en `marcas/catalogo.html`. |
+| `personajes/` | **Elenco pixel** compartido (Teo Cazorla, Rosa Mijares, Brote, Tetera, Aguada): fichas, cuadros y voz de bleeps; galería en `personajes/catalogo.html`. |
+| `FONDOS.md` | *(legacy)* **Cómo hacer fondos con mucho detalle**: geometría con significado y dos materiales (acuarela y papel recortado), profundidad, día y noche, rendimiento y lo que falta. Código en `fondos/`. |
 | `RIG.md` | **Manual técnico del rig nuevo**: unidades, articulaciones, cabeza, manos, física, estilos, magia, escenas, el adaptador para las películas viejas, el tráiler y cómo comprobarlo. |
 | `LECCIONES.md` | **Todo lo aprendido**: flujo de trabajo, cómo está hecho el motor, acuarela, personajes, magia, sonido, rendimiento, verificación, catálogo de errores y arreglos, notas de dirección y lo pendiente para el Episodio III. |
 | `juramento-roto/BIBLIA.md` | Biblia de la serie: personajes y guiones por tiempos de los tres episodios. |
@@ -32,6 +35,9 @@ Cortometrajes en tinta y acuarela hechos con código: un solo archivo HTML por p
 - `juramento-roto-ep1-rig-nuevo.html`, `-ep2-`, `-ep3-` — los tres episodios **con los fondos originales y los personajes del rig nuevo** (para comparar).
 - `el-invernadero-de-cristal-y-ceniza.html` — **El Invernadero de Cristal y Ceniza** (3:00): duelo de dos magos en un invernadero victoriano bajo la tormenta, todo con el motor nuevo (rig, magia de tinta, interior en perspectiva viva). Código en `invernadero/`, guion en `invernadero/GUION.md`.
 - `atlas-de-ciudades.html` — **Atlas de ciudades**: ocho ciudades en acuarela y papel recortado, del día a la noche, con modo comparar (prueba de fondos; código en `fondos/`).
+- `claude-hollywood-101.html` — **Claude Hollywood 101** (3:26): Aguada, una tacita en 8 bits, explica cómo se hacen estas películas (voz de ElevenLabs). Código en `hollywood101/`.
+- `lo-fi-codes.html` — **Lo-Fi Codes** (3:36): video musical lo-fi con Brote; canción y dibujos 100 % código, sin voces. Código en `lofi-codes/` (con la canción en MP3). *La música lo-fi fue una prueba de música sin inferencia de terceros; no es el color de todas las películas. Sus fondos de ciudad, carretera y mar quedan como legacy.*
+- `entre-el-vapor-y-el-bit.html` — **Entre el Vapor y el Bit · Crónica de dos Estrellas**, completa (7:58): **el estudio** (Teo se despierta tarde), **la calle Almagre**, **la cafetería Molienda** con Valeria, **el parque y el Invernadero** con Ramiro el pato, **la cocina Brasa y Bruma** con Rosa (sellado, llamarada, arroser y el emplatado para la Guía Brújula), **el turno en avance rápido** y **la noche**: el parque iluminado por farolas, el estudio con la luna y el neón, medianoche y dos estrellas. Primer mapa del motor **Escenarios**; diálogos con bleeps de 8 bits. Código en `vapor-y-bit/`, guion en `vapor-y-bit/GUION.md`.
 - `juramento-roto-trailer-v2.html` — **Tráiler v2** (1:49): escenas de las tres películas con personajes nuevos + primeros planos de manos (juramento de los niños, el hilo rojo, el perdón).
 
 Controles: espacio pausa, ← → salta 10 s, M silencia, F pantalla completa. Las fuentes se cargan de Google Fonts: sin internet se ve con las de reserva.
@@ -73,9 +79,15 @@ node herramientas/notas.js motor/juramento-ep2/dist/_all.js             # notas 
 
 Cualquier película acepta `?t=SEGUNDOS` en la URL para abrir en modo prueba en ese instante.
 
+## Motores legacy
+
+`motor/` (películas originales), `fondos/` (Atlas de ciudades) y los fondos de `lofi-codes/` siguen funcionando, pero ya no se amplían. Los mapas nuevos se hacen con `escenarios/` (ver `ESCENARIOS.md`).
+
 ## Para empezar un episodio nuevo
 
 1. Escribir el guion por tiempos en la biblia.
 2. Copiar `motor/juramento-ep3` a una carpeta nueva y añadirla a `ORDER` y `NAME` en `build.py`.
 3. Escenarios nuevos en un `02x_*.js`, escenas en `06_*.js`, partitura en `04b_music.js`.
 4. Revisar con capturas, audio y rendimiento (ver `LECCIONES.md` §9 y §10).
+
+> El skill publicable (con el motor Escenarios, una plantilla que funciona y las guías) está en `../plugins/sumi-e-canvas-film/` y se instala desde el marketplace del repo. `skill/SKILL.md` es la edición personal; `python plugins/sumi-e-canvas-film/sync.py` actualiza la pública.

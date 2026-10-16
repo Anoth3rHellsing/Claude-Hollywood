@@ -1,0 +1,33 @@
+name: Aportar una lección
+description: Algo que aprendiste haciendo una película con el skill (un error y su arreglo, una técnica que funcionó). Solo conocimiento para crear; nada de datos personales.
+title: "Lección: "
+labels: ["leccion"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ¡Gracias por aportar! Las lecciones alimentan `LECCIONES.md` y hacen mejor la siguiente película de todos.
+        **No incluyas datos personales:** nombres, correos, rutas de tu equipo, enlaces privados, nombres de clientes o proyectos, ni contenido con derechos de otros.
+  - type: dropdown
+    id: area
+    attributes:
+      label: Área
+      options: [Guion y dirección, Acuarela / sumi-e, Papel recortado, Mapas 3D (Escenarios), Personajes (pixel o rig), Diálogos y texto, Sonido y música, Cámara y transiciones, Rendimiento, Verificación, Otra]
+    validations: { required: true }
+  - type: textarea
+    id: leccion
+    attributes:
+      label: La lección
+      description: "Qué pasó o qué funcionó, por qué, y la regla que sale de ahí. Ejemplo: «Las luces aditivas escalan con el zoom: en un primer plano un LGT cubre toda la pantalla y lava la imagen. Divide radio y alfa por el zoom.»"
+    validations: { required: true }
+  - type: textarea
+    id: codigo
+    attributes:
+      label: Código o valores (opcional)
+      description: El fragmento mínimo o los números que lo resuelven.
+      render: js
+  - type: input
+    id: version
+    attributes:
+      label: Versión del skill (opcional)
+      placeholder: "1.1.0"

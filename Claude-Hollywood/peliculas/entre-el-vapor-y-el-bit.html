@@ -1140,7 +1140,7 @@ const FONT5 = (() => {
     '.': '.....|.....|.....|.....|.....|.....|..X..', ',': '.....|.....|.....|.....|.....|.....|..X..|.X...', ':': '.....|..X..|.....|.....|.....|..X..|.....', ';': '.....|..X..|.....|.....|.....|..X..|.X...',
     '-': '.....|.....|.....|.XXX.|.....|.....|.....', "'": '..X..|..X..|.....|.....|.....|.....|.....', '"': '.X.X.|.X.X.|.....|.....|.....|.....|.....', '(': '...X.|..X..|.X...|.X...|.X...|..X..|...X.',
     ')': '.X...|..X..|...X.|...X.|...X.|..X..|.X...', '/': '....X|...X.|...X.|..X..|.X...|.X...|X....', '*': '.....|X.X.X|.XXX.|XXXXX|.XXX.|X.X.X|.....', '·': '.....|.....|.....|..X..|.....|.....|.....',
-    '%': 'XX..X|XX.X.|...X.|..X..|.X...|.X.XX|X..XX', '+': '.....|..X..|..X..|XXXXX|..X..|..X..|.....', '♥': '.....|.X.X.|XXXXX|XXXXX|.XXX.|..X..|.....', '~': '.....|.....|.XX.X|X.XX.|.....|.....|.....', ' ': '.....',
+    '%': 'XX..X|XX.X.|...X.|..X..|.X...|.X.XX|X..XX', '+': '.....|..X..|..X..|XXXXX|..X..|..X..|.....', '♥': '.....|.X.X.|XXXXX|XXXXX|.XXX.|..X..|.....', '▶': 'X....|XX...|XXX..|XXXX.|XXX..|XX...|X....', '~': '.....|.....|.XX.X|X.XX.|.....|.....|.....', ' ': '.....',
   };
   const AC = { '´': ['...X.', '..X..'], '~': ['.XX.X', 'X.XX.'], '¨': ['.X.X.', '.....'] };
   const comp = { 'á': ['a', '´'], 'é': ['e', '´'], 'í': ['i', '´'], 'ó': ['o', '´'], 'ú': ['u', '´'], 'ñ': ['n', '~'], 'ü': ['u', '¨'], 'Á': ['A', '´'], 'É': ['E', '´'], 'Í': ['I', '´'], 'Ó': ['O', '´'], 'Ú': ['U', '´'], 'Ñ': ['N', '~'] };
@@ -3235,30 +3235,40 @@ function stockPot(x, z, r, h, t) {   /* olla grande de acero con el caldo borbot
   ctx.strokeStyle = 'rgb(210,214,220)'; ctx.lineWidth = Math.max(1, 2.5 * s); ctx.beginPath(); ctx.ellipse(c[0], c[1], rx, ry, 0, 0, TAU); ctx.stroke();
   steamCols(t, { x, y: top, z }, { n: 4, h: 200, w: 5, a: .28, sway: 16, spread: r, drift: -.15 });
 }
-function robata(t, flare = 0) {   /* parrilla robata: caja de ladrillo refractario, carbón binchotan al rojo, chispas que suben */
+function robata(t, flare = 0, fire = 1) {   /* parrilla robata: caja de ladrillo refractario, carbón binchotan al rojo, chispas que suben */
   const R = KI.ROB, top = KI.RANGE.top - 22;
   box3({ x0: R.x0, x1: R.x1, y0: top, y1: KI.RANGE.top, z0: R.z - 40, z1: R.z + 40 }, { front: [110, 70, 50], top: [60, 40, 34], left: [90, 60, 44] });
   for (let i = 0; i < 18; i++) { const x = R.x0 + 12 + (i % 9) * 22, z = R.z - 20 + Math.floor(i / 9) * 26, p = PJ(x, top - 2, z), s = PS(z), fl = .6 + .4 * Math.sin(t * (2 + hsh(i, 1) * 3) + i), gr = ctx.createRadialGradient(p[0], p[1], 0, p[0], p[1], 11 * s);
     gr.addColorStop(0, `rgba(255,${180 + 60 * fl | 0},${80 + 80 * fl | 0},1)`); gr.addColorStop(.5, `rgba(220,60,30,${.8 * fl})`); gr.addColorStop(1, 'rgba(60,20,20,.9)'); ctx.fillStyle = gr; ctx.fillRect(p[0] - 10 * s, p[1] - 4 * s, 20 * s, 8 * s); }
+  if (fire < 1) { const P = poly3([[R.x0, top - 1, R.z - 40], [R.x1, top - 1, R.z - 40], [R.x1, top - 1, R.z + 40], [R.x0, top - 1, R.z + 40]]); if (P) { ctx.fillStyle = `rgba(40,30,30,${(1 - fire) * .85})`; ctx.fill(P); } }
   for (let k = 0; k < 9; k++) { const a = PJ(R.x0 + 4, top - 6, R.z - 30 + k * 7), b = PJ(R.x1 - 4, top - 6, R.z - 30 + k * 7); ctx.strokeStyle = 'rgb(60,60,64)'; ctx.lineWidth = Math.max(.6, PS(R.z) * 1.2); ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.stroke(); }
   for (let k = 0; k < 6; k++) { const x = R.x0 + 24 + k * 33, a = PJ(x, top - 9, R.z - 38), b = PJ(x, top - 9, R.z + 38), s = PS(R.z); ctx.strokeStyle = 'rgb(214,190,140)'; ctx.lineWidth = Math.max(1, s * 1.1); ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.stroke();   // brochetas de bambú (yakitori)
     for (let j = 0; j < 4; j++) { const p = PJ(x, top - 10, R.z - 22 + j * 15); ctx.fillStyle = j % 2 ? 'rgb(150,80,40)' : 'rgb(176,104,54)'; ctx.beginPath(); ctx.ellipse(p[0], p[1], 5.5 * s, 3.4 * s, 0, 0, TAU); ctx.fill(); ctx.fillStyle = 'rgba(255,220,170,.5)'; ctx.fillRect(p[0] - 3 * s, p[1] - 2.6 * s, 2.4 * s, 1 * s); } }
   ctx.save(); ctx.globalCompositeOperation = 'lighter';
-  for (let i = 0; i < 40; i++) { const ph = (t * (.35 + hsh(i, 3) * .4) + hsh(i, 4)) % 1, x = R.x0 + hsh(i, 5) * (R.x1 - R.x0) + Math.sin(ph * 9 + i) * 10, y = top - ph * (160 + 140 * flare) , z = R.z + (hsh(i, 6) - .5) * 60, p = PJ(x, y, z), s = PS(z); ctx.fillStyle = `rgba(255,${160 + 80 * hsh(i, 7) | 0},80,${(1 - ph) * .9})`; ctx.fillRect(p[0], p[1], Math.max(1.5, 2 * s), Math.max(1.5, 2 * s)); }
+  for (let i = 0; i < 40 * fire; i++) { const ph = (t * (.35 + hsh(i, 3) * .4) + hsh(i, 4)) % 1, x = R.x0 + hsh(i, 5) * (R.x1 - R.x0) + Math.sin(ph * 9 + i) * 10, y = top - ph * (160 + 140 * flare) , z = R.z + (hsh(i, 6) - .5) * 60, p = PJ(x, y, z), s = PS(z); ctx.fillStyle = `rgba(255,${160 + 80 * hsh(i, 7) | 0},80,${(1 - ph) * .9})`; ctx.fillRect(p[0], p[1], Math.max(1.5, 2 * s), Math.max(1.5, 2 * s)); }
   ctx.restore();
-  const c = PJ((R.x0 + R.x1) / 2, top - 4, R.z); LGT(c[0], c[1], 220 * PS(R.z), '255,90,40', .55 + .1 * Math.sin(t * 3)); LGF(c[0], c[1], 60 * PS(R.z), '255,140,60', .35);
+  const c = PJ((R.x0 + R.x1) / 2, top - 4, R.z); LGT(c[0], c[1], 220 * PS(R.z), '255,90,40', (.55 + .1 * Math.sin(t * 3)) * fire); LGF(c[0], c[1], 60 * PS(R.z), '255,140,60', .35 * fire);
+}
+function zapperExit(t, zap, dark) {   /* matamoscas de luz UV en la pared izquierda y cartel de SALIDA sobre la puerta */
+  const z0 = 500, z1 = 600, Z = poly3([[KI.X0 + 1, -270, z0], [KI.X0 + 1, -270, z1], [KI.X0 + 1, -236, z1], [KI.X0 + 1, -236, z0]]);
+  if (Z) { ctx.fillStyle = 'rgb(46,48,56)'; ctx.fill(Z); const T = poly3([[KI.X0 + 2, -262, z0 + 6], [KI.X0 + 2, -262, z1 - 6], [KI.X0 + 2, -244, z1 - 6], [KI.X0 + 2, -244, z0 + 6]]); if (T) { ctx.fillStyle = `rgb(${150 + 100 * zap | 0},${170 + 80 * zap | 0},255)`; ctx.fill(T); } for (let k = 0; k < 8; k++) { const a = PJ(KI.X0 + 3, -263, z0 + 6 + k * 11), b = PJ(KI.X0 + 3, -243, z0 + 6 + k * 11); ctx.strokeStyle = 'rgba(30,30,36,.9)'; ctx.lineWidth = Math.max(1, PS(550) * .6); ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.stroke(); }
+    const c = PJ(KI.X0 + 20, -252, 550); LGT(c[0], c[1], 260 * PS(550) * (1 + zap), '110,130,255', .2 + .45 * dark + .8 * zap); if (zap > .05) LGF(c[0], c[1], 40 * PS(550), '220,230,255', zap); }
+  const Dr = KI.DOOR, cx = (Dr.x0 + Dr.x1) / 2, a = PJ(cx - 28, -240, KI.ZB - 1), b = PJ(cx + 28, -222, KI.ZB - 1);
+  ctx.fillStyle = 'rgb(30,170,90)'; ctx.fillRect(a[0], a[1], b[0] - a[0], b[1] - a[1]); ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); const P = toPx(a), q = Math.max(1, Math.round((b[1] - a[1]) * U / 12)); pxText(ctx, 'SALIDA', P[0] + q * 3, P[1] + q * 2.5, q, '#f2fff6'); ctx.restore(); T0();
+  const c2 = PJ(cx, -231, KI.ZB - 4); LGT(c2[0], c2[1], 130 * PS(KI.ZB), '40,255,120', .12 + .4 * dark);
 }
 function ronerDisplay(x, z, t) { const p = PJ(x + 30, -95 - 92, z), s = PS(z); ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); const P = toPx(p), h = 5.4 * s * U; ctx.fillStyle = 'rgb(10,14,12)'; ctx.fillRect(P[0] - 2 * s * U, P[1] - 2 * s * U, 21 * s * U, 9.5 * s * U); seg7(ctx, '62.5', P[0], P[1], h, 'rgb(90,255,150)', 'rgba(20,60,30,.4)'); ctx.restore(); T0(); LGT(p[0] + 8 * s, p[1] + 4 * s, 30 * s, '90,255,150', .3); }
 /* ---------- la cocina en t ---------- */
 function drawCocina(t, o = {}) {
   lightsBegin(); T0();
-  const ZB = KI.ZB, HD = KI.HOOD, Rg = KI.RANGE, Pa = KI.PASS, flare = o.flare ? o.flare(t) : 0, hum = Math.sin(t * 60) * .25;
+  const ZB = KI.ZB, HD = KI.HOOD, Rg = KI.RANGE, Pa = KI.PASS, flare = o.flare ? o.flare(t) : 0, PW = o.power ? o.power(t) : null, pw = k => PW ? PW[k] ?? 1 : 1, hum = Math.sin(t * 60) * .25 * pw('hood');
   /* techo con tiras LED, suelo, paredes */
   hplane(KIX.ceil, KI.X0, KI.X1, 20, ZB, KI.Y0);
   hplane(KIX.floor, KI.X0, KI.X1, 20, ZB, 0);
   vplane(KIX.plaster, [KI.X0, ZB], [KI.X1, ZB], KI.Y0, -260); vplane(KIX.tile, [KI.X0, ZB], [KI.X1, ZB], -260, 0);
   vplane(KIX.wallL, [KI.X0, 20], [KI.X0, ZB], KI.Y0, 0, { u0: 0, u1: 1 }); vplane(KIX.wallR, [KI.X1, ZB], [KI.X1, 20], KI.Y0, 0);
-  for (const z of [380, 620]) { const P = poly3([[KI.X0 + 60, KI.Y0 + .5, z - 6], [KI.X1 - 60, KI.Y0 + .5, z - 6], [KI.X1 - 60, KI.Y0 + .5, z + 6], [KI.X0 + 60, KI.Y0 + .5, z + 6]]); if (P) { ctx.fillStyle = `rgba(250,252,255,${o.lights ? o.lights(t, z) : 1})`; ctx.fill(P); } }
+  for (const z of [380, 620]) { const P = poly3([[KI.X0 + 60, KI.Y0 + .5, z - 6], [KI.X1 - 60, KI.Y0 + .5, z - 6], [KI.X1 - 60, KI.Y0 + .5, z + 6], [KI.X0 + 60, KI.Y0 + .5, z + 6]]); if (P) { const k = pw(z === 380 ? 's1' : 's2'); ctx.fillStyle = `rgb(${lerp(120, 250, k) | 0},${lerp(126, 252, k) | 0},${lerp(136, 255, k) | 0})`; ctx.fill(P); } }
+  if (o.floor) o.floor(t);
   /* puerta batiente con ojo de buey */
   const da = o.door ? o.door(t) : 0, Dr = KI.DOOR;
   vplane(KIX.dining, [Dr.x0, ZB - .3], [Dr.x1, ZB - .3], -210, 0);
@@ -3290,13 +3300,13 @@ function drawCocina(t, o = {}) {
   put(Rg.z0 + 1, () => {
     box3({ x0: Rg.x0, x1: Rg.x1, y0: Rg.top, y1: 0, z0: Rg.z0, z1: Rg.z1 }, { front: KIX.rangeF, top: KIX.rangeTop, left: KIX.side });
     for (const [x, z] of BURN) { const P = poly3(ellP(x, z, 20, 20, 16).map(([a, b]) => [a, Rg.top - .5, b])); if (P) { ctx.fillStyle = 'rgb(30,30,34)'; ctx.fill(P); } }
-    for (const [x, z] of BURN.slice(0, 2)) burnerFlame(x, z, t, o.burner ? o.burner(t) : .7);
-    for (const [x, z] of BURN.slice(2)) burnerFlame(x, z, t, .5);
+    for (const [x, z] of BURN.slice(0, 2)) burnerFlame(x, z, t, (o.burner ? o.burner(t) : .7) * pw('fire'));
+    for (const [x, z] of BURN.slice(2)) burnerFlame(x, z, t, .5 * pw('fire'));
     for (const [x, z, r, h] of POTS) stockPot(x, z, r, h, t);
-    robata(t, flare);
+    robata(t, flare, pw('fire'));
     if (o.onRange) o.onRange(t);
   });
-  put(HD.z0 - 1, () => { ctx.save(); ctx.translate(hum * .4, 0); box3({ x0: HD.x0, x1: HD.x1, y0: HD.y0, y1: HD.y1, z0: HD.z0, z1: ZB }, { front: KIX.hoodF, bottom: KIX.hoodB, left: KIX.side }); const a = PJ(HD.x0 + 10, HD.y1 + 1, HD.z0 + 8), b = PJ(HD.x1 - 10, HD.y1 + 1, HD.z0 + 8); ctx.fillStyle = 'rgba(250,252,255,.95)'; ctx.fillRect(a[0], a[1] - 1.5, b[0] - a[0], 3); ctx.restore(); const c = PJ(-20, HD.y1 + 10, 780); LGT(c[0], c[1], 420 * PS(780), '230,240,255', .12); });
+  put(HD.z0 - 1, () => { ctx.save(); ctx.translate(hum * .4, 0); box3({ x0: HD.x0, x1: HD.x1, y0: HD.y0, y1: HD.y1, z0: HD.z0, z1: ZB }, { front: KIX.hoodF, bottom: KIX.hoodB, left: KIX.side }); const a = PJ(HD.x0 + 10, HD.y1 + 1, HD.z0 + 8), b = PJ(HD.x1 - 10, HD.y1 + 1, HD.z0 + 8); ctx.fillStyle = pw('hood') > .5 ? 'rgba(250,252,255,.95)' : 'rgba(90,96,108,.9)'; ctx.fillRect(a[0], a[1] - 1.5, b[0] - a[0], 3); ctx.restore(); const c = PJ(-20, HD.y1 + 10, 780); LGT(c[0], c[1], 420 * PS(780), '230,240,255', .12 * pw('hood')); });
   /* el pase: mesa de acero con reflejo de las tiras, lámparas infrarrojas */
   put(Pa.z0, () => {
     box3({ x0: Pa.x0, x1: Pa.x1, y0: Pa.top, y1: 0, z0: Pa.z0, z1: Pa.z1 }, { front: KIX.passF, top: KIX.passTop, left: KIX.side, right: KIX.side });
@@ -3308,9 +3318,13 @@ function drawCocina(t, o = {}) {
   });
   put(Pa.z0 - 2, () => {
     { const a = PJ(Pa.x0 + 20, -178, 500), b = PJ(Pa.x1 - 20, -178, 500), s = PS(500); ctx.fillStyle = 'rgb(176,180,188)'; ctx.fillRect(a[0], a[1] - 2 * s, b[0] - a[0], 4 * s); const nT = o.tickets ? o.tickets(t) : 5; for (let k = 0; k < nT; k++) bill(KIX.tickets[k % 6], -40 + (k * 44) % 300, -178, 500, { rot: Math.sin(t * 1.3 + k) * .03, px: 0, py: 0 }); }
-    for (const x of [-100, 140, 380]) { bill(KIX.lamp, x, -200, 490); const c = PJ(x, -200, 490); LGT(c[0], c[1] + 20 * PS(490), 80 * PS(490), '255,90,50', .32); const g0 = PJ(x, Pa.top, 490); LGT(g0[0], g0[1], 70 * PS(490), '255,110,60', .26); } });
+    [-100, 140, 380].forEach((x, i) => { const k = pw('p' + i); bill(KIX.lamp, x, -200, 490); if (k < 1) { const a = PJ(x - 20, -202, 490), b = PJ(x + 20, -198, 490); ctx.fillStyle = `rgba(60,40,36,${1 - k})`; ctx.fillRect(a[0], a[1], b[0] - a[0], b[1] - a[1]); } const c = PJ(x, -200, 490); LGT(c[0], c[1] + 20 * PS(490), 80 * PS(490), '255,90,50', .32 * k); const g0 = PJ(x, Pa.top, 490); LGT(g0[0], g0[1], 70 * PS(490), '255,110,60', .26 * k); }); });
   if (o.items) o.items(put, t);
   flush();
+  /* vapor acumulado y noche: la cocina se apaga; quedan el matamoscas azul, el cartel de salida y los roners */
+  const fog = o.fog ? o.fog(t) : 0; if (fog > .01) { ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); const gr = ctx.createLinearGradient(0, 0, 0, H); gr.addColorStop(0, `rgba(236,240,244,${.7 * fog})`); gr.addColorStop(.6, `rgba(230,236,240,${.4 * fog})`); gr.addColorStop(1, `rgba(220,226,232,${.15 * fog})`); ctx.fillStyle = gr; ctx.fillRect(0, 0, W, H); ctx.restore(); T0(); }
+  const dark = o.dark ? o.dark(t) : 0; if (dark > .01) { ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.fillStyle = `rgba(10,14,30,${.84 * dark})`; ctx.fillRect(0, 0, W, H); ctx.restore(); T0(); }
+  zapperExit(t, o.zap ? o.zap(t) : 0, dark);
   /* la llamarada ilumina todo de golpe */
   if (flare > .01) { const c = PJ(o.flareX ?? -250, -200, 740); LGT(c[0], c[1], 900 * PS(740) * (.6 + .4 * flare), '255,150,60', .9 * flare); LGF(c[0], c[1], 260 * PS(740) * flare, '255,200,120', .6 * flare); }
   if (o.fx) o.fx(t);
@@ -3731,6 +3745,92 @@ const DLG4 = [
 const LABELS4 = [{ t0: 182.6, t1: 187.6, big: '08:30 AM', small: 'BRASA Y BRUMA' }, { t0: 244.6, t1: 249.4, big: '01:00 PM', small: 'MESA 7 · GUÍA BRÚJULA', col: '#ff8a5a' }];
 
 /* =====================================================================
+   ESCENA 5 · AVANCE RÁPIDO DEL TURNO (13:20 → 23:00) — 312 a 364 s, cámara fija (el general de la cocina)
+   el reloj vuela · la Tikket escupe comandas en serpentina que cruzan el pase y se amontonan en el suelo ·
+   Teo y Rosa son estelas · llamaradas que van y vienen · el vapor llena la cocina · manchas en el suelo y el pase ·
+   torres de platos · limpieza: todo queda limpio y mojado · Rosa se despide · las luces se apagan una a una
+   con un «clack» · quedan el matamoscas azul y el cartel de salida · Teo arrastra los zuecos hasta la puerta.
+   ===================================================================== */
+const S5 = { A: 312.0, CLEAN: 343.5, SLOW: 349.5, END: 364.0 };
+const ff = t => sm(seg(t, S5.A, S5.A + 3)) * (1 - sm(seg(t, S5.SLOW - 3, S5.SLOW - .6)));   // cuánto «vuela» el tiempo
+function clock5(t) { const m = t < S5.SLOW + 1 ? lerp(800, 1376, eio(seg(t, S5.A, S5.SLOW + 1))) : 1376 + (t - S5.SLOW - 1) / 60 * 6; const h = Math.floor(m / 60), mm = m - h * 60; return [(h % 12) + mm / 60, mm, h]; }
+const hhmm = t => { const [, mm, h] = clock5(t), H12 = ((h + 11) % 12) + 1; return `${String(H12).padStart(2, '0')}:${String(Math.floor(mm)).padStart(2, '0')} ${h < 12 ? 'AM' : 'PM'}`; };
+/* caos que crece y limpieza */
+const chaos = t => sm(seg(t, S5.A, S5.CLEAN - 6)) * (1 - sm(seg(t, S5.CLEAN, S5.CLEAN + 4.5)));
+const LIGHTS5 = { s1: 357.4, s2: 357.9, hood: 358.4, p0: 358.9, p1: 359.15, p2: 359.4 };
+function power5(t) { const o = {}; for (const k in LIGHTS5) o[k] = t < LIGHTS5[k] ? 1 : 0; o.fire = t < S5.SLOW ? (.65 + .35 * Math.sin(t * 9)) * (t < S5.CLEAN + 2 ? 1 : 1 - seg(t, S5.CLEAN + 2, S5.SLOW)) : 0; return o; }
+const dark5 = t => t < LIGHTS5.s1 ? 0 : t < LIGHTS5.p2 + .2 ? .25 + .55 * seg(t, LIGHTS5.s1, LIGHTS5.p2) : .8 + .2 * seg(t, LIGHTS5.p2, LIGHTS5.p2 + 1.5);
+const ZAPS = [360.3, 362.6];
+const zap5 = t => { let z = 0; for (const t0 of ZAPS) { const d = t - t0; if (d > 0 && d < .35) z = Math.max(z, (d < .05 ? 1 : .5 * Math.exp(-(d - .05) * 12)) * (Math.sin(d * 140) > -.3 ? 1 : .3)); } return z; };
+/* llamaradas de servicio durante el avance */
+const FLASH5 = (() => { const o = []; for (let t = S5.A + 2.2, k = 0; t < S5.CLEAN - 1; t += 1.1 + hsh(k, 4) * 1.9, k++) o.push([t, hsh(k, 5) < .5 ? -330 : -180]); return o; })();
+function flare5(t) { let a = 0, x = -330; for (const [t0, fx] of FLASH5) { const d = t - t0; if (d > 0 && d < .7) { const v = d < .06 ? d / .06 : Math.exp(-(d - .06) * 5); if (v > a) { a = v; x = fx; } } } FLARE5X = x; return a * .7; }
+let FLARE5X = -330;
+const DOOR5 = (() => { const o = []; for (let t = S5.A + 1.4, k = 0; t < S5.CLEAN + 3; t += .8 + hsh(k, 6) * 1.4, k++) o.push(t); o.push(355.3, 363.0); return o; })();
+function door5(t) { let a = 0; for (const t0 of DOOR5) { const d = t - t0; if (d > 0 && d < 3) a += 1.2 * Math.exp(-d * 1.8) * Math.sin(d * 6); } return Math.max(0, Math.min(1.4, a)); }
+/* manchas: salsa, aceite y agua en el suelo (lado izquierdo, visible) y sobre el pase; se van con la limpieza */
+const STAINS = Array.from({ length: 46 }, (_, i) => { const onPass = i % 3 === 0; return { onPass, x: onPass ? -280 + hsh(i, 1) * 760 : -470 + hsh(i, 1) * 160, z: onPass ? 432 + hsh(i, 2) * 120 : 440 + hsh(i, 2) * 440, r: (onPass ? 5 : 12) + hsh(i, 3) * (onPass ? 9 : 26), c: [[96, 40, 22], [150, 110, 40], [70, 90, 60], [200, 170, 120]][(hsh(i, 4) * 4) | 0], t0: S5.A + 1 + hsh(i, 5) * (S5.CLEAN - S5.A - 3), t1: S5.CLEAN + .3 + hsh(i, 6) * 4 }; });
+function stainDraw(S, t, y) { if (t < S.t0 || t > S.t1 + .5) return; const a = clamp((t - S.t0) / .25) * (1 - clamp((t - S.t1) / .5)), P = poly3(ellP(S.x, S.z, S.r, S.r * .7, 14).map(([x, z], j) => [x + Math.sin(j * 2.3 + S.x) * S.r * .18, y, z])); if (!P) return; ctx.fillStyle = cssc(S.c, .55 * a); ctx.fill(P); }
+/* suelo mojado y acero brillante al final de la limpieza */
+const wet5 = t => sm(seg(t, S5.CLEAN + 1, S5.CLEAN + 4)) * (1 - .5 * sm(seg(t, 357.4, 360)));
+/* torres de platos sucios en la zona de friegue (suelo, a la izquierda) y en el extremo del pase */
+const TOWERS = [[-450, 560, 0], [-410, 500, 0], [-372, 600, 0], [-430, 660, 0], [445, 470, 1], [470, 520, 1]];
+function towerDraw(x, z, n, y0) { const s = PS(z); for (let k = 0; k < n; k++) { const p = PJ(x, y0 - 2.4 * k, z), dirty = hsh(k, x) < .35; ctx.fillStyle = dirty ? `rgb(${226 - k % 2 * 12},${214 - k % 2 * 12},${196 - k % 2 * 10})` : `rgb(${246 - k % 2 * 16},${246 - k % 2 * 16},${244 - k % 2 * 14})`; ctx.beginPath(); ctx.ellipse(p[0] + Math.sin(k * 1.7 + x) * .6 * s, p[1], 15 * s, 4 * s, 0, 0, TAU); ctx.fill(); if (dirty && k % 3 === 0) { ctx.fillStyle = 'rgba(120,60,30,.6)'; ctx.fillRect(p[0] - 6 * s, p[1] - 1 * s, 5 * s, 1.4 * s); } } }
+const towerN = (t, i) => Math.round(Math.min(30, 34 * sm(seg(t, S5.A + 2 + i * 1.3, S5.CLEAN - 2))) * (1 - sm(seg(t, S5.CLEAN + i * .35, S5.CLEAN + 1.4 + i * .35))));
+/* la serpentina de comandas: sale de la Tikket, serpentea por el pase, cae por el borde y se enrolla en el suelo */
+const RIB = (() => { const P = [], pr = KI.PRN, top = KI.PASS.top; P.push([pr, top - 24, 520], [pr - 2, top - 40, 516], [pr - 14, top - 30, 506]);
+  for (let k = 0; k <= 14; k++) { const u = k / 14; P.push([pr - 20 - u * 150, top - 1, 495 - Math.sin(u * PI * 3) * 26]); }
+  P.push([KI.PASS.x0 - 4, top + 6, 472], [KI.PASS.x0 - 10, -50, 470], [KI.PASS.x0 - 16, -6, 468]);
+  for (let k = 0; k < 90; k++) { const a = k * .55, r = 22 + Math.sin(k * .37) * 4; P.push([KI.PASS.x0 - 50 + Math.cos(a) * r, -1 - k * .28, 470 + Math.sin(a) * r * .6]); }
+  const L = [0]; for (let i = 1; i < P.length; i++) L.push(L[i - 1] + Math.hypot(P[i][0] - P[i - 1][0], P[i][1] - P[i - 1][1], P[i][2] - P[i - 1][2])); return { P, L }; })();
+const ribLen = t => RIB.L[RIB.L.length - 1] * sm(seg(t, S5.A + 1, S5.CLEAN - 2)) * (t < S5.CLEAN + 1.2 ? 1 : 0);
+function ribbonDraw(t) { const len = ribLen(t); if (len <= 0) return; const { P, L } = RIB; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  for (let i = 1; i < P.length && L[i - 1] < len; i++) { const a = PJ(...P[i - 1]), bP = L[i] <= len ? P[i] : P[i - 1].map((v, j) => lerp(v, P[i][j], (len - L[i - 1]) / (L[i] - L[i - 1]))), b = PJ(...bP), s = PS(P[i][2]);
+    ctx.strokeStyle = i % 2 ? 'rgb(250,248,240)' : 'rgb(236,234,226)'; ctx.lineWidth = Math.max(1.5, 8 * s); ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.stroke(); if (i % 3 === 0) { ctx.strokeStyle = 'rgba(40,40,44,.55)'; ctx.lineWidth = Math.max(.6, 1 * s); ctx.beginPath(); ctx.moveTo(lerp(a[0], b[0], .2), lerp(a[1], b[1], .2) - 1.5 * s); ctx.lineTo(lerp(a[0], b[0], .7), lerp(a[1], b[1], .7) - 1.5 * s); ctx.stroke(); } } }
+/* Teo y Rosa a toda velocidad: estelas */
+function zipAt(who, t) { if (who === 'teo') { const st = Math.floor(t * 1.7), on = hsh(st, 9) < .45 ? 'range' : 'pass'; return on === 'range' ? { x: -380 + ((t * 230) % 640 + 640) % 640, z: 712, base: RANGEY, on } : { x: -260 + (Math.sin(t * 6.1) * .5 + .5) * 700, z: 480, base: PASSY, on }; } return { x: -200 + (Math.sin(t * 4.3 + 1) * .5 + .5) * 640, z: 490, base: PASSY, on: 'pass' }; }
+function zipDraw(who, t, on) { const k = ff(t); for (let j = 3; j >= 0; j--) { const tt = t - j * .012 * (1 + k), B = zipAt(who, tt); if (B.on !== on) continue; const f = who === 'teo' ? { clogs: true, legL: Math.floor(tt * 30) % 2 * 2, legR: (Math.floor(tt * 30) + 1) % 2 * 2, wide: hsh(Math.floor(tt * 2), 3) < .4 } : { clogs: true, legL: Math.floor(tt * 26) % 2 * 2, happy: hsh(Math.floor(tt * 2), 4) < .5 }; pxDraw(who, f, B.x, B.base + Math.abs(Math.sin(tt * 20)) * 8, B.z, { a: j ? .18 + .1 * (3 - j) : 1, flip: Math.cos(tt * 6.1) < 0 }); } }
+/* después del avance: Teo y Rosa vuelven a su velocidad */
+function teo5(t) { if (t < S5.SLOW - .6) return null; const f = { clogs: true, tired: true };
+  if (t < 360.6) { if (t > 360.3 && t < 361) { f.wide = true; f.tired = false; } return { x: 120, y: PASSY, z: 480, f, on: 'pass' }; }
+  if (t < 361.6) { const u = seg(t, 360.6, 361.6); return { x: lerp(120, 380, u), y: PASSY + hop(u, 16), z: 480, f: runPose(t, f, .45), on: 'pass' }; }
+  if (t < 362.2) { const u = seg(t, 361.6, 362.2); return { x: lerp(380, 520, u), y: lerp(PASSY, 0, u) + hop(u, 20), z: lerp(480, 620, u), f: { ...f, legL: 2, legR: 2 }, on: 'floor' }; }
+  if (t < 363.2) { const u = seg(t, 362.2, 363.2); return { x: lerp(520, 612, u), y: 0, z: lerp(620, 885, u), f: runPose(t, f, .4), on: 'floor', back: true }; }
+  return null; }
+function rosa5(t) { if (t < S5.SLOW - .6) return null; const f = { clogs: true, happy: t > 352 && t < 354.6, blink: (t * .37) % 1 < .05 };
+  if (t < 353.8) return { x: 330, y: PASSY, z: 490, f, flip: true };
+  if (t < 354.6) { const u = seg(t, 353.8, 354.6); return { x: lerp(330, 480, u), y: PASSY, z: 490, f: { ...f, legL: Math.floor(t * 6) % 2 ? 2 : 0 } }; }
+  if (t < 355.2) { const u = seg(t, 354.6, 355.2); return { x: lerp(480, 560, u), y: lerp(PASSY, 0, u) + hop(u, 18), z: lerp(490, 640, u), f, on: 'floor' }; }
+  if (t < 355.9) { const u = seg(t, 355.2, 355.9); return { x: lerp(560, 615, u), y: 0, z: lerp(640, 885, u), f: { ...f, legL: Math.floor(t * 6) % 2 ? 2 : 0 }, on: 'floor' }; }
+  return null; }
+function scene5(t) {
+  ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.fillStyle = '#aab0b8'; ctx.fillRect(0, 0, W, H); ctx.restore(); T0();
+  SOL.on = 0; camSet(WIDE4); const fl = flare5(t), c = chaos(t), k = ff(t);
+  if (fl > .3) { SHX = Math.sin(t * 53) * 2 * fl * (H / 720); }
+  const Bt = teo5(t), Br = rosa5(t);
+  drawCocina(t, {
+    flare: () => fl, flareX: FLARE5X, door: door5, clock: t2 => clock5(t2), power: power5, dark: dark5, zap: zap5,
+    fog: t2 => .55 * c, printer: t2 => k > .05 ? 18 + (t2 * 40) % 30 : 0, tickets: t2 => t2 < S5.CLEAN ? 3 + Math.floor((t2 * 3) % 4) : t2 < S5.CLEAN + 2 ? 2 : 0, burner: t2 => .6 + .5 * k * Math.abs(Math.sin(t2 * 7)),
+    floor: t2 => { for (const S of STAINS) if (!S.onPass) stainDraw(S, t2, -.4); const w = wet5(t2); if (w > .01) { ctx.save(); ctx.globalCompositeOperation = 'screen'; for (let i = 0; i < 9; i++) { const P = poly3([[-690 + i * 44, -.3, 260], [-670 + i * 44, -.3, 260], [-640 + i * 44, -.3, 880], [-660 + i * 44, -.3, 880]]); if (P) { ctx.fillStyle = `rgba(200,220,255,${.12 * w})`; ctx.fill(P); } } ctx.restore(); } },
+    onRange: t2 => { castIron3D(-330, 750, t2, { smoke: c }); if (k > .02) zipDraw('teo', t2, 'range'); },
+    onPass: t2 => { for (const S of STAINS) if (S.onPass) stainDraw(S, t2, KI.PASS.top - .4); TOWERS.forEach(([x, z, p], i) => { if (p) towerDraw(x, z, towerN(t2, i), KI.PASS.top); }); ribbonDraw(t2);
+      const w = wet5(t2); if (w > .01) { ctx.save(); ctx.globalCompositeOperation = 'screen'; for (const x of [-200, 40, 260]) { const P = poly3([[x, KI.PASS.top - .3, 440], [x + 40, KI.PASS.top - .3, 440], [x + 90, KI.PASS.top - .3, 550], [x + 50, KI.PASS.top - .3, 550]]); if (P) { ctx.fillStyle = `rgba(230,240,255,${.35 * w})`; ctx.fill(P); } } ctx.restore(); }
+      if (k > .02) { zipDraw('rosa', t2, 'pass'); zipDraw('teo', t2, 'pass'); }
+      if (Br && Br.on !== 'floor') drawPx4('rosa', Br, t2, PASSY); if (Bt && Bt.on === 'pass') drawPx4('teo', Bt, t2, PASSY); },
+    items: (put_, t2) => { TOWERS.forEach(([x, z, p], i) => { if (!p) put_(z, () => towerDraw(x, z, towerN(t2, i), 0)); }); if (Bt && Bt.on === 'floor') put_(Bt.z, () => drawPx4('teo', Bt, t2, 0)); if (Br && Br.on === 'floor') put_(Br.z, () => drawPx4('rosa', Br, t2, 0)); },
+    fx: t2 => { if (c > .05) for (const [x, z] of [[-350, 835], [-110, 835], [-330, 750], [255, 790]]) steamCols(t2, { x, y: -170, z }, { n: 5, h: 260, w: 10, a: .2 * c, sway: 30, spread: 40, drift: -.2 }); },
+  });
+  postFx(t, { tone: dark5(t) > .3 ? [214, 222, 255] : [232, 240, 255], vig: .5 + .3 * dark5(t) });
+  /* rótulo del reloj: corre con el avance */
+  if (t > S5.A + .4 && t < 350.9) labelDraw({ t0: Math.min(t - 2, S5.A + .4), t1: 350.9, big: hhmm(t), small: t < S5.SLOW ? '▶▶ EL TURNO' : 'FIN DEL TURNO', col: t < S5.SLOW ? '#ffd84a' : '#8ab4ff' }, t);
+}
+const DLG5 = [
+  { t: 351.0, who: 'rosa', mood: 'normal', txt: 'Buenas noches, cazo. Mañana a las ocho y media...', face: { happy: true }, hold: .2 },
+  { t: 353.7, who: 'rosa', mood: 'normal', txt: '...EN PUNTO.', face: { tired: true }, hold: .6 },
+  { t: 356.2, who: 'teo', mood: 'agotado', txt: '...en punto... chef...', face: { tired: true }, hold: .6 },
+];
+
+/* =====================================================================
    ENTRE EL VAPOR Y EL BIT · SONIDO DE LA ESCENA 1 (nada de lo-fi: cada escena tendrá su propio color)
    · «Dos estrellas»: el motivo de Teo en caja de música (FM de campana), con un colchón suave, al amanecer
    · «Prisa»: chiptune a 150 BPM (pulso 25 % de melodía, arpegio de pulso 12 %, triángulo de bajo, ruido de batería)
@@ -3804,7 +3904,7 @@ function filmEvents() {
   for (let k = 0; k < 6; k++) E.push([40.5 + k * .16, at => clogClack(at, .5 - k * .07)]);
   E.push([46.0, at => whoosh(at, .5, 1, 800, 3000)]); E.push([47.5, at => tone(300, at, .2, .04, 'square', 900)]); E.push([47.85, at => clogClack(at, 1)]);
   E.push([49.6, at => whoosh(at, .5, 1, 800, 3000)]);
-  return E.concat(scene2Events(), scene3Events(), scene4Events());
+  return E.concat(scene2Events(), scene3Events(), scene4Events(), scene5Events());
 }
 /* ---------- escena 2 ---------- */
 function bellDing(at, v = 1) { for (const [f, d, a] of [[2637, 1.4, .05], [3951, .9, .025], [5274, .5, .012]]) tone(f, at, d, a * v, 'sine', f * .998); }
@@ -3962,10 +4062,40 @@ function scene4Events() {
   E.push([305.0, at => printerChat(at, 7.2, .8)]);
   return E;
 }
+/* ---------- escena 5: el turno en avance rápido ---------- */
+function clack(at, v = 1) { noiseHit(at, .025, { type: 'bandpass', f: 1700, q: 4, vol: .16 * v }); thump(at, .22 * v, 170); }
+function zapSnd(at) { noiseHit(at, .25, { type: 'highpass', f: 2500, vol: .12, atk: .002 }); crackle(at, .25, 160, 1.4, 5000); tone(3200, at, .2, .03, 'sawtooth', 900); }
+function scene5Events() {
+  const E = [];
+  /* «Servicio» con la cinta acelerada: doble de tempo, un tono más alto; luego frena */
+  E.push([312.2, at => slowSweep(at, false)]);
+  { let t = 312.6, step = KB / 4, k = 0; const end = S5.SLOW - .6; while (t < end) { const bar = Math.floor(k / 8), r = KCH[bar % 4] + 5, e = k % 8, slow = t > S5.CLEAN ? 1 + 2.2 * seg(t, S5.CLEAN, end) : 1, v = t > S5.CLEAN ? 1 - .6 * seg(t, S5.CLEAN, end) : 1, dn = t > S5.CLEAN ? -Math.round(5 * seg(t, S5.CLEAN, end)) : 0;
+    const n = r + [0, 12, 0, 7, 0, 12, 10, 7][e] + dn; E.push([t, at => tri(n, at, step * slow * .8, .6 * v)]); E.push([t, at => nhat(at, .5 * v)]); if (e % 4 === 0) E.push([t, at => nkick(at, .7 * v)]); if (e === 4) E.push([t, at => noiseHit(at, .03, { type: 'bandpass', f: 1900, q: 3, vol: .06 * v, dest: AU.bM })]);
+    if (t < S5.CLEAN) { const m = KMEL[(k >> 1) % KMEL.length]; if (k % 2 === 0) E.push([t, at => lead(m[1] + 5, at, step * 1.6, .45, 'pulse12')]); }
+    t += step * slow; k++; } }
+  E.push([S5.SLOW - 1.2, at => tapeDive(at)]);
+  /* Rosa se despide: su vals, lento y bajito */
+  { const r0 = 350.8, q = RB * 1.3; for (const [b, n, d] of RMEL.slice(0, 9)) E.push([r0 + b * q, at => lead(n - 12, at, d * q * .9, .4, 'triangle')]); for (let bar = 0; bar < 4; bar++) E.push([r0 + bar * q * 3, at => tri(RCH[bar][0], at, q * 2.6, .6)]); }
+  /* el motivo de Teo, cansado: caja de música lenta y una octava abajo (sigue en la noche) */
+  { const q = 60 / 52, off = 356.6; for (const [b, n] of MOTIF.slice(0, 6)) E.push([off + b * q, at => mbox(n - 12, at, .55)]); }
+  /* foley */
+  for (const t0 of DOOR5) if (t0 < S5.CLEAN + 3) E.push([t0, at => whoosh(at, .25, .3, 400, 1600)]);
+  E.push([355.3, at => swingDoor(at, .8)]); E.push([363.0, at => swingDoor(at, 1)]);
+  for (const [t0] of FLASH5) E.push([t0, at => whoomp(at, .28)]);
+  E.push([312.5, at => printerChat(at, S5.CLEAN - 312.5, .45)]);
+  for (let t = 313; t < S5.CLEAN; t += .5 + hsh(t, 8) * .9) E.push([t, at => ceramic(at, .5)]);
+  for (let t = 313; t < S5.CLEAN; t += .2 + hsh(t, 9) * .4) E.push([t, at => metalClank(at, .12)]);
+  for (let t = S5.CLEAN; t < S5.CLEAN + 4.5; t += .35) E.push([t, at => noiseHit(at, .3, { type: 'bandpass', f: 800, f2: 1600, q: 1, vol: .04, atk: .1 })]);   // trapeo y agua
+  for (const k in LIGHTS5) E.push([LIGHTS5[k], at => clack(at, 1)]);
+  for (const t0 of ZAPS) E.push([t0, at => zapSnd(at)]);
+  for (let t = 360.6; t < 363.2; t += .55) { E.push([t, at => clogClack(at, .35)]); E.push([t + .05, at => noiseHit(at, .25, { type: 'bandpass', f: 600, q: 1, vol: .03 })]); }
+  E.push([360.4, at => yawn(at, 230)]);
+  return E;
+}
 /* ---------- lechos ---------- */
 function filmAudioInit() {
   auBed('room', AU.brown, 'lowpass', 180, .5); auBed('city', AU.brown, 'bandpass', 420, .7); auBed('hiss', AU.white, 'highpass', 7000, .5); auBed('hall', AU.brown, 'lowpass', 300, .6);
-  auBed('traffic', AU.brown, 'lowpass', 260, .6); auBed('wind', AU.white, 'bandpass', 900, .5); auBed('murmur', AU.white, 'bandpass', 620, 2.4); auBed('cafe', AU.brown, 'lowpass', 400, .6); auBed('leaves', AU.white, 'bandpass', 2600, .4); auBed('water', AU.brown, 'bandpass', 320, .8); auBed('hood', AU.brown, 'lowpass', 130, .7); auBed('sizzle', AU.white, 'highpass', 4200, .5);
+  auBed('traffic', AU.brown, 'lowpass', 260, .6); auBed('wind', AU.white, 'bandpass', 900, .5); auBed('murmur', AU.white, 'bandpass', 620, 2.4); auBed('cafe', AU.brown, 'lowpass', 400, .6); auBed('leaves', AU.white, 'bandpass', 2600, .4); auBed('water', AU.brown, 'bandpass', 320, .8); auBed('hood', AU.brown, 'lowpass', 130, .7); auBed('zap', AU.white, 'bandpass', 120, 12); auBed('sizzle', AU.white, 'highpass', 4200, .5);
 }
 function filmBeds(t, n) {
   const s1 = t < S1END + .5, s2a = t >= S1END && t < S2.B, s2b = t >= S2.B;
@@ -3974,7 +4104,7 @@ function filmBeds(t, n) {
   bedSet('hall', s1 && t > 40 ? .03 : 0, n);
   bedSet('traffic', s2a ? .07 : s2b ? .015 : 0, n); bedSet('wind', s2a ? .012 : 0, n);
   const s3 = t >= S3.A - .5 && t < S4.A, s4 = t >= S4.A - .5, ins = s4 ? ins4(t) : null;
-  bedSet('hood', s4 ? (ins ? .05 : .09) : 0, n); bedSet('sizzle', s4 ? (ins === 'A' ? .03 : .006) : 0, n); if (s4) { bedSet('hall', ins === 'B' ? .01 : .02, n); bedSet('traffic', 0, n); } bedSet('murmur', s2b && t < S3.A - .5 ? .016 : 0, n); bedSet('cafe', s2b && t < S3.A - .5 ? .04 : 0, n);
+  const s5 = t >= S5.A, hoodOn = t < LIGHTS5.hood; bedSet('hood', s4 && hoodOn ? (ins ? .05 : .09) : 0, n); if (s5) bedSet('sizzle', .02 * chaos(t), n); bedSet('zap', s5 ? .006 + .02 * dark5(t) : 0, n); if (!s5) bedSet('sizzle', s4 ? (ins === 'A' ? .03 : .006) : 0, n); if (s4) { bedSet('hall', ins === 'B' ? .01 : .02, n); bedSet('traffic', 0, n); } bedSet('murmur', s2b && t < S3.A - .5 ? .016 : 0, n); bedSet('cafe', s2b && t < S3.A - .5 ? .04 : 0, n);
   bedSet('leaves', s3 ? .012 + .006 * Math.sin(t * .4) : 0, n); bedSet('water', s3 && t < 152 ? .03 : 0, n); if (s3) bedSet('traffic', .01, n);
   if (AU.bedL.murmur) AU.bedL.murmur.fl.frequency.setTargetAtTime(560 + 140 * Math.sin(t * .7), n, .3);
   const k = slowK(t); AU.sfx.gain.setTargetAtTime(1 - .4 * k, n, .1);
@@ -4014,12 +4144,12 @@ const DLG1 = [
   { t: 38.3, who: 'teo', mood: 'prisa', txt: '¡Allá voooy!', face: { happy: true }, hold: .5 },
   { t: 48.2, who: 'teo', mood: 'normal', txt: 'Perdón, Kronotek. Buenos días.', face: { happy: true }, hold: .7 },
 ];
-const DLG = DLG1.concat(DLG2, DLG3, DLG4);
+const DLG = DLG1.concat(DLG2, DLG3, DLG4, DLG5);
 const LABELS = [{ t0: 14.5, t1: 19.3, big: '07:15 AM', small: 'EL ESTUDIO DE TEO' }, { t0: 62.0, t1: 66.6, big: '07:35 AM', small: 'CALLE ALMAGRE' }, { t0: 124.2, t1: 128.8, big: '07:50 AM', small: 'PARQUE DEL INVERNADERO' }].concat(LABELS4);
 const S1END = 60.4;
 /* quién habla y dónde está (para subir la caja si está abajo) */
 function speakerY(t) { const d = DLG.find(q => t >= q.t - .12 && t < q.end + .15); if (!d) return 0; let B;
-  if (t >= S4.A) { if (ins4(t)) return H * .9; B = d.who === 'rosa' ? rosa4(t) : teo4(t); } else if (d.who === 'valeria') B = valeriaAt(t); else if (d.who === 'ramiro') { const D = duckAt(t, 0); B = { x: D.x, y: 0, z: D.z }; } else B = t < S2.A ? teoAt(t) : t < S2.B ? teoCalle(t) : t < S3.A ? teoCafe(t) : teoParque(t);
+  if (t >= S5.A) { B = d.who === 'rosa' ? rosa5(t) : teo5(t); if (!B) return 0; } else if (t >= S4.A) { if (ins4(t)) return H * .9; B = d.who === 'rosa' ? rosa4(t) : teo4(t); } else if (d.who === 'valeria') B = valeriaAt(t); else if (d.who === 'ramiro') { const D = duckAt(t, 0); B = { x: D.x, y: 0, z: D.z }; } else B = t < S2.A ? teoAt(t) : t < S2.B ? teoCalle(t) : t < S3.A ? teoCafe(t) : teoParque(t);
   if (!B || B.hide) return 0; return pxFoot(B.x, (B.y || 0) + 40, B.z)[1]; }
 function scene1(t) {
   estudioSol(false); SOL.on = 1; camSet(camEstudio(t));
@@ -4032,12 +4162,12 @@ function scene2b(t) { SOL.on = 0; camSet(camCafe(t)); ctx.save(); ctx.setTransfo
 function scene3(t) { SOL.on = 0; camSet(camParque(t)); ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.fillStyle = '#cfe0d8'; ctx.fillRect(0, 0, W, H); ctx.restore(); T0(); drawParque(t); postFx(t, { tone: [246, 252, 236], vig: .55 }); }
 function black() { ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H); ctx.restore(); T0(); }
 const FILM = {
-  DUR: 314.2, CHAPTERS: [[0, 'El estudio'], [14.4, 'La alarma'], [25, 'El salto'], [46, 'Vuelve'], [61.5, 'La calle'], [86.6, 'Molienda'], [109, 'El cortado'], [123.6, 'El parque'], [146.6, 'El invernadero'], [182, 'Brasa y Bruma'], [216, 'Sellado y llamarada'], [244, 'Mesa siete'], [256.4, 'El emplatado'], [283, '¡Servicio!']],
+  DUR: 367.2, CHAPTERS: [[0, 'El estudio'], [14.4, 'La alarma'], [25, 'El salto'], [46, 'Vuelve'], [61.5, 'La calle'], [86.6, 'Molienda'], [109, 'El cortado'], [123.6, 'El parque'], [146.6, 'El invernadero'], [182, 'Brasa y Bruma'], [216, 'Sellado y llamarada'], [244, 'Mesa siete'], [256.4, 'El emplatado'], [283, '¡Servicio!'], [312, 'El turno'], [349.5, 'Buenas noches']],
   fonts: ['700 20px "Playfair Display"', '20px "Bebas Neue"', '700 20px "Josefin Sans"', '20px "Pacifico"', '20px "Space Mono"', '600 20px "Caveat"'],
   load: [['Pintando el ladrillo, el yeso y el parqué…', () => estudioPaint()], ['Llenando la estantería de post-its…', () => utileriaPaint()], ['Tendiendo las sábanas de lino…', () => sheetBake()],
     ['Pintando la calle Almagre…', () => callePaint()], ['Encendiendo las bombillas de Molienda…', () => cafePaint()], ['Regando el parque…', () => { parquePaint(); steps3Init(); }], ['Puliendo el acero de Brasa y Bruma…', () => cocinaPaint()], ['Sellando la carne y templando el oro…', () => recetasPaint()],
     ['Afinando los bleeps…', () => { FILM.bleeps = dlgPrep(DLG).concat(...LABELS.map(labelBleeps)); }]],
-  door: doorAt, events: () => filmEvents(), audioInit: () => filmAudioInit(), beds: (t, n) => filmBeds(t, n), fade: t => 1 - sm((t - 309.6) / 4.2),
+  door: doorAt, events: () => filmEvents(), audioInit: () => filmAudioInit(), beds: (t, n) => filmBeds(t, n), fade: t => 1 - sm((t - 364.6) / 2.4),
   draw(t) {
     if (t < S1END) scene1(t);
     else if (t < S2.A) pxWipe(() => scene1(t), () => scene2a(t), (t - S1END) / (S2.A - S1END), { dir: 'right' });
@@ -4046,7 +4176,10 @@ const FILM = {
     else if (t < S3.A) pxWipe(() => scene2b(t), () => scene3(t), (t - S2.END) / (S3.A - S2.END), { dir: 'right' });
     else if (t < S3.END) scene3(t);
     else if (t < S4.A) pxWipe(() => scene3(t), () => scene4(t), (t - S3.END) / (S4.A - S3.END), { dir: 'right' });
-    else scene4(t);
+    else if (t < S4.END) scene4(t);
+    else if (t < S5.END) scene5(t);
+    else if (t < S5.END + 1) pxWipe(() => scene5(t), black, t - S5.END, { dir: 'center' });
+    else black();
     fadeTo('#000', 1 - sm(t / 2.6));
     dlgDraw(DLG, t, { anchor: () => speakerY(t) }); for (const L of LABELS) labelDraw(L, t);
   },

@@ -11,6 +11,11 @@ Skill para Claude que hace películas, cortos, intros y fondos animados con **Ca
 
 Así se hicieron «Kurenai», la serie «El Juramento Roto» y «Entre el Vapor y el Bit · Crónica de dos Estrellas».
 
+## Voces con ElevenLabs / Voices with ElevenLabs
+
+- **🇪🇸** Con el conector de ElevenLabs en Claude, el skill puede dar voces reales a los personajes: las genera, mide su duración y las incrusta en el HTML. Sin el conector, todo el sonido es sintetizado.
+- **🇬🇧** With the ElevenLabs connector in Claude, the skill can give characters real voices: it generates them, measures their length and embeds them in the HTML. Without it, all sound is synthesized.
+
 ## Instalar en Claude Code
 
 ```

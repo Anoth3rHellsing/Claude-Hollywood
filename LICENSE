@@ -1,3 +1,19 @@
+================================================================================
+Claude Hollywood / Code-Corn (Skill sumi-e-canvas-film)
+Copyright (C) 2026 Nicolas Mejia Vargas <https://github.com/Anoth3rHellsing>
+
+Este programa y skill son software libre y de código abierto: puedes redistribuirlo,
+estudiarlo, modificarlo y realizar forks bajo los términos de la GNU General Public
+License según lo publicado por la Free Software Foundation, versión 3 (o posterior).
+
+CLÁUSULA DE USO LIBRE, GRATUITO Y NO COMERCIAL:
+El proyecto está dedicado a la comunidad creativa para permanecer libre, abierto y 
+accesible para todos. Se autoriza y fomenta la creación de forks, adaptaciones y 
+redistribución libre. Queda expresamente prohibida la venta directa, comercialización 
+o cobro por el acceso, suscripción o distribución de este software, sus skills y derivados.
+Debe permanecer gratuito y accesible para toda la comunidad.
+================================================================================
+
                     GNU GENERAL PUBLIC LICENSE
                        Version 3, 29 June 2007
 
@@ -631,8 +647,8 @@ to attach them to the start of each source file to most effectively
 state the exclusion of warranty; and each file should have at least
 the "copyright" line and a pointer to where the full notice is found.
 
-    <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) <year>  <name of author>
+    Claude Hollywood (sumi-e-canvas-film): Películas animadas hechas solo con código
+    Copyright (C) 2026  Nicolas Mejia Vargas <https://github.com/Anoth3rHellsing>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -652,7 +668,7 @@ Also add information on how to contact you by electronic and paper mail.
   If the program does terminal interaction, make it output a short
 notice like this when it starts in an interactive mode:
 
-    <program>  Copyright (C) <year>  <name of author>
+    Claude Hollywood  Copyright (C) 2026  Nicolas Mejia Vargas
     This program comes with ABSOLUTELY NO WARRANTY; for details type `show w'.
     This is free software, and you are welcome to redistribute it
     under certain conditions; type `show c' for details.

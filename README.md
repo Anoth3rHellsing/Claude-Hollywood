@@ -166,4 +166,7 @@ Totalmente opcional, y muy agradecido. 🍿
 
 ## Licencia
 
-[GPL-3.0](LICENSE). Los personajes, las marcas y los mundos de las películas son originales de este proyecto. No es contenido oficial de Anthropic.
+[GPL-3.0](LICENSE) — Copyright (c) 2026 Nicolas Mejia Vargas.  
+Este proyecto y la skill `sumi-e-canvas-film` son software libre y código abierto. Puedes usarlo, estudiarlo, modificarlo y crear forks libremente bajo la licencia GNU GPLv3. Queda prohibida su venta directa o cobro comercial por el acceso; debe permanecer libre, gratuito y abierto para toda la comunidad.
+
+Los personajes, las marcas y los mundos de las películas son originales de este proyecto. No es contenido oficial de Anthropic.
